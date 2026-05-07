@@ -22,33 +22,33 @@ Evaluation outputs span case, object, frame, class, scene, and batch levels, wit
 ## Installation
 
 ```bash
-git clone <repo-url> remind_tracker
-cd remind_tracker
+git clone <repo-url> remind-reid-tracker
+cd remind-reid-tracker
 
 # Create environment (Python 3.10+ recommended)
 conda create -n remind python=3.10 -y
 conda activate remind
 
 # Install dependencies
-pip install -r APP2/requirements.txt
+pip install torch torchvision transformers scikit-learn scipy numpy opencv-python tqdm psutil ultralytics
 ```
 
 Models are loaded automatically at runtime:
-- **DINOv2** — fetched from HuggingFace on first use (configurable via `dino.model_label` in config)
-- **YOLO** — place segmentation weights under `APP2/yolo_models/` (only needed with `--detector-backend yolo`)
+- **DINOv2** — fetched from HuggingFace on first use (configurable via `dino.model_label` in `config/default_config.yaml`)
+- **YOLO** — place segmentation weights under `yolo_models/` and update the paths in `config/default_config.yaml` under `yolo.models` (only needed with `--detector-backend yolo`)
 
 ---
 
 ## Quick Usage
 
-All scripts are run from `APP2/Src/`:
+All scripts are run from the repository root:
 
 ### Single sequence
 
 ```bash
-cd APP2/Src
+cd remind-reid-tracker
 
-python ./testing/run_tracking_test.py \
+python testing/run_tracking_test.py \
   --detector-backend davis \
   --frames-dir /path/to/FRAMES/ \
   --davis-meta-path /path/to/metaCUSTOMVIDEO.json \
@@ -60,9 +60,7 @@ python ./testing/run_tracking_test.py \
 ### Batch evaluation
 
 ```bash
-cd APP2/Src
-
-python ./testing/run_tracking_batch.py \
+python testing/run_tracking_batch.py \
   --images-root /path/to/scannetpp_small_test/ \
   --masks-root /path/to/scannetpp_small_test/ \
   --mask-variant raw \
@@ -77,10 +75,10 @@ Outputs include `per_case.csv`, `per_object.csv`, `per_scene.csv`, `summary_glob
 
 ### Config overrides
 
-The pipeline reads `APP2/Src/config/default_config.yaml` by default. Any parameter can be overridden by passing a second YAML file:
+The pipeline reads `config/default_config.yaml` by default. Any parameter can be overridden by passing a second YAML file:
 
 ```python
-Config("APP2/Src/config/default_config.yaml", "my_override.yaml")
+Config("config/default_config.yaml", "my_override.yaml")
 ```
 
 Detector backends: `"davis"` (ground-truth masks from DAVIS / ScanNet++) or `"yolo"` (YOLO instance segmentation).
