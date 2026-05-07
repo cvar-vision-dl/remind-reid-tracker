@@ -6,7 +6,7 @@
 
 ## Overview
 
-REMIND addresses a core challenge in visual tracking: re-identifying objects that disappear and reappear, look similar to one another, or are observed from changing viewpoints. Rather than relying on position or motion cues, REMIND builds appearance-based identity models per object using DINOv2 patch features, decomposed into:
+REMIND addresses a core challenge in visual tracking: re-identifying objects that disappear and reappear, look similar to one another, or are observed from changing viewpoints. Rather than relying on position or motion cues, REMIND builds appearance-based identity models per object using DINOv3 patch features, decomposed into:
 
 - **Global and part-level descriptors** — K-means and attention-guided semantic parts extracted per detection
 - **Relational context (neighbor sets)** — structural scene layout encoded as co-occurrence graphs of neighboring objects
@@ -34,7 +34,7 @@ pip install torch torchvision transformers scikit-learn scipy numpy opencv-pytho
 ```
 
 Models are loaded automatically at runtime:
-- **DINOv2** — fetched from HuggingFace on first use (configurable via `dino.model_label` in `config/default_config.yaml`)
+- **DINOv3** — fetched from HuggingFace on first use (configurable via `dino.model_label` in `config/default_config.yaml`)
 - **YOLO** — place segmentation weights under `yolo_models/` and update the paths in `config/default_config.yaml` under `yolo.models` (only needed with `--detector-backend yolo`)
 
 ---
