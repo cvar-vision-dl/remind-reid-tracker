@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Visor de Trazas de Asociación</title>
+    <link rel="stylesheet" href="/styles.css?v=20260401j" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <main class="workspace workspace-full">
+        <header class="workspace-header">
+          <div>
+            <div class="eyebrow">Visor offline</div>
+            <h2 id="trace-title">Cargando traza...</h2>
+          </div>
+        </header>
+
+        <section class="tabs-panel">
+          <div class="tabs-strip" id="tabs-strip"></div>
+        </section>
+
+        <section class="controls-panel">
+          <label>
+            <span>Run</span>
+            <select id="run-select"></select>
+          </label>
+          <label>
+            <span>Frame</span>
+            <select id="frame-select"></select>
+          </label>
+          <label>
+            <span>Clase</span>
+            <select id="class-select"></select>
+          </label>
+        </section>
+
+        <section class="frame-panel">
+          <div class="frame-panel-header">
+            <div>
+              <div class="eyebrow">Frame seleccionado</div>
+              <h3 id="frame-preview-title">Vista del frame</h3>
+            </div>
+          </div>
+          <div class="frame-preview-layout frame-preview-layout-single">
+            <div class="frame-preview-media">
+              <img id="frame-preview-image" alt="Vista del frame con máscaras y labels" />
+              <div id="frame-preview-empty" class="frame-preview-empty">Esta run aún no tiene preview visual para este frame.</div>
+            </div>
+          </div>
+        </section>
+
+        <section id="overview-pane" class="overview-pane">
+          <section class="memory-panel">
+            <div class="memory-panel-header">
+              <div>
+                <div class="eyebrow">Snapshot externo al árbol</div>
+                <h3>Objetos en memoria</h3>
+              </div>
+              <button id="open-objects-tab" type="button" class="ghost-button">Abrir detalle</button>
+            </div>
+            <div id="memory-overview" class="memory-overview-grid"></div>
+          </section>
+
+          <section class="graph-panel">
+            <svg id="graph-svg" viewBox="0 0 1380 1940" preserveAspectRatio="xMidYMid meet">
+              <defs>
+                <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#163852" flood-opacity="0.16" />
+                </filter>
+                <marker id="edgeArrow" viewBox="0 0 10 10" refX="6.5" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse">
+                  <path d="M 0 0 L 10 5 L 0 10 z" fill="#6f7f78" opacity="0.72"></path>
+                </marker>
+                <marker id="edgeArrowColor" viewBox="0 0 10 10" refX="6.5" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse">
+                  <path d="M 0 0 L 10 5 L 0 10 z" fill="context-stroke" opacity="0.95"></path>
+                </marker>
+                <marker id="edgeArrowTiny" viewBox="0 0 10 10" refX="6.5" refY="5" markerWidth="2.8" markerHeight="2.8" orient="auto-start-reverse">
+                  <path d="M 0 0 L 10 5 L 0 10 z" fill="#6f7f78" opacity="0.78"></path>
+                </marker>
+                <marker id="edgeArrowColorTiny" viewBox="0 0 10 10" refX="6.5" refY="5" markerWidth="2.8" markerHeight="2.8" orient="auto-start-reverse">
+                  <path d="M 0 0 L 10 5 L 0 10 z" fill="context-stroke" opacity="0.98"></path>
+                </marker>
+              </defs>
+              <g id="graph-root"></g>
+            </svg>
+          </section>
+        </section>
+
+        <section id="detail-pane" class="detail-pane hidden">
+          <div class="detail-pane-header">
+            <div>
+              <div class="eyebrow" id="detail-tab-kind">Detalle</div>
+              <h3 id="detail-tab-title">Pestaña</h3>
+            </div>
+            <div class="header-badges" id="detail-tab-badges"></div>
+          </div>
+          <div id="detail-tab-content" class="detail-tab-content"></div>
+        </section>
+      </main>
+    </div>
+
+    <script src="/app.js?v=20260401j" type="module"></script>
+  </body>
+</html>

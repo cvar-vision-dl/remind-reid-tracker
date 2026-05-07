@@ -1,0 +1,90 @@
+# REMIND — Re-identification with Memory and INstance Descriptors
+
+> A multi-object re-identification tracker that maintains consistent identities across long sequences using semantic part descriptors, relational context, and adaptive memory.
+
+---
+
+## Overview
+
+REMIND addresses a core challenge in visual tracking: re-identifying objects that disappear and reappear, look similar to one another, or are observed from changing viewpoints. Rather than relying on position or motion cues, REMIND builds appearance-based identity models per object using DINOv2 patch features, decomposed into:
+
+- **Global and part-level descriptors** — K-means and attention-guided semantic parts extracted per detection
+- **Relational context (neighbor sets)** — structural scene layout encoded as co-occurrence graphs of neighboring objects
+- **Known-set distance disambiguation** — geometry-aware resolution of visually ambiguous groups
+- **Adaptive memory** — per-object appearance, part, and background models that update over time
+
+The association pipeline runs a per-frame sequence of visual evidence building, context activation, global Hungarian assignment, and post-assignment guards, producing explicit uncertainty signals (ambiguous, provisional) alongside confident identity decisions.
+
+Evaluation outputs span case, object, frame, class, scene, and batch levels, with full internal telemetry for diagnostic analysis.
+
+---
+
+## Installation
+
+```bash
+git clone <repo-url> remind_tracker
+cd remind_tracker
+
+# Create environment (Python 3.10+ recommended)
+conda create -n remind python=3.10 -y
+conda activate remind
+
+# Install dependencies
+pip install -r APP2/requirements.txt
+```
+
+Models are loaded automatically at runtime:
+- **DINOv2** — fetched from HuggingFace on first use (configurable via `dino.model_label` in config)
+- **YOLO** — place segmentation weights under `APP2/yolo_models/` (only needed with `--detector-backend yolo`)
+
+---
+
+## Quick Usage
+
+All scripts are run from `APP2/Src/`:
+
+### Single sequence
+
+```bash
+cd APP2/Src
+
+python ./testing/run_tracking_test.py \
+  --detector-backend davis \
+  --frames-dir /path/to/FRAMES/ \
+  --davis-meta-path /path/to/metaCUSTOMVIDEO.json \
+  --davis-annotations-dir /path/to/Annotations/raw/FRAMES \
+  --sequence-name FRAMES \
+  --output-dir /path/to/outputs/
+```
+
+### Batch evaluation
+
+```bash
+cd APP2/Src
+
+python ./testing/run_tracking_batch.py \
+  --images-root /path/to/scannetpp_small_test/ \
+  --masks-root /path/to/scannetpp_small_test/ \
+  --mask-variant raw \
+  --masks-subdir annotations \
+  --image-subdir dslr/resized_images \
+  --detector-backend davis \
+  --max-scenes 1 \
+  --output-dir /path/to/outputs/
+```
+
+Outputs include `per_case.csv`, `per_object.csv`, `per_scene.csv`, `summary_global.csv`, and internal module telemetry — ready for offline analysis or direct inclusion in research tables.
+
+### Config overrides
+
+The pipeline reads `APP2/Src/config/default_config.yaml` by default. Any parameter can be overridden by passing a second YAML file:
+
+```python
+Config("APP2/Src/config/default_config.yaml", "my_override.yaml")
+```
+
+Detector backends: `"davis"` (ground-truth masks from DAVIS / ScanNet++) or `"yolo"` (YOLO instance segmentation).
+
+---
+
+*This project is part of ongoing research. Documentation will be expanded.*
