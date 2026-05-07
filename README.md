@@ -22,7 +22,7 @@ Evaluation outputs span case, object, frame, class, scene, and batch levels, wit
 ## Installation
 
 ```bash
-git clone <repo-url> remind-reid-tracker
+git clone https://github.com/cvar-vision-dl/remind-reid-tracker
 cd remind-reid-tracker
 
 # Create environment (Python 3.10+ recommended)
@@ -46,8 +46,6 @@ All scripts are run from the repository root:
 ### Single sequence
 
 ```bash
-cd remind-reid-tracker
-
 python testing/run_tracking_test.py \
   --detector-backend davis \
   --frames-dir /path/to/FRAMES/ \
