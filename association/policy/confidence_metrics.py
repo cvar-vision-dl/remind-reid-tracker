@@ -6,7 +6,7 @@ from association.reports import SimilarityReport
 
 
 class ConfidenceMetrics:
-    """Cálculo de confianza y factores auxiliares para asociación."""
+    """Confidence computation and auxiliary factors for association."""
 
     def __init__(
         self,

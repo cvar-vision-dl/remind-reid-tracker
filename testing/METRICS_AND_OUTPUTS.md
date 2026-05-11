@@ -1,6 +1,6 @@
 # Testing Metrics And Outputs
 
-Este documento resume que metricas y que informacion guarda el pipeline de evaluacion en `APP2/Src/testing`, que significa cada bloque y como interpretar los CSV resultantes.
+Este documento resume que metricas y que informacion guarda el pipeline de evaluacion en `REMIND/testing`, que significa cada bloque y como interpretar los CSV resultantes.
 
 La idea es distinguir dos cosas:
 
@@ -12,7 +12,7 @@ La idea es distinguir dos cosas:
 - La unidad basica de evaluacion es el `caso`, es decir, una observacion GT visible en un frame concreto.
 - `n_cases` suele equivaler al numero de observaciones GT visibles evaluadas. Incluye tambien casos sin deteccion si el GT estaba visible.
 - En el batch, todo queda ligado a `run_id`, `scene_id` y `scene_name`.
-- Las metricas `strict` y `permissive` pertenecen al analisis historico de asignaciones GT<->pred y no son exactamente lo mismo que las metricas `collapsed_*`. Se calculan sobre todos los GT visibles: si un caso visible no tiene asignacion firme correcta, penaliza.
+- Las metricas `strict` y `permissive` pertenecen al analisis base de asignaciones GT<->pred y no son exactamente lo mismo que las metricas `collapsed_*`. Se calculan sobre todos los GT visibles: si un caso visible no tiene asignacion firme correcta, penaliza.
 - `tracking_iou` se contabiliza como la IoU del caso solo cuando la decision colapsada final es correcta. Si no, vale `0.0`.
 - `distance_correct` significa que el modulo de distancia participo en la resolucion y que el resultado colapsado final del caso fue correcto. No mide solo "si el modulo de distancia propuso algo razonable".
 - `context_change_correct` significa que hubo intervencion del contexto o neighbor sets y que el resultado final colapsado fue correcto.
@@ -303,7 +303,7 @@ Cada fila representa un objeto GT agregado a lo largo del tiempo.
 - `n_unique_pred_ids`: cuantos ids distintos uso ese GT.
 - `n_own_pred_ids`: ids propios usados por el GT.
 - `n_foreign_pred_ids`: ids ajenos usados por el GT.
-- `id_changes`: cambios de id por segmentos historicos.
+- `id_changes`: cambios de id por segmentos de trayectoria.
 - `idsw_object`: switches de id a nivel objeto usando la secuencia colapsada.
 - `frag_object`: fragmentacion del objeto por interrupciones o cambios de track.
 

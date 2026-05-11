@@ -37,10 +37,10 @@ class FrameUpdateOutput:
 
 class MemoryManager:
     """
-    Update por frame consumiendo SOLO la salida de association:
+    Per-frame update consuming ONLY association output:
       - decided_matches / to_create
       - geom_by_object_id (si existe)
-      - reports_by_det_id para reglas de update (neighbors episodios y robust updates)
+      - reports_by_det_id for update rules (neighbor episodes and robust updates)
     """
 
     def __init__(self, config: dict, memory_store, class_id_to_name=None):
@@ -938,7 +938,7 @@ class MemoryManager:
         try:
             from scipy.optimize import linear_sum_assignment
         except Exception as e:
-            raise RuntimeError("Temporal Hungarian requiere scipy. Instala: pip install scipy") from e
+            raise RuntimeError("Temporal Hungarian requires scipy. Install: pip install scipy") from e
 
         items_by_class: dict[int, list[dict]] = {}
         tracks_by_class: dict[int, list] = {}

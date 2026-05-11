@@ -3,10 +3,10 @@ from __future__ import annotations
 
 class CandidateScoreShaper:
     """
-    Fachada semántica para reglas que construyen tablas y restringen filas.
+    Semantic facade for rules that build tables and restrict rows.
 
-    Agrupa score base/final, veto contextual y dummy score sin alterar la
-    implementación real de la policy.
+    Groups base/final score, contextual veto, and dummy score without changing
+    the real policy implementation.
     """
 
     def __init__(self, score_policy):

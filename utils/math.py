@@ -22,7 +22,7 @@ def cosine_sim(a: np.ndarray, b: np.ndarray) -> float:
 def kmeans_np(x: np.ndarray, k: int, n_iter: int = 50, n_init: int = 3, seed: int = 0):
     """
     Simple k-means (numpy) returning (labels, centers, inertia).
-    Implementación numpy simplificada para el pipeline actual.
+    Simplified numpy implementation for the current pipeline.
     """
     if x.ndim != 2:
         raise ValueError("kmeans_np: x must be (N,D)")

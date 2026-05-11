@@ -36,10 +36,6 @@ from utils.io import (
 from utils.image import ImageHistory
 from utils.logging import TeeStdout, default_run_log_path
 from utils.scannetpp_tar import resolve_prepared_scene_from_tar
-from association_trace import (
-    build_association_frame_preview,
-    build_association_memory_snapshot,
-)
 from utils.visualization import (
     overlay_header,
 )
@@ -54,12 +50,12 @@ def _env_flag(name: str, default: bool = False) -> bool:
 
 def resolve_main_input_source(project_dir: str) -> dict[str, str]:
     """
-    Resuelve la escena de entrada para el modo interactivo.
+    Resolve the input scene for interactive mode.
 
-    Prioridad:
-    1. Variables de entorno explícitas.
-    2. Escena ScanNet++ descomprimida en disco externo si está disponible.
-    3. Fallback local histórico dentro del repo.
+    Priority:
+    1. Explicit environment variables.
+    2. Uncompressed ScanNet++ scene when available.
+    3. Fallback local dentro del repo.
     """
     project_path = Path(project_dir).resolve()
 
@@ -78,17 +74,12 @@ def resolve_main_input_source(project_dir: str) -> dict[str, str]:
             "davis_annotations_dir": explicit_annotations_dir,
         }
 
+    local_scannetpp_root = project_path / "data" / "scannetpp_data"
     external_masks_root_base = Path(
-        os.environ.get(
-            "APP2_SCANNETPP_MASKS_ROOT",
-            "/media/pablo/LINUX/Qsync/2026_tracker_reid/datasets/scannetpp_data",
-        )
+        os.environ.get("APP2_SCANNETPP_MASKS_ROOT", str(local_scannetpp_root))
     ).expanduser().resolve()
     external_images_root_base = Path(
-        os.environ.get(
-            "APP2_SCANNETPP_IMAGES_ROOT",
-            "/media/pablo/LINUX/Qsync/2026_tracker_reid/datasets/scannetpp_data",
-        )
+        os.environ.get("APP2_SCANNETPP_IMAGES_ROOT", str(local_scannetpp_root))
     ).expanduser().resolve()
     scene_id = os.environ.get("APP2_SCENE_ID", "00a231a370").strip() or "00a231a370"
     mask_variant = os.environ.get("APP2_MASK_VARIANT", "benchmark").strip().lower() or "benchmark"
@@ -142,13 +133,13 @@ def resolve_main_input_source(project_dir: str) -> dict[str, str]:
 
 def resolve_frame_files_for_main(frames_dir: str, *, davis_meta_path: str = "") -> tuple[list[str], bool]:
     """
-    Resuelve la lista de frames de entrada.
+    Resolve the input frame list.
 
-    Si el meta DAVIS aporta `frame_names`, usamos esa lista para mapear las
-    máscaras densas `frame_000XYZ.png` contra los nombres originales
-    (`DSC....JPG`) y procesar exactamente los frames anotados.
+    If DAVIS meta provides `frame_names`, use that list to map
+    dense `frame_000XYZ.png` masks against the original names
+    (`DSC....JPG`) and process exactly the annotated frames.
 
-    Devuelve:
+    Returns:
     - lista de paths de frame en el orden correcto
     - bool indicando si el `frame_id` debe ser secuencial (0..N-1)
     """
@@ -159,9 +150,9 @@ def resolve_frame_files_for_main(frames_dir: str, *, davis_meta_path: str = "") 
         try:
             meta = json.loads(meta_path.read_text(encoding="utf-8"))
         except json.JSONDecodeError as e:
-            raise ValueError(f"Meta DAVIS inválido en {meta_path}: JSON malformado.") from e
+            raise ValueError(f"Invalid DAVIS meta at {meta_path}: malformed JSON.") from e
         if not isinstance(meta, dict):
-            raise ValueError(f"Meta DAVIS inválido en {meta_path}: se esperaba objeto JSON.")
+            raise ValueError(f"Invalid DAVIS meta at {meta_path}: expected a JSON object.")
 
         frame_names = meta.get("frame_names", None)
         if isinstance(frame_names, list) and frame_names:
@@ -180,7 +171,7 @@ def resolve_frame_files_for_main(frames_dir: str, *, davis_meta_path: str = "") 
             if missing:
                 preview = ", ".join(missing[:5])
                 raise FileNotFoundError(
-                    f"Faltan {len(missing)} frames del meta en {frames_root}. "
+                    f"Missing {len(missing)} meta frames in {frames_root}. "
                     f"Ejemplos: {preview}"
                 )
 
@@ -204,10 +195,6 @@ FRAME_TIMING_ORDER = [
     "pipeline",
     "debug_association",
     "debug_update",
-    "trace_memory_snapshot",
-    "trace_save_memory_snapshot",
-    "build_preview",
-    "trace_save_preview",
     "history_put",
     "ui_show",
     "ui_wait",
@@ -224,10 +211,6 @@ def _apply_main_input_to_config(config: dict, *, input_source: dict, frames_dir:
         davis_cfg["meta_path"] = input_source["davis_meta_path"]
     if input_source.get("davis_annotations_dir"):
         davis_cfg["annotations_dir"] = input_source["davis_annotations_dir"]
-
-    trace_cfg = config.setdefault("debug", {}).setdefault("association_trace", {})
-    trace_cfg["enabled"] = True
-    trace_cfg["mode"] = "full"
 
 
 def _print_main_input_summary(*, input_source: dict, frames_dir: str, sequence_name: str, frame_count: int) -> None:
@@ -309,7 +292,7 @@ def _render_review_frame(
         viz = read_bgr(frame_files[view_idx])
 
     if viz is None:
-        raise FileNotFoundError(f"No se pudo cargar la imagen para review: {frame_files[view_idx]}")
+        raise FileNotFoundError(f"Could not load image for review: {frame_files[view_idx]}")
 
     mode = f"REVIEW_{'AUTO' if mode_auto else 'MANUAL'}"
     meta = frame_meta_by_idx.get(int(view_idx), {}) or {}
@@ -359,60 +342,6 @@ def _print_update_debug_tables(*, config: dict, frame_id: int, update_output, me
     print_neighbor_distance_graph(config, frame_id, update_output, memory_store, object_ids=None)
     print_proto_update_table(config, frame_id, update_output)
     print_memory_table(config, frame_id, memory_store)
-
-
-def _build_preview_and_trace(
-    *,
-    frame_total_timer: ExecutionTimer,
-    trace_collector,
-    ctx,
-    frame_id: int,
-    timestamp: float,
-    frame: np.ndarray,
-    patch_size: int,
-    perception_output,
-    association_output,
-    update_output,
-    viz_enabled: bool,
-):
-    if getattr(trace_collector, "enabled", False):
-        memory_snapshot = frame_total_timer.run(
-            "trace_memory_snapshot",
-            build_association_memory_snapshot,
-            memory_store=ctx.memory,
-            frame_id=int(frame_id),
-            timestamp=float(timestamp),
-        )
-        frame_total_timer.run(
-            "trace_save_memory_snapshot",
-            trace_collector.save_memory_snapshot,
-            int(frame_id),
-            memory_snapshot,
-        )
-
-    need_preview = bool(viz_enabled) or bool(getattr(trace_collector, "enabled", False))
-    if not need_preview:
-        return None
-
-    preview_bgr = frame_total_timer.run(
-        "build_preview",
-        build_association_frame_preview,
-        config=ctx.config,
-        memory_store=ctx.memory,
-        patch_size=patch_size,
-        frame_bgr=frame,
-        perception_output=perception_output,
-        association_output=association_output,
-        update_output=update_output,
-    )
-    if getattr(trace_collector, "enabled", False) and preview_bgr is not None:
-        frame_total_timer.run(
-            "trace_save_preview",
-            trace_collector.save_frame_preview,
-            int(frame_id),
-            preview_bgr,
-        )
-    return preview_bgr
 
 
 def _print_frame_timing(
@@ -499,8 +428,6 @@ def main():
     view_idx = 0
     total = len(frame_files)
 
-    patch_size = int(getattr(ctx.dino, "patch_size", 16))
-
     _print_controls(
         cache_frames=cache_frames,
         viz_dir=viz_dir,
@@ -580,24 +507,7 @@ def main():
                 det_id_to_local=det_id_to_local,
             )
 
-            trace_collector = pipeline.association_stage.engine.trace_collector
-            preview_bgr = _build_preview_and_trace(
-                frame_total_timer=frame_total_timer,
-                trace_collector=trace_collector,
-                ctx=ctx,
-                frame_id=int(frame_id),
-                timestamp=float(timestamp),
-                frame=frame,
-                patch_size=int(patch_size),
-                perception_output=p_out,
-                association_output=a_out,
-                update_output=u_out,
-                viz_enabled=bool(viz_enabled),
-            )
-
-            viz = preview_bgr if viz_enabled and preview_bgr is not None else None
-            if viz is None:
-                viz = frame
+            viz = frame
 
             mode = f"PLAY_{'AUTO' if mode_auto else 'MANUAL'}"
             processed_until = view_idx

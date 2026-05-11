@@ -4,7 +4,7 @@ from memory.temporary_track_base import TemporaryTrackBase
 
 
 class AmbiguousTrack(TemporaryTrackBase):
-    """Entidad temporal para detecciones conocidas pero no resolubles todavía."""
+    """Temporary entity for known detections that cannot be resolved yet."""
 
     def __init__(
         self,
@@ -153,7 +153,7 @@ class AmbiguousTrack(TemporaryTrackBase):
         avg = float(st.get("score_avg", 0.0) or 0.0)
         ema = float(st.get("score_ema", avg) or avg)
         best = float(st.get("best_score", ema) or ema)
-        # Frecuencia y calidad visual/contextual básica en una sola señal suave.
+        # Frequency and basic visual/contextual quality in one smooth signal.
         freq = float(min(1.0, count / 5.0))
         return float((0.45 * ema) + (0.35 * avg) + (0.10 * best) + (0.10 * freq))
 

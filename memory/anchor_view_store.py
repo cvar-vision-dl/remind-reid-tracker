@@ -4,7 +4,7 @@ import math
 
 try:
     from memory.neighbor_distance_graph import compute_relation_observation
-except ModuleNotFoundError:  # Allow direct execution from APP2/Src/memory.
+except ModuleNotFoundError:  # Allow direct execution from this module directory.
     from neighbor_distance_graph import compute_relation_observation
 
 

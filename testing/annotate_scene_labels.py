@@ -268,7 +268,7 @@ def resolve_frame_files(frames_dir: Path, *, davis_meta_path: Path | None) -> tu
 
 
 def build_scene_entries() -> list[SceneEntry]:
-    default_scannetpp_root = "/media/pablo/LINUX/Qsync/2026_tracker_reid/datasets/scannetpp_data"
+    default_scannetpp_root = str(Path(SRC_DIR) / "data" / "scannetpp_data")
     masks_root_base = Path(
         os.environ.get(
             "APP2_SCANNETPP_MASKS_ROOT",
@@ -697,15 +697,15 @@ def print_startup_help(output_csv: Path, total_scenes: int, pending_scenes: int)
     print("Controles:")
     print("  Left/Right o A/D: mover frame")
     print("  Space: autoplay on/off")
-    print("  G: mostrar/ocultar overlay de mascaras DAVIS")
+    print("  G: show/hide DAVIS mask overlay")
     print("  T + H/O/I/M: scene_type = home/office/industrial/mixed")
     print("  R + L/M/H: symmetry_repetition = low/medium/high")
     print("  V + L/M/H: visible_density = low/medium/high")
     print("  C + L/M/H: class_repetition = low/medium/high")
     print("  E + L/M/H: mask_errors = none/some/many")
     print("  P + N/M/F: camera_distance = near/medium/far")
-    print("  Enter o S: guardar labels y pasar a la siguiente escena")
-    print("  B: volver a la escena anterior")
+    print("  Enter or S: save labels and move to the next scene")
+    print("  B: go back to the previous scene")
     print("  U: limpiar labels actuales")
     print("  ?: mostrar/ocultar ayuda extendida")
     print("  Q o Esc: salir")
@@ -741,7 +741,7 @@ def main() -> int:
 
     scenes = build_scene_entries()
     if not scenes:
-        print("No se encontraron escenas para anotar.", file=sys.stderr)
+        print("No scenes found to annotate.", file=sys.stderr)
         return 1
 
     saved_rows = load_existing_labels(output_csv)
@@ -751,7 +751,7 @@ def main() -> int:
         if not row_has_required_labels(saved_rows.get(scene.scene_id, None))
     ]
     if not pending_indices:
-        print(f"Todas las escenas ya estan anotadas en {output_csv}")
+        print(f"All scenes are already annotated in {output_csv}")
         return 0
 
     print_startup_help(output_csv=output_csv, total_scenes=len(scenes), pending_scenes=len(pending_indices))
@@ -957,7 +957,7 @@ def main() -> int:
                     and camera_distance
                 ):
                     print(
-                        f"[{scene.scene_id}] Faltan labels: "
+                        f"[{scene.scene_id}] Missing labels: "
                         f"scene_type={scene_type}, symmetry_repetition={symmetry_repetition}, "
                         f"visible_density={visible_density}, class_repetition={class_repetition}, "
                         f"mask_errors={mask_errors}, camera_distance={camera_distance}"

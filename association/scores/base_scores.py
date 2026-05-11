@@ -136,9 +136,9 @@ class BaseScores:
 
 class SimilarityCombiner:
     """
-    Combina términos de similitud (obj/bg/parts) en un escalar.
+    Combine similarity terms (obj/bg/parts) into one scalar.
 
-    - Si un término es None, se ignora y se renormalizan pesos (opcional).
+    - If a term is None, it is ignored and weights are renormalized (optional).
     - work/stable: colapsa dicts usando "max" si existe o max(work, stable).
     """
 

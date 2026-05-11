@@ -2,7 +2,7 @@ from __future__ import annotations
 
 
 def get_track_label(memory_store, track_id):
-    """Devuelve instance_label del track id en memoria (o None)."""
+    """Return the memory instance_label for a track id, or None."""
     if track_id is None:
         return None
     obj = memory_store.get(int(track_id)) if memory_store is not None else None
@@ -10,7 +10,7 @@ def get_track_label(memory_store, track_id):
 
 
 def get_track_class_name(memory_store, track_id):
-    """Devuelve class_name del track id en memoria (o None)."""
+    """Return the memory class_name for a track id, or None."""
     if track_id is None:
         return None
     obj = memory_store.get(int(track_id)) if memory_store is not None else None
@@ -18,7 +18,7 @@ def get_track_class_name(memory_store, track_id):
 
 
 def det_local(det_id, det_id_to_local=None):
-    """ID imprimible de detección: usa el índice local del frame si está disponible."""
+    """Printable detection ID: use the frame-local index when available."""
     if det_id is None:
         return "?"
     did = int(det_id)
@@ -40,7 +40,7 @@ def short_class_code(name: str | None, n: int = 3) -> str | None:
 
 
 def short_instance_label(lbl: str | None, n: int = 3) -> str | None:
-    """Convierte 'LAPTOP_1' -> 'LAP-1'. Si no hay sufijo numérico, recorta la clase."""
+    """Convert 'LAPTOP_1' -> 'LAP-1'. If there is no numeric suffix, shorten the class."""
     if not lbl:
         return None
 
@@ -67,7 +67,7 @@ def get_track_label_short(memory_store, track_id, n: int = 3) -> str | None:
 
 
 def pair_label(det_id, track_id, memory_store, det_id_to_local=None):
-    """Etiqueta 'detId-shortLabel' para tablas."""
+    """'detId-shortLabel' label for tables."""
     d = det_local(det_id, det_id_to_local)
     lbl = get_track_label_short(memory_store, track_id, n=3)
     return f"{d}-{lbl}" if lbl else f"{d}-?"

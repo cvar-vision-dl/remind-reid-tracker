@@ -79,8 +79,8 @@ def _safe_extract_tar(*, tar_path: Path, dest_dir: Path) -> Path:
     if len(children) == 1:
         return children[0]
     raise RuntimeError(
-        f"No se pudo localizar la escena extraida desde {tar_path}. "
-        f"Esperaba {tar_path.stem}/ y encontré {[child.name for child in children]}"
+        f"Could not locate the extracted scene from {tar_path}. "
+        f"Expected {tar_path.stem}/ and found {[child.name for child in children]}"
     )
 
 
@@ -176,12 +176,12 @@ def resolve_prepared_scene_from_tar(
     if missing:
         missing_text = ", ".join(missing)
         raise FileNotFoundError(
-            f"La escena {scene_id} existe como tar ({tar_path}), pero no está preparada "
-            f"para APP2 todavía. Faltan: {missing_text}. "
-            f"Si usas tars separados, asegúrate de tener también "
+            f"Scene {scene_id} exists as a tar ({tar_path}), but it is not prepared "
+            f"for APP2 yet. Missing: {missing_text}. "
+            f"If you use split tars, make sure you also have "
             f"{resolve_scene_annotations_tar_path(images_root_base=images_root_base, scene_id=scene_id) or '<dataset>/annotations/<scene>.tar'}. "
-            f"Si no existe, prepara el tar con scripts/datasets/scannetpp/export_scannetpp_to_davis_tar.py "
-            f"(modo in-place o salida a annotations.tar) para generar meta + annotations."
+            f"If it does not exist, prepare the tar with scripts/datasets/scannetpp/export_scannetpp_to_davis_tar.py "
+            f"(in-place mode or annotations.tar output) to generate meta + annotations."
         )
 
     return {

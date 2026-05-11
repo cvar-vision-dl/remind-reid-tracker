@@ -252,7 +252,7 @@ memory:
 # ASSOCIATION
 # =============================================================================
 association:
-  # Similaridad base y calidad de observación.
+  # Base similarity and observation quality.
   similarity:
     parts:
       topk: 3
@@ -286,12 +286,12 @@ association:
         min_mask_quality: 0.5
         weight_floor: 0.35
 
-  # Confirmación temprana de anchors fiables.
+  # Early confirmation of reliable anchors.
   confirmation:
     confirm_thr_strong: 0.75
     confirm_clear_margin: 0.08
 
-  # Reglas de matching y resolución global.
+  # Matching rules and global resolution.
   matching:
     match_thr: 0.75
     clear_margin: 0.08
@@ -302,7 +302,7 @@ association:
     background_mode: "combined"
     parts_mode: "max"
 
-    # Resolver Hungarian y política de dummies/locks.
+    # Hungarian resolver and dummies/locks policy.
     hungarian:
       enable_dummies: true
       dummy_score: 0.05
@@ -322,9 +322,8 @@ association:
         gap_abs_min: 0.10
         gap_rel_thr: 0.10
 
-      # Postproceso conservador para evitar swaps de identidad en componentes
-      # conflictivas de una misma clase. Prefiere dejar temporales antes que
-      # consolidar matches frágiles cruzados.
+      # Conservative postprocess to avoid identity swaps in conflicting
+      # same-class components. Prefer temporary states over fragile crossed matches.
       identity_stability:
         enabled: true
         alt_margin: 0.05
@@ -333,9 +332,9 @@ association:
         assignment_gap_max: 0.05
         fragile_gate_reasons: ["SETS_RESCUE"]
 
-      # Caso local: un objeto joven ya existente compite con una nueva detección
-      # tan parecida que la cardinalidad aumenta, pero la asignación old/new aún
-      # no se puede resolver en el frame. Genera ambigüedad padre/nuevo
+      # Local case: a young existing object competes with a new detection so
+      # similar that cardinality increases, but old/new assignment cannot be
+      # resolved in the frame yet. Generates parent/new ambiguity.
       # comprometido y deja que Update materialice la nueva identidad.
       committed_new_competition:
         enabled: true
@@ -381,13 +380,13 @@ association:
         hyp_weight: 0.25
         top_weight: 0.65
         sum_weight: 0.35
-        # Comprime soporte relativo para no abrir tanto la brecha por consolidacion historica.
+        # Compress relative support to avoid widening the gap through historical consolidation.
         kernel_rel_gamma: 0.75
         hyp_rel_gamma: 0.75
         neutral_rel: 0.20
-        # Evita soporte alto con evidencia absoluta residual.
+        # Avoid high support with residual absolute evidence.
         min_kernel_abs_for_support: 0.10
-        # Exige cobertura real del kernel; evita "ser el menos malo" con 1-2 enlaces.
+        # Require real kernel coverage; avoid "least bad" support from 1-2 links.
         min_kernel_hits_for_support: 2
         min_kernel_hit_ratio_for_support: 0.25
         local_min_kernel_abs_for_support: 0.10
@@ -395,7 +394,7 @@ association:
         local_min_kernel_hit_ratio_for_support: 0.25
         band_rel: 0.80
         soft_band_rel: 0.65
-        # Mezcla soporte relacional e hipótesis globales en la banda suave.
+        # Mix relational support and global hypotheses inside the soft band.
         soft_band_mix_kernel_weight: 0.70
         soft_band_mix_hyp_weight: 0.30
         pruning_weight: 0.55
@@ -428,7 +427,7 @@ association:
         expected_topk_scale: 2.0
         require_supported_alternative: false
 
-    # Combinación final de score_sim.
+    # Final score_sim combination.
     renormalize_missing: true
 
     weights:
@@ -437,7 +436,7 @@ association:
       background_partials: 0.05
       parts: 0.1
 
-  # Diagnóstico de ambigüedad y confianza.
+  # Ambiguity and confidence diagnostics.
   ambiguity:
     enabled: true
     close_delta: 0.03
@@ -445,7 +444,7 @@ association:
     strong_min_score: 0.80
     ambiguous_min_score: 0.75
 
-  # Conversión de incertidumbre a tracks ambiguos.
+  # Conversion from uncertainty to ambiguous tracks.
   ambiguous_tracks:
     enabled: true
     max_candidates: 3
@@ -522,7 +521,7 @@ association:
       debug_anchor_topk: 5
       debug_historical_anchor_topk: 5
 
-  # Conversión de incertidumbre a nuevos provisionales.
+  # Conversion from uncertainty to provisional new tracks.
   provisional_new:
     enabled: true
     min_top_score: 0.6
@@ -542,7 +541,7 @@ association:
       max_close: 1
       single_candidate_only: false
 
-  # Cálculo de confianza a partir de gaps y cobertura.
+  # Confidence computation from gaps and coverage.
   confidence:
     enabled: true
     temperature: 0.05
@@ -569,16 +568,16 @@ association:
       min_set_score: 0.0
 
       min_edge_p: 0.05
-      # Umbraliza aristas débiles al estimar densidad.
+      # Threshold weak edges when estimating density.
       density_gate_min_edge_p: true
       density_edge_cov_gamma: 1.0
       density_factor:
         enabled: true
         gamma: 2.0
 
-      # Exige grado mínimo para evitar objetos aislados.
+      # Require minimum degree to avoid isolated objects.
       connectivity_require_min_degree: 1
-      # Penalización por nodos poco conectados.
+      # Penalty for poorly connected nodes.
       connectivity_node_gamma: 1.5
       connectivity_edge_gamma: 1.0
 
@@ -588,7 +587,7 @@ association:
       coverage_gamma: 1.0
       coverage_size_tau: 3.0
       coverage_size_boost: 0.35
-      # Penaliza sets que explican pocas detecciones absolutas.
+      # Penalize sets that explain few absolute detections.
       coverage_explained_beta: 1.5
 
       exclusivity:
@@ -607,7 +606,7 @@ association:
         plausible_rel: 0.75
         fill_gamma: 1.0
 
-        # Repondera class_info y exclusivity según el tamaño del set.
+        # Reweight class_info and exclusivity according to set size.
         info_k_ref: 2.0
         info_k_gamma: 0.5
         info_k_min_mult: 0.35
@@ -618,7 +617,7 @@ association:
         excl_k_min_mult: 0.35
         excl_k_max_mult: 1.0
 
-        # Reduce confianza si el set incluye objetos muy nuevos.
+        # Reduce confidence if the set includes very new objects.
         maturity_enabled: true
         maturity_softmin_p: -3.0
         maturity_gamma: 0.85
@@ -660,8 +659,8 @@ association:
 
       # Modo del estado interno del beam:
       # - classic: comportamiento base
-      # - bitmask_used: mantiene semántica "classic" pero usa bitmask para overlap/cache
-      # - bitmask_full: compacta también uniones/deduplicación/parte del estado
+      # - bitmask_used: keeps "classic" semantics but uses bitmasks for overlap/cache
+      # - bitmask_full: also compacts unions/deduplication/part of the state
       beam_state_mode: "bitmask_used"
 
 
@@ -678,7 +677,7 @@ update:
   max_misses_tentative: 10
   max_misses_confirmed: 10
   inactive_ttl: 0
-  # Gestión temporal de estados inciertos.
+  # Temporal management of uncertain states.
   ambiguous_tracks:
     enabled: true
     ttl_frames: 6
@@ -708,7 +707,7 @@ update:
   temporary_tracks:
     max_observation_history: 12
 
-  # Restricción de updates débiles o ambiguos.
+  # Restriction of weak or ambiguous updates.
   robust_updates:
     enabled: false
     safe_alpha_scale: 0.2
@@ -725,7 +724,7 @@ update:
       workers: 0           # 0 = auto por CPU
       max_auto_workers: 8
 
-  # Actualización de apariencia de objeto.
+  # Object appearance update.
   appearance_memory:
     enabled: true
     insert_policy: "always"
@@ -756,7 +755,7 @@ update:
       alpha_min: 0.02
       alpha_max: 0.08
 
-  # Actualización de memoria de fondo.
+  # Background memory update.
   background_memory:
     enabled: true
 
@@ -793,7 +792,7 @@ update:
       alpha_min: 0.01
       alpha_max: 0.05
 
-  # Actualización de memoria de partes.
+  # Part memory update.
   parts_memory:
     enabled: true
     insert_policy: "always"
@@ -825,7 +824,7 @@ testing:
     # Modos soportados:
     # - hungarian: congela decisiones firmes y resuelve conflictos ambiguos
     #   del frame de forma consistente.
-    # - greedy: mantiene el resolvedor histórico por choques locales.
+    # - greedy: applies local conflict resolution.
     method: "hungarian"
 
 # =============================================================================
@@ -834,7 +833,7 @@ testing:
 debug:
   enabled: true
 
-  # Salidas de depuración de asociación.
+  # Association debug outputs.
   association:
     enabled: true
     every_n_frames: 1
@@ -865,27 +864,18 @@ debug:
     local_context_topk: 5
     show_postcreate_temporal_table: true
 
-    # Tabla compacta de sets en una línea por hipótesis.
+    # Compact sets table with one line per hypothesis.
     neighbor_sets_packed: true
     neighbor_sets_col_space: 0
     neighbor_sets_wrap_assign: true
-    neighbor_sets_table_width: 0   # 0 = ancho automático del terminal
+    neighbor_sets_table_width: 0   # 0 = automatic terminal width
     neighbor_sets_compact_headers: true
 
     neighbor_sets_hide_density: false
     neighbor_sets_hide_logc: true
     neighbor_sets_hide_exclusivity: false
 
-  association_trace:
-    enabled: false
-    mode: "off"
-    write_json: true
-    output_group: "association_trace"
-    write_schema_once: true
-    write_per_frame_class_trace: true
-    write_frame_previews: true
-
-  # Salidas de depuración de actualización de prototipos.
+  # Prototype-update debug outputs.
   prototype_update:
     enabled: false
     every_n_frames: 1
@@ -900,7 +890,7 @@ debug:
       enabled: true
       max_rows: 80
 
-  # Salidas de depuración de update de tracks.
+  # Track-update debug outputs.
   update:
     enabled: true
     every_n_frames: 1
@@ -912,12 +902,12 @@ debug:
     neighbor_distance_graph_topk: 8
     neighbor_distance_graph_topmodes: 3
 
-  # Estado general de memoria.
+  # General memory state.
   memory:
     enabled: false
     every_n_frames: 1
 
-  # Visualización interactiva de frames y overlays.
+  # Interactive frame and overlay visualization.
   visualization:
     enabled: true
     auto_start: true

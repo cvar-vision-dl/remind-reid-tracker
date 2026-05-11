@@ -313,8 +313,8 @@ class SetsSearchEngine:
             new_used_mask = int(used_obj_mask | opt_obj_mask)
             new_det_mask = int(st.get("explained_det_mask", 0) or 0) | int(opt_det_mask)
             new_obj_mask = int(st.get("obj_mask", 0) or 0) | int(opt_obj_mask)
-            # En modos con máscara, evitamos reconstruir tuplas ordenadas en cada transición;
-            # se materializan cuando hagan falta desde obj_mask/det_mask.
+            # In mask modes, avoid rebuilding sorted tuples at each transition;
+            # materialize them from obj_mask/det_mask only when needed.
             new_det_sorted = ()
             new_obj_sorted = ()
         else:

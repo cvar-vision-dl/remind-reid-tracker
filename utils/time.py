@@ -7,7 +7,7 @@ from time import perf_counter
 
 class ExecutionTimer:
     """
-    Cronómetro acumulativo por bloques nombrados.
+    Accumulated timer by named blocks.
     """
 
     def __init__(self):
@@ -64,8 +64,8 @@ def format_timing_table(
     """
     Tabla de timings en ms.
 
-    - `order` fija el orden preferente y luego añade el resto.
-    - `total_seconds` permite forzar total sin sumar filas solapadas.
+    - `order` sets the preferred order and then appends the rest.
+    - `total_seconds` allows forcing the total without summing overlapping rows.
     """
     t = timings_seconds or {}
     p = max(0, int(precision))
@@ -250,11 +250,11 @@ def format_timing_tree_table(
     indent: str = "  ",
 ) -> str:
     """
-    Tabla jerárquica de timings en ms.
+    Hierarchical timing table in ms.
 
-    - Mantiene `total_seconds` separado para evitar doble conteo.
+    - Keeps `total_seconds` separate to avoid double counting.
     - Muestra sub-bloques indentados bajo su etapa.
-    - Soporta claves jerárquicas con `/` para anidar varios niveles.
+    - Supports hierarchical keys with `/` to nest several levels.
     """
     stages = stage_seconds or {}
     details_by_stage = details_by_stage or {}
@@ -331,7 +331,7 @@ def format_timing_tree_line(
     total_seconds: float | None = None,
 ) -> str:
     """
-    Línea jerárquica (compacta) en ms.
+    Hierarchical compact line in ms.
     """
     stages = stage_seconds or {}
     details_by_stage = details_by_stage or {}

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 
 class SimilarityReport:
-    """Evidencias para una detección: candidatos, mejor candidato y diagnósticos sim/final."""
+    """Evidence for one detection: candidates, best candidate, and sim/final diagnostics."""
 
     def __init__(self, det_id, class_id: int, timestamp: float):
         self.det_id = int(det_id)
@@ -34,7 +34,7 @@ class SimilarityReport:
 
 
 class FrameAssociationOutput:
-    """Salida de asociación por frame: reports + neighbor-sets + decisiones."""
+    """Per-frame association output: reports, neighbor sets, and decisions."""
 
     def __init__(self, timestamp: float):
         self.timestamp = float(timestamp)

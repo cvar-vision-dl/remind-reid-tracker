@@ -14,9 +14,9 @@ from utils.time import ExecutionTimer
 
 class DavisSegmenter:
     """
-    Segmentador compatible con YoloSegmenter pero leyendo máscaras DAVIS.
+    Segmenter compatible with YoloSegmenter, reading DAVIS masks.
 
-    Contrato público:
+    Public contract:
       - load_model()
       - segment(frame, frame_id, timestamp) -> list[Detection]
       - class_id_to_name
@@ -198,8 +198,8 @@ class DavisSegmenter:
         requested = self.preferred_sequence_name()
 
         raise FileNotFoundError(
-            f"Meta DAVIS no encontrado para sequence_name={requested} "
-            f"(variant={self.resolve_variant()}) en {(self.resolve_workspace_root() / 'DAVIS_OUT').resolve()}"
+            f"DAVIS meta not found for sequence_name={requested} "
+            f"(variant={self.resolve_variant()}) in {(self.resolve_workspace_root() / 'DAVIS_OUT').resolve()}"
         )
 
     def find_meta_path_for_sequence(self, sequence_name: str) -> Path | None:
@@ -428,7 +428,7 @@ class DavisSegmenter:
 
     def annotation_mask_path(self, frame_id: int) -> Path:
         if self.annotations_dir is None:
-            raise RuntimeError("DavisSegmenter no inicializado. Llama a load_model() antes de segment().")
+            raise RuntimeError("DavisSegmenter is not initialized. Call load_model() before segment().")
         return self.annotations_dir / self.frame_filename(frame_id)
 
     def read_annotation_mask_from_path(self, path: Path) -> np.ndarray | None:
@@ -456,7 +456,7 @@ class DavisSegmenter:
 
     def read_annotation_mask(self, frame_id: int) -> np.ndarray | None:
         if self.annotations_dir is None:
-            raise RuntimeError("DavisSegmenter no inicializado. Llama a load_model() antes de segment().")
+            raise RuntimeError("DavisSegmenter is not initialized. Call load_model() before segment().")
 
         fid = int(frame_id)
         mask = None
@@ -516,7 +516,7 @@ class DavisSegmenter:
 
     def segment(self, frame, frame_id: int, timestamp: float) -> list:
         if not self.class_id_to_name:
-            raise RuntimeError("DavisSegmenter no inicializado. Llama a load_model() antes de segment().")
+            raise RuntimeError("DavisSegmenter is not initialized. Call load_model() before segment().")
 
         timer = ExecutionTimer()
         self.last_timings_seconds = {}

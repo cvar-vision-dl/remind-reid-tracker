@@ -16,7 +16,7 @@ class PartPrototype:
 
 class PartChannel:
     """
-    Memoria de partes por canal con dos bancos:
+    Per-channel part memory with two banks:
       - work_protos: protos recientes / de trabajo
       - stable_protos: protos consolidados
     """
@@ -53,7 +53,7 @@ class PartChannel:
 
 
 class PartModel:
-    """Contenedor de canales de partes (memoria) para un TrackedObject."""
+    """Part-channel memory container for a TrackedObject."""
 
     DEFAULT_CHANNELS = ["kmeans", "attention"]
 

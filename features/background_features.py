@@ -13,11 +13,11 @@ class BackgroundFeatureExtractor:
     """
     Extractor de fondo local (inner/outer) a partir de anillos en patch-space.
 
-    Devuelve (para cada detection):
+    Return (for each detection):
       - global por anillo: inner/outer
       - global combinado: combined (mezcla inner+outer)
       - prototipos estables por anillo: inner_protos / outer_protos (y weights)
-      - rings: máscaras/coverage para debug
+      - rings: masks/coverage for debug
     """
 
     def __init__(self, config: dict):
@@ -56,7 +56,7 @@ class BackgroundFeatureExtractor:
 
     def dilate_patch_mask(self, mask_patch: np.ndarray, radius_patches: int) -> np.ndarray:
         """
-        Dilata una máscara en patch-space (Hp,Wp) usando kernel cuadrado.
+        Dilate a mask in patch space (Hp,Wp) using a square kernel.
         radius_patches=R => kernel (2R+1).
         """
         if mask_patch.ndim != 2:
@@ -170,9 +170,9 @@ class BackgroundFeatureExtractor:
         timer: ExecutionTimer | None = None,
     ) -> dict:
         """
-        Construye máscaras en patch-space alrededor del objeto (inner/outer rings).
+        Build masks in patch space around the object (inner/outer rings).
 
-        - obj_mask_px: máscara en píxeles (H,W) alineada con el fmap.
+        - obj_mask_px: pixel mask (H,W) aligned with the fmap.
         - fmap: (Hp,Wp,D)
 
         bg_local_cfg:
@@ -316,7 +316,7 @@ class BackgroundFeatureExtractor:
 
     def estimate_k_from_patches(self, p_count: int, proto_cfg: dict) -> int:
         """
-        K adaptativo en base a nº de patches válidos P del anillo.
+        Adaptive K based on the number of valid ring patches P.
         """
         p = int(max(0, p_count))
         if p <= 0:
@@ -358,8 +358,8 @@ class BackgroundFeatureExtractor:
     ) -> list[dict]:
         """
         Devuelve stats por cluster:
-          - idxs: índices de puntos
-          - mass: suma de pesos (o count)
+          - idxs: point indexes
+          - mass: sum of weights (or count)
           - centroid: centro normalizado (cosine-friendly)
           - cohesion: mean cosine(punto, centroid)
         """
@@ -444,7 +444,7 @@ class BackgroundFeatureExtractor:
     def merge_clusters_by_similarity(self, clusters: list[dict], sim_thr: float) -> list[list[int]]:
         """
         Agrupa clusters por conectividad: si cos(centroid_i, centroid_j) > sim_thr,
-        los unimos. Devuelve lista de grupos (índices sobre `clusters`).
+        merge them. Returns a list of groups (indexes over `clusters`).
         """
         if not clusters:
             return []
@@ -478,7 +478,7 @@ class BackgroundFeatureExtractor:
         feats_are_normalized: bool = False,
     ) -> list[dict]:
         """
-        Construye clusters merged (concatenando índices) y recomputa stats.
+        Build merged clusters (concatenating indexes) and recompute stats.
         """
         if not groups:
             return []
@@ -543,12 +543,12 @@ class BackgroundFeatureExtractor:
         feats_are_normalized: bool = False,
     ) -> tuple[list[np.ndarray], list[float], dict]:
         """
-        Selecciona top-N clusters estables (masa alta + cohesión alta),
-        y devuelve prototipos + pesos (normalizados a 1).
+        Select top-N stable clusters (high mass + high cohesion),
+        and return prototypes + weights (normalized to 1).
 
         proto_mode:
-          - medoid: punto del cluster con mayor cosine a centroid
-          - centroid: el centroid normalizado
+          - medoid: cluster point with highest cosine to centroid
+          - centroid: normalized centroid
         """
         if not clusters:
             return [], [], {"selected": [], "clusters": []}
@@ -681,7 +681,7 @@ class BackgroundFeatureExtractor:
 
         k = self.estimate_k_from_patches(p_count=p_count, proto_cfg=proto_cfg)
         if k <= 1 or feats_sel_n.shape[0] < k:
-            # fallback: un proto (centroid) si hay señal
+            # fallback: one proto (centroid) when signal exists
             centroid = l2_normalize_vector(np.mean(feats_sel_n, axis=0))
             protos = [centroid.astype(np.float32)]
             weights = [1.0]
@@ -746,7 +746,7 @@ class BackgroundFeatureExtractor:
         frame_cache: dict | None = None,
     ) -> dict:
         """
-        Calcula:
+        Computes:
           - bg_inner_desc / bg_outer_desc: global por anillo
           - bg_desc: global combinado
           - bg_*_protos / bg_*_proto_weights: prototipos estables por anillo (opcional)
@@ -804,7 +804,7 @@ class BackgroundFeatureExtractor:
         cov_obj = rings["coverage_obj"]
         w_bg = (1.0 - cov_obj).astype(np.float32)
 
-        # 1) Global descriptors (como antes)
+        # 1) Global descriptors
         if timer is None:
             bg_inner_desc = dino_extractor.pool_descriptor_from_patch_mask(
                 fmap=fmap,

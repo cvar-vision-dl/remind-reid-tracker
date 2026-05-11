@@ -44,7 +44,7 @@ class AppearancePrototype:
 
 class AppearanceChannel:
     """
-    Canal de memoria de apariencia con dos bancos:
+    Appearance memory channel with two banks:
       - work_protos: protos recientes / de trabajo
       - stable_protos: protos consolidados
     """
@@ -94,7 +94,7 @@ class AppearanceChannel:
 
 
 class ObjectAppearanceModel:
-    """Modelo de apariencia a nivel objeto: organiza múltiples canales."""
+    """Object-level appearance model: organizes multiple channels."""
 
     DEFAULT_CHANNELS = ["global", "global_trimmed", "patch"]
 

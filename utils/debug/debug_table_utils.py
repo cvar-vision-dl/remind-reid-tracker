@@ -45,7 +45,7 @@ def sort_dataframe_if_possible(df: pd.DataFrame, sort_by: list) -> pd.DataFrame:
 
 
 def print_dataframe(df: pd.DataFrame, cols: list[str], *, index: bool = False, col_space: int = 2) -> None:
-    """Imprime DataFrame con columnas existentes."""
+    """Print DataFrame with existing columns."""
     if df is None:
         return
     cols = [c for c in (cols or []) if c in df.columns]
@@ -57,8 +57,8 @@ def print_dataframe(df: pd.DataFrame, cols: list[str], *, index: bool = False, c
 
 def _wrap_tokens(text: str, width: int, *, sep: str = ",") -> list[str]:
     """
-    Wrap greedy por tokens separados por `sep` (p.ej. "A,B,C") para evitar que el terminal
-    parta una fila a mitad.
+    Greedy wrap by tokens separated by `sep` (for example "A,B,C") to prevent the terminal
+    from splitting a row in the middle.
     """
     s = str(text or "")
     w = max(8, int(width))
@@ -105,8 +105,8 @@ def render_table_wrap_column(
     wrap_sep: str = ",",
 ) -> str:
     """
-    Renderiza una tabla estilo `to_string`, pero envolviendo `wrap_col` en múltiples líneas
-    para que el terminal no rompa filas (sin perder información).
+    Render a `to_string`-style table while wrapping `wrap_col` across multiple
+    lines so the terminal does not break rows or lose information.
     """
     if df is None or df.empty:
         return ""

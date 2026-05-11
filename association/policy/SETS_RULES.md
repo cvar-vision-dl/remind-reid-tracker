@@ -2,8 +2,8 @@
 
 > Estado de referencia: este documento describe el comportamiento real actual
 > del bloque `sets`. Para el mapa global del módulo conviene leer además
-> `APP2/Src/association/ASSOCIATION_DECISION_PATH.md` y
-> `APP2/Src/association/policy/POLICY_TAXONOMY.md`.
+> `REMIND/association/ASSOCIATION_DECISION_PATH.md` y
+> `REMIND/association/policy/POLICY_TAXONOMY.md`.
 
 ## Alcance
 
@@ -22,9 +22,9 @@ reemplaza la similitud visual. Su papel real hoy es:
 
 Archivos:
 
-- `APP2/Src/association/scores/sets/neighbor_sets_score.py`
-- `APP2/Src/association/scores/sets/sets_search.py`
-- `APP2/Src/association/scores/sets/sets_summary.py`
+- `REMIND/association/scores/sets/neighbor_sets_score.py`
+- `REMIND/association/scores/sets/sets_search.py`
+- `REMIND/association/scores/sets/sets_summary.py`
 
 Responsabilidad:
 
@@ -48,8 +48,8 @@ Consecuencia:
 
 Archivos:
 
-- `APP2/Src/association/context/neighbor_sets_influence.py`
-- `APP2/Src/association/context/sets_context_builder.py`
+- `REMIND/association/context/neighbor_sets_influence.py`
+- `REMIND/association/context/sets_context_builder.py`
 
 Responsabilidad:
 
@@ -77,7 +77,7 @@ Consecuencia:
 
 Archivos:
 
-- `APP2/Src/association/policy/sets_rule_policy.py`
+- `REMIND/association/policy/sets_rule_policy.py`
 
 Responsabilidad:
 
@@ -96,8 +96,8 @@ La contribución de `sets` combina:
 
 Archivos:
 
-- `APP2/Src/association/policy/candidate_score_policy.py`
-- `APP2/Src/association/policy/known_plausible_keep_policy.py`
+- `REMIND/association/policy/candidate_score_policy.py`
+- `REMIND/association/policy/known_plausible_keep_policy.py`
 
 Responsabilidad:
 
@@ -177,7 +177,7 @@ Consecuencia práctica:
 
 Archivo:
 
-- `APP2/Src/association/policy/sets_rule_policy.py`
+- `REMIND/association/policy/sets_rule_policy.py`
 
 Finalidad:
 
@@ -193,7 +193,7 @@ Lectura:
 
 Archivo:
 
-- `APP2/Src/association/policy/sets_rule_policy.py`
+- `REMIND/association/policy/sets_rule_policy.py`
 
 Finalidad:
 
@@ -211,7 +211,7 @@ Componentes principales:
 
 Archivo:
 
-- `APP2/Src/association/policy/candidate_score_policy.py`
+- `REMIND/association/policy/candidate_score_policy.py`
 
 Finalidad:
 
@@ -227,7 +227,7 @@ Lectura:
 
 Archivo:
 
-- `APP2/Src/association/policy/candidate_score_policy.py`
+- `REMIND/association/policy/candidate_score_policy.py`
 
 Finalidad:
 
@@ -245,7 +245,7 @@ Ramas principales:
 
 Archivo:
 
-- `APP2/Src/association/policy/known_plausible_keep_policy.py`
+- `REMIND/association/policy/known_plausible_keep_policy.py`
 
 Finalidad:
 

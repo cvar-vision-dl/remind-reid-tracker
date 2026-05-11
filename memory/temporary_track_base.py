@@ -6,7 +6,7 @@ from memory.part_model import PartModel
 
 
 class TemporaryTrackBase:
-    """Base ligera para tracks temporales con continuidad propia entre frames."""
+    """Lightweight base for temporary tracks with their own continuity across frames."""
 
     def __init__(
         self,
@@ -29,7 +29,7 @@ class TemporaryTrackBase:
         self.last_seen = float(timestamp)
         self.state = "TEMPORARY"
         # `temp_id` da continuidad temporal al hipotesis-track, pero no
-        # significa identidad semantica confirmada del objeto.
+        # does not mean confirmed semantic object identity.
         self.identity_label = f"T_{self.class_name}_{int(self.temp_id)}"
         self.instance_label = str(self.identity_label)
         self.resolution_state = "UNRESOLVED"

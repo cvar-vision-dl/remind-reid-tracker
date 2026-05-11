@@ -1,11 +1,11 @@
 # Reglas activas de `distance`
 
-## Alcance actual
+## Alcance
 
-El bloque de `distance` ya no participa en el `matching` principal ni en la
+El bloque de `distance` no participa en el `matching` principal ni en la
 construcción de `score_final`.
 
-Su uso activo hoy queda limitado a dos piezas:
+Su uso activo queda limitado a dos piezas:
 
 1. memoria relacional entre objetos visibles;
 2. desambiguación post-asignación de conjuntos conocidos.
@@ -16,9 +16,9 @@ Su uso activo hoy queda limitado a dos piezas:
 
 Archivos:
 
-- `APP2/Src/update/update_general.py`
-- `APP2/Src/memory/neighbor_distance_graph.py`
-- `APP2/Src/memory/tracked_object.py`
+- `REMIND/update/update_general.py`
+- `REMIND/memory/neighbor_distance_graph.py`
+- `REMIND/memory/tracked_object.py`
 
 Responsabilidad:
 
@@ -30,9 +30,9 @@ Responsabilidad:
 
 Archivos:
 
-- `APP2/Src/association/engine/assignment_result_applier.py`
-- `APP2/Src/association/disambiguation/known_set_distance_disambiguator.py`
-- `APP2/Src/association/disambiguation/pair_anchor_discriminator.py`
+- `REMIND/association/engine/assignment_result_applier.py`
+- `REMIND/association/disambiguation/known_set_distance_disambiguator.py`
+- `REMIND/association/disambiguation/pair_anchor_discriminator.py`
 
 Responsabilidad:
 

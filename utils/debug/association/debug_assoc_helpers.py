@@ -4,7 +4,7 @@ from ..debug_format import fmt, safe_float
 
 
 def safe_best_score_map(score_map: dict | None) -> float:
-    """Devuelve el máximo score de un mapa {k: score}, con safe_float sobre valores."""
+    """Return the max score from a {k: score} map, using safe_float on values."""
     if not score_map:
         return 0.0
     vals = []
@@ -94,7 +94,7 @@ def candidate_kernel_raw(candidate: dict) -> float:
 
 
 def candidate_kernel_hit_ratio(candidate: dict) -> float:
-    """Extrae fracción de kernel que realmente soporta al candidato."""
+    """Extract the kernel fraction that actually supports the candidate."""
     if not isinstance(candidate, dict):
         return 0.0
     return safe_float(candidate.get("kernel_hit_ratio", 0.0), default=0.0)
@@ -118,7 +118,7 @@ def candidate_hyp_rel(candidate: dict) -> float:
 
 
 def candidate_compat_band(candidate: dict) -> int:
-    """Indica si el candidato está dentro de la compatibility band contextual (1/0)."""
+    """Return whether the candidate is inside the contextual compatibility band (1/0)."""
     if not isinstance(candidate, dict):
         return 0
     try:
@@ -204,7 +204,7 @@ def candidate_score_final(candidate: dict) -> float:
 
 def candidate_score_known(candidate: dict) -> float:
     """
-    Score "conjunto conocido" usado para temporales:
+    "Known set" score used for temporals:
     max(score_final, score_sim + bonus_sets_raw).
     """
     if not isinstance(candidate, dict):
@@ -219,7 +219,7 @@ def candidate_score_known(candidate: dict) -> float:
 
 
 def candidate_decision_keep(candidate: dict) -> int:
-    """Indica si el candidato es elegible para decision final (1/0)."""
+    """Return whether the candidate is eligible for final decision (1/0)."""
     if not isinstance(candidate, dict):
         return 0
     v = candidate.get("decision_keep", None)
@@ -232,7 +232,7 @@ def candidate_decision_keep(candidate: dict) -> int:
 
 
 def candidate_ctx_keep(candidate: dict) -> int:
-    """Indica si el candidato está permitido por gating de contexto (neighbor-sets shortlist) (1/0)."""
+    """Return whether context gating allows the candidate (neighbor-sets shortlist) (1/0)."""
     if not isinstance(candidate, dict):
         return 1
     v = candidate.get("ctx_keep", None)
@@ -275,7 +275,7 @@ def candidate_known_plausible_reason(candidate: dict) -> str:
 
 
 def candidate_known_plausible_keep(candidate: dict) -> int:
-    """Indica si el candidato permanece plausible para ambiguedad temporal (1/0)."""
+    """Return whether the candidate remains plausible for temporal ambiguity (1/0)."""
     if not isinstance(candidate, dict):
         return 1
     v = candidate.get("known_plausible_keep", None)
@@ -387,7 +387,7 @@ def candidate_sets_policy_summary(candidate: dict) -> str:
 
 
 def rank_key(candidate: dict):
-    """Clave de ranking para candidates: (final, best_obj, bg_combined)."""
+    """Ranking key for candidates: (final, best_obj, bg_combined)."""
     scores = candidate.get("scores", {}) or {}
     obj = scores.get("object", {}) or {}
     bg = scores.get("background", {}) or {}
@@ -399,7 +399,7 @@ def rank_key(candidate: dict):
 
 
 def diag_pack(rep, which: str = "sim") -> dict:
-    """Empaqueta diagnósticos de matching del report (sim/final) con valores formateados."""
+    """Pack report matching diagnostics (sim/final) with formatted values."""
     attr = "match_diag_sim" if str(which).lower().strip() == "sim" else "match_diag_final"
     d = getattr(rep, attr, None)
 
@@ -426,7 +426,7 @@ def diag_pack(rep, which: str = "sim") -> dict:
 
 
 def pick_selected_track_id(rep):
-    """Devuelve el track_id realmente elegido si la decision final selecciona uno."""
+    """Return the actually selected track_id if final decision selects one."""
     v = getattr(rep, "final_object_id", None)
     if v is not None:
         return int(v)
@@ -435,7 +435,7 @@ def pick_selected_track_id(rep):
 
 
 def pick_focus_track_id(rep, ranked_candidates):
-    """Devuelve el candidato de referencia para inspeccion visual del reporte."""
+    """Return the reference candidate for visual report inspection."""
     v = pick_selected_track_id(rep)
     if v is not None:
         return int(v)
@@ -509,7 +509,7 @@ def pick_focus_track_id(rep, ranked_candidates):
 
 
 def find_candidate_by_track_id(cands, track_id):
-    """Devuelve el candidate cuyo object_id coincide con track_id."""
+    """Return the candidate whose object_id matches track_id."""
     if track_id is None:
         return None
     for c in (cands or []):
@@ -520,7 +520,7 @@ def find_candidate_by_track_id(cands, track_id):
 
 
 def decision_letter(dec: str) -> str:
-    """Codifica decisión final en una letra para tabla."""
+    """Encode final decision as one table letter."""
     d = str(dec or "").upper().strip()
     if d == "MATCH":
         return "M"

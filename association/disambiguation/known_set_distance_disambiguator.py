@@ -13,10 +13,10 @@ class KnownSetDistanceDisambiguator(
     AssignmentScoringMixin,
 ):
     """
-    Resuelve componentes ambiguos cerrados de IDs conocidos usando memoria relacional.
+    Resolve closed ambiguous components of known IDs using relational memory.
 
-    El módulo no decide NEW vs KNOWN. Solo desambiguación bajo la premisa de que
-    el conjunto correcto de IDs conocidos ya está acotado.
+    This module does not decide NEW vs KNOWN. It only disambiguates under the
+    premise that the correct known-ID set is already bounded.
     """
 
     def __init__(self, *, config: dict, memory_store) -> None:

@@ -18,7 +18,7 @@ def print_proto_update_domain_table(
     sort_by: list,
     max_rows: int,
 ):
-    """Imprime una tabla de proto-updates para un dominio."""
+    """Print a proto-update table for one domain."""
     if df is None or df.empty:
         print(f"\n[DEBUG][{title}] frame={frame_id} (no events)")
         return
@@ -180,7 +180,7 @@ def print_neighbor_distance_graph(
     object_ids: list[int] | None = None,
 ):
     """
-    Imprime NeighborDistanceGraph por objeto (edges y modos).
+    Print NeighborDistanceGraph per object (edges and modes).
 
     Por defecto usa update_out.visible_object_ids si object_ids es None.
     """

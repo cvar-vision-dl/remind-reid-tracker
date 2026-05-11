@@ -1,7 +1,7 @@
 # utils/debug_format.py
 
 def fmt(x, nd=2):
-    """Formatea numéricos a nd decimales; None -> 'NA'. Mantiene valores no casteables."""
+    """Format numeric values to nd decimals; None -> 'NA'. Keep non-castable values."""
     if x is None:
         return "NA"
     try:
@@ -20,7 +20,7 @@ def fmt_ws(v, nd=2, sep="|"):
 
 
 def safe_float(x, default: float = 0.0) -> float:
-    """Castea a float de forma robusta; para dict {work, stable} usa max(work, stable)."""
+    """Robustly cast to float; for {work, stable} dicts use max(work, stable)."""
     if x is None:
         return None if default is None else float(default)
     if isinstance(x, dict):

@@ -7,10 +7,7 @@ de asociación.
 
 Los documentos detallados de `sets` y `distance` siguen siendo útiles para la
 lógica local de cada bloque, pero la lectura global del pipeline debe hacerse
-desde aquí y desde `APP2/Src/association/policy/POLICY_TAXONOMY.md`.
-
-El diseño de la futura capa de trazabilidad visual está descrito en
-`APP2/Src/association_trace/ASSOCIATION_TRACE_VISUALIZATION.md`.
+desde aquí y desde `REMIND/association/policy/POLICY_TAXONOMY.md`.
 
 ## Secuencia del frame
 
@@ -27,11 +24,11 @@ La asociación por frame se recorre en este orden:
 
 Archivo principal:
 
-- `APP2/Src/association/flow/frame_association_flow.py`
+- `REMIND/association/flow/frame_association_flow.py`
 
 Fachada de entrada:
 
-- `APP2/Src/association/engine/data_association.py`
+- `REMIND/association/engine/data_association.py`
 
 ## Capas del módulo
 
@@ -45,9 +42,9 @@ Responsabilidad:
 
 Archivos:
 
-- `APP2/Src/association/engine/candidate_generation.py`
-- `APP2/Src/association/scores/base_scores.py`
-- `APP2/Src/association/similarity_computer.py`
+- `REMIND/association/engine/candidate_generation.py`
+- `REMIND/association/scores/base_scores.py`
+- `REMIND/association/similarity_computer.py`
 
 ### 2. Activación de contexto
 
@@ -58,8 +55,8 @@ Responsabilidad:
 
 Archivos:
 
-- `APP2/Src/association/context/sets_provider.py`
-- `APP2/Src/association/context/neighbor_sets_influence.py`
+- `REMIND/association/context/sets_provider.py`
+- `REMIND/association/context/neighbor_sets_influence.py`
 
 Nota actual:
 
@@ -79,13 +76,13 @@ Responsabilidad:
 
 Fachada semántica actual:
 
-- `APP2/Src/association/engine/candidate_shaping/score_path.py`
+- `REMIND/association/engine/candidate_shaping/score_path.py`
 
 Implementación real hoy:
 
-- `APP2/Src/association/policy/candidate_score_policy.py`
-- `APP2/Src/association/policy/known_plausible_keep_policy.py`
-- `APP2/Src/association/policy/sets_rule_policy.py`
+- `REMIND/association/policy/candidate_score_policy.py`
+- `REMIND/association/policy/known_plausible_keep_policy.py`
+- `REMIND/association/policy/sets_rule_policy.py`
 
 Nota actual:
 
@@ -105,10 +102,10 @@ Responsabilidad:
 
 Archivos:
 
-- `APP2/Src/association/engine/assignment.py`
-- `APP2/Src/association/engine/assignment_path/support.py`
-- `APP2/Src/association/resolver/hungarian_resolver.py`
-- `APP2/Src/association/resolver/lock_resolver.py`
+- `REMIND/association/engine/assignment.py`
+- `REMIND/association/engine/assignment_path/support.py`
+- `REMIND/association/resolver/hungarian_resolver.py`
+- `REMIND/association/resolver/lock_resolver.py`
 
 ### 5. Guardas postasignación
 
@@ -121,8 +118,8 @@ Responsabilidad:
 
 Archivos:
 
-- `APP2/Src/association/engine/assignment_result_applier.py`
-- `APP2/Src/association/engine/post_assignment/support.py`
+- `REMIND/association/engine/assignment_result_applier.py`
+- `REMIND/association/engine/post_assignment/support.py`
 
 ### 6. Outcomes
 
@@ -134,17 +131,16 @@ Responsabilidad:
 
 Policy canónica:
 
-- `APP2/Src/association/policy/outcome_policy.py`
+- `REMIND/association/policy/outcome_policy.py`
 
 ## Lectura recomendada
 
 Si alguien necesita entender el módulo de arriba abajo, el orden recomendado es:
 
-1. `APP2/Src/association/ASSOCIATION_DECISION_PATH.md`
-2. `APP2/Src/association/policy/POLICY_TAXONOMY.md`
-3. `APP2/Src/association_trace/ASSOCIATION_TRACE_VISUALIZATION.md`
-4. `APP2/Src/association/flow/frame_association_flow.py`
-5. `APP2/Src/association/engine/assignment.py`
-6. `APP2/Src/association/engine/assignment_result_applier.py`
+1. `REMIND/association/ASSOCIATION_DECISION_PATH.md`
+2. `REMIND/association/policy/POLICY_TAXONOMY.md`
+3. `REMIND/association/flow/frame_association_flow.py`
+4. `REMIND/association/engine/assignment.py`
+5. `REMIND/association/engine/assignment_result_applier.py`
 
-Los documentos `APP2/Src/association/policy/SETS_RULES.md` y `APP2/Src/association/policy/DISTANCE_RULES.md` deben leerse como inventario detallado por bloque, no como mapa principal del flujo.
+Los documentos `REMIND/association/policy/SETS_RULES.md` y `REMIND/association/policy/DISTANCE_RULES.md` deben leerse como inventario detallado por bloque, no como mapa principal del flujo.

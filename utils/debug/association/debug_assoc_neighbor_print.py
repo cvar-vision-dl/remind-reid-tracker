@@ -12,7 +12,7 @@ from .debug_assoc_dataframes import (
 
 
 def print_neighbor_sets_table(config, frame_id, assoc_out, memory_store, det_id_to_local=None):
-    """Imprime tabla de neighbor-sets (sets + priors)."""
+    """Print neighbor-sets table (sets + priors)."""
     neigh_sets_out = getattr(assoc_out, "neighbor_sets_out", None) if assoc_out is not None else None
 
     dbg = (config.get("debug", {}) or {})

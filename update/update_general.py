@@ -14,7 +14,7 @@ from update.descriptors.update_parts import PartsUpdater
 
 
 class UpdateDecision:
-    """Controla qué tipos de operaciones de update están permitidas para un match."""
+    """Control which update operation types are allowed for a match."""
 
     def __init__(
         self,
@@ -34,7 +34,7 @@ class UpdateDecision:
 
 
 class UpdatePolicies:
-    """Orquestador de updates: lifecycle + delegación a object/background/parts/neighbors."""
+    """Update orchestrator: lifecycle + delegation to object/background/parts/neighbors."""
 
     def __init__(self, config: dict, memory_store, class_id_to_name=None):
         self.config = config

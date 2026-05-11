@@ -10,7 +10,7 @@ from transformers import AutoImageProcessor, AutoModel
 
 
 class DinoExtractor:
-    """Extractor DINO (contenedor general de métodos)."""
+    """DINO extractor (general method container)."""
 
     def __init__(self, config: dict, device: str):
         self.config = config
@@ -47,7 +47,7 @@ class DinoExtractor:
 
         key = str(label).strip().upper()
         if key not in models_map:
-            raise ValueError(f"DINO model_label='{label}' no está en config['dino']['models'].")
+            raise ValueError(f"DINO model_label='{label}' is not in config['dino']['models'].")
 
         return str(models_map[key])
 
@@ -60,7 +60,7 @@ class DinoExtractor:
 
     @torch.inference_mode()
     def extract_patches(self, image_rgb: np.ndarray) -> np.ndarray:
-        """Devuelve fmap [Hp, Wp, D] para una imagen."""
+        """Return fmap [Hp, Wp, D] for an image."""
         self.set_attn_impl_if_possible("sdpa")
 
         batch = self.processor(
@@ -90,8 +90,8 @@ class DinoExtractor:
         """
         Devuelve:
         - fmap: (Hp, Wp, D)
-        - attn_mean: (N, N) atención patch->patch promedio
-        - attn_heads: (Hsel, N, N) solo si head_ids != None, si no None
+        - attn_mean: (N, N) average patch->patch attention
+        - attn_heads: (Hsel, N, N) only if head_ids != None, otherwise None
         """
         self.set_attn_impl_if_possible("eager")
 
@@ -115,8 +115,8 @@ class DinoExtractor:
 
         if attentions is None:
             raise RuntimeError(
-                "DINO no devolvió 'attentions' (outputs.attentions == None). "
-                "Necesitas una implementación compatible para capturar attentions."
+                "DINO did not return 'attentions' (outputs.attentions == None). "
+                "A compatible implementation is required to capture attentions."
             )
 
         hp = batch["pixel_values"].shape[-2] // self.patch_size
@@ -154,7 +154,7 @@ class DinoExtractor:
         return fmap, attn_mean, attn_heads
 
     def mask_px_to_patch_coverage(self, mask_px: np.ndarray, hp: int, wp: int) -> np.ndarray:
-        """Devuelve (Hp, Wp) con fracción de píxeles True por patch."""
+        """Return (Hp, Wp) with the True-pixel fraction per patch."""
         if mask_px.ndim != 2:
             raise ValueError("mask_px debe ser 2D (H, W)")
 
@@ -179,7 +179,7 @@ class DinoExtractor:
         return m4.mean(axis=(1, 3)).astype(np.float32)
 
     def patch_mask_from_coverage(self, cov: np.ndarray) -> np.ndarray:
-        """Devuelve patch_mask bool según self.patch_selection."""
+        """Return a bool patch_mask according to self.patch_selection."""
         if cov.ndim != 2:
             raise ValueError("cov debe ser 2D (Hp, Wp)")
 
@@ -310,7 +310,7 @@ class DinoExtractor:
         trimmed_min_patches: int | None = None,
     ) -> np.ndarray | None:
         if fmap.ndim != 3 or patch_mask.ndim != 2:
-            raise ValueError("Dimensiones inválidas")
+            raise ValueError("Invalid dimensions")
 
         hp, wp, dim = fmap.shape
         if patch_mask.shape != (hp, wp):

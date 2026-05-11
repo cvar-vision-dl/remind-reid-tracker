@@ -33,7 +33,7 @@ Según los últimos timings, los bloques caros principales siguen siendo:
 
 Archivo:
 
-- `APP2/Src/detection/davis_segmenter.py`
+- `REMIND/detection/davis_segmenter.py`
 
 Bloque objetivo:
 
@@ -73,7 +73,7 @@ Notas:
 
 Archivo:
 
-- `APP2/Src/utils/math.py`
+- `REMIND/utils/math.py`
 
 Bloque objetivo:
 
@@ -104,7 +104,7 @@ Notas:
 
 Archivo:
 
-- `APP2/Src/features/part_features.py`
+- `REMIND/features/part_features.py`
 
 Bloque objetivo:
 
@@ -131,7 +131,7 @@ Notas:
 
 Archivo:
 
-- `APP2/Src/memory/neighbor_distance_graph.py`
+- `REMIND/memory/neighbor_distance_graph.py`
 
 Bloque objetivo:
 
@@ -159,7 +159,7 @@ Notas:
 
 Archivo:
 
-- `APP2/Src/memory/neighbor_distance_graph.py`
+- `REMIND/memory/neighbor_distance_graph.py`
 
 Bloque objetivo:
 
@@ -189,7 +189,7 @@ Notas:
 
 Archivo:
 
-- `APP2/Src/association/scores/sets/sets_options.py`
+- `REMIND/association/scores/sets/sets_options.py`
 
 Bloque objetivo:
 
@@ -218,8 +218,8 @@ Notas:
 
 Archivos:
 
-- `APP2/Src/association/scores/sets/sets_search.py`
-- `APP2/Src/association/scores/sets/sets_scoring.py`
+- `REMIND/association/scores/sets/sets_search.py`
+- `REMIND/association/scores/sets/sets_scoring.py`
 
 Bloque objetivo:
 
@@ -252,7 +252,7 @@ Notas:
 
 Archivo:
 
-- `APP2/Src/association/scores/sets/sets_search.py`
+- `REMIND/association/scores/sets/sets_search.py`
 
 Bloque objetivo:
 
@@ -284,7 +284,7 @@ Notas:
 
 Archivo:
 
-- `APP2/Src/association/scores/sets/sets_graph_utils.py`
+- `REMIND/association/scores/sets/sets_graph_utils.py`
 
 Bloque objetivo:
 
@@ -317,14 +317,14 @@ Notas:
 
 Archivos:
 
-- `APP2/Src/utils/time.py`
-- `APP2/Src/pipeline/reid_pipeline.py`
-- `APP2/Src/main.py`
-- `APP2/Src/association/context/sets_provider.py`
-- `APP2/Src/association/scores/sets/neighbor_sets_score.py`
-- `APP2/Src/association/scores/sets/sets_options.py`
-- `APP2/Src/association/scores/sets/sets_search.py`
-- `APP2/Src/association/scores/sets/sets_scoring.py`
+- `REMIND/utils/time.py`
+- `REMIND/pipeline/reid_pipeline.py`
+- `REMIND/main.py`
+- `REMIND/association/context/sets_provider.py`
+- `REMIND/association/scores/sets/neighbor_sets_score.py`
+- `REMIND/association/scores/sets/sets_options.py`
+- `REMIND/association/scores/sets/sets_search.py`
+- `REMIND/association/scores/sets/sets_scoring.py`
 
 Bloque objetivo:
 
@@ -353,10 +353,10 @@ Notas:
 
 Archivos:
 
-- `APP2/Src/perception/perception_engine.py`
-- `APP2/Src/features/object_features.py`
-- `APP2/Src/features/part_features.py`
-- `APP2/Src/features/background_features.py`
+- `REMIND/perception/perception_engine.py`
+- `REMIND/features/object_features.py`
+- `REMIND/features/part_features.py`
+- `REMIND/features/background_features.py`
 
 Bloque objetivo:
 
@@ -400,7 +400,7 @@ Notas:
 
 Archivo:
 
-- `APP2/Src/features/background_features.py`
+- `REMIND/features/background_features.py`
 
 Bloque objetivo:
 
@@ -431,7 +431,7 @@ Notas:
 
 Archivo:
 
-- `APP2/Src/memory/neighbor_distance_graph.py`
+- `REMIND/memory/neighbor_distance_graph.py`
 
 Bloque objetivo:
 
@@ -463,7 +463,7 @@ Notas:
 
 Archivo:
 
-- `APP2/Src/update/update_general.py`
+- `REMIND/update/update_general.py`
 
 Bloque objetivo:
 
@@ -502,7 +502,7 @@ Notas:
 
 Archivo:
 
-- `APP2/Src/association/policy/outcome_policy.py`
+- `REMIND/association/policy/outcome_policy.py`
 
 Bloque objetivo:
 
@@ -538,7 +538,7 @@ Notas:
 
 Archivo:
 
-- `APP2/Src/features/background_features.py`
+- `REMIND/features/background_features.py`
 
 Bloque objetivo:
 
@@ -579,12 +579,12 @@ Notas:
 
 Archivos:
 
-- `APP2/Src/config/default_config.yaml`
-- `APP2/Src/utils/config.py`
-- `APP2/Src/perception/perception_engine.py`
-- `APP2/Src/association/similarity_computer.py`
-- `APP2/Src/association/scores/base_scores.py`
-- `APP2/Src/update/descriptors/update_background.py`
+- `REMIND/config/default_config.yaml`
+- `REMIND/utils/config.py`
+- `REMIND/perception/perception_engine.py`
+- `REMIND/association/similarity_computer.py`
+- `REMIND/association/scores/base_scores.py`
+- `REMIND/update/descriptors/update_background.py`
 
 Bloque objetivo:
 
@@ -623,8 +623,8 @@ Notas:
 
 Archivos:
 
-- `APP2/Src/association/engine/assignment_result_applier.py`
-- `APP2/Src/association/disambiguation/known_set_distance_disambiguator.py`
+- `REMIND/association/engine/assignment_result_applier.py`
+- `REMIND/association/disambiguation/known_set_distance_disambiguator.py`
 
 Bloque objetivo:
 
@@ -661,8 +661,8 @@ Notas:
 
 Archivos:
 
-- `APP2/Src/config/default_config.yaml`
-- `APP2/Src/association/engine/assignment_result_applier.py`
+- `REMIND/config/default_config.yaml`
+- `REMIND/association/engine/assignment_result_applier.py`
 
 Bloque objetivo:
 
@@ -698,8 +698,8 @@ Notas:
 
 Archivos:
 
-- `APP2/Src/features/background_features.py`
-- `APP2/Src/perception/perception_engine.py`
+- `REMIND/features/background_features.py`
+- `REMIND/perception/perception_engine.py`
 
 Bloque objetivo:
 
@@ -735,8 +735,8 @@ Notas:
 
 Archivos:
 
-- `APP2/Src/testing/tracking_metrics.py`
-- `APP2/Src/testing/davis_gt.py`
+- `REMIND/testing/tracking_metrics.py`
+- `REMIND/testing/davis_gt.py`
 
 Bloque objetivo:
 
@@ -775,8 +775,8 @@ Notas:
 
 Archivos:
 
-- `APP2/Src/testing/davis_gt.py`
-- `APP2/Src/testing/tracking_metrics.py`
+- `REMIND/testing/davis_gt.py`
+- `REMIND/testing/tracking_metrics.py`
 
 Bloque objetivo:
 
@@ -811,7 +811,7 @@ Notas:
 
 Archivos:
 
-- `APP2/Src/features/part_features.py`
+- `REMIND/features/part_features.py`
 
 Bloque objetivo:
 
@@ -850,7 +850,7 @@ Notas:
 
 Archivos:
 
-- `APP2/Src/config/default_config.yaml`
+- `REMIND/config/default_config.yaml`
 
 Bloque objetivo:
 
@@ -885,9 +885,9 @@ Notas:
 
 Archivos:
 
-- `APP2/Src/association/scores/sets/neighbor_sets_score.py`
-- `APP2/Src/association/scores/sets/sets_graph_utils.py`
-- `APP2/Src/config/default_config.yaml`
+- `REMIND/association/scores/sets/neighbor_sets_score.py`
+- `REMIND/association/scores/sets/sets_graph_utils.py`
+- `REMIND/config/default_config.yaml`
 
 Bloque objetivo:
 
@@ -918,8 +918,8 @@ Riesgo:
 Validación:
 
 - `python3 -m py_compile` sobre:
-  - `APP2/Src/association/scores/sets/sets_graph_utils.py`
-  - `APP2/Src/association/scores/sets/neighbor_sets_score.py`
+  - `REMIND/association/scores/sets/sets_graph_utils.py`
+  - `REMIND/association/scores/sets/neighbor_sets_score.py`
 - comparación sintética entre dos implementaciones de `max_spanning_tree_mean_dense`
 
 Notas:
@@ -931,8 +931,8 @@ Notas:
 
 Archivos:
 
-- `APP2/Src/detection/davis_segmenter.py`
-- `APP2/Src/config/default_config.yaml`
+- `REMIND/detection/davis_segmenter.py`
+- `REMIND/config/default_config.yaml`
 
 Bloque objetivo:
 
@@ -957,7 +957,7 @@ Riesgo:
 
 Validación:
 
-- `python3 -m py_compile` sobre `APP2/Src/detection/davis_segmenter.py`
+- `python3 -m py_compile` sobre `REMIND/detection/davis_segmenter.py`
 
 Notas:
 
@@ -968,8 +968,8 @@ Notas:
 
 Archivos:
 
-- `APP2/Src/detection/davis_segmenter.py`
-- `APP2/Src/perception/perception_engine.py`
+- `REMIND/detection/davis_segmenter.py`
+- `REMIND/perception/perception_engine.py`
 
 Bloque objetivo:
 
@@ -997,8 +997,8 @@ Riesgo:
 Validación:
 
 - `python3 -m py_compile` sobre:
-  - `APP2/Src/detection/davis_segmenter.py`
-  - `APP2/Src/perception/perception_engine.py`
+  - `REMIND/detection/davis_segmenter.py`
+  - `REMIND/perception/perception_engine.py`
 
 Notas:
 
@@ -1008,7 +1008,7 @@ Notas:
 
 Archivos:
 
-- `APP2/Src/detection/davis_segmenter.py`
+- `REMIND/detection/davis_segmenter.py`
 
 Bloque objetivo:
 
@@ -1030,7 +1030,7 @@ Riesgo:
 
 Validación:
 
-- `python3 -m py_compile` sobre `APP2/Src/detection/davis_segmenter.py`
+- `python3 -m py_compile` sobre `REMIND/detection/davis_segmenter.py`
 - comparación sintética contra la implementación anterior para `uint8`, `uint16` y `uint32`
 
 Notas:
@@ -1042,7 +1042,7 @@ Notas:
 
 Archivos:
 
-- `APP2/Src/features/background_features.py`
+- `REMIND/features/background_features.py`
 
 Bloque objetivo:
 
@@ -1067,7 +1067,7 @@ Riesgo:
 
 Validación:
 
-- `python3 -m py_compile` sobre `APP2/Src/features/background_features.py`
+- `python3 -m py_compile` sobre `REMIND/features/background_features.py`
 
 Notas:
 
@@ -1077,9 +1077,9 @@ Notas:
 
 Archivos:
 
-- `APP2/Src/features/background_features.py`
-- `APP2/Src/config/default_config.yaml`
-- `APP2/Src/config/CONFIG_TIERS.md`
+- `REMIND/features/background_features.py`
+- `REMIND/config/default_config.yaml`
+- `REMIND/config/CONFIG_TIERS.md`
 
 Bloque objetivo:
 
@@ -1103,7 +1103,7 @@ Riesgo:
 
 Validación:
 
-- `python3 -m py_compile` sobre `APP2/Src/features/background_features.py`
+- `python3 -m py_compile` sobre `REMIND/features/background_features.py`
 
 Notas:
 
@@ -1114,9 +1114,9 @@ Notas:
 
 Archivos:
 
-- `APP2/Src/features/dino_extractor.py`
-- `APP2/Src/config/default_config.yaml`
-- `APP2/Src/config/CONFIG_TIERS.md`
+- `REMIND/features/dino_extractor.py`
+- `REMIND/config/default_config.yaml`
+- `REMIND/config/CONFIG_TIERS.md`
 
 Bloque objetivo:
 
@@ -1140,7 +1140,7 @@ Riesgo:
 
 Validación:
 
-- `python3 -m py_compile` sobre `APP2/Src/features/dino_extractor.py`
+- `python3 -m py_compile` sobre `REMIND/features/dino_extractor.py`
 - benchmark local comparando `resize_area` frente a `reshape_mean` con diferencias numéricas solo de redondeo flotante.
 
 Notas:
@@ -1152,9 +1152,9 @@ Notas:
 
 Archivos:
 
-- `APP2/Src/association/scores/sets/sets_search.py`
-- `APP2/Src/association/scores/sets/sets_graph_utils.py`
-- `APP2/Src/association/policy/outcome_policy.py`
+- `REMIND/association/scores/sets/sets_search.py`
+- `REMIND/association/scores/sets/sets_graph_utils.py`
+- `REMIND/association/policy/outcome_policy.py`
 
 Bloque objetivo:
 
@@ -1185,9 +1185,9 @@ Riesgo:
 Validación:
 
 - `python3 -m py_compile` sobre:
-  - `APP2/Src/association/scores/sets/sets_search.py`
-  - `APP2/Src/association/scores/sets/sets_graph_utils.py`
-  - `APP2/Src/association/policy/outcome_policy.py`
+  - `REMIND/association/scores/sets/sets_search.py`
+  - `REMIND/association/scores/sets/sets_graph_utils.py`
+  - `REMIND/association/policy/outcome_policy.py`
 
 Notas:
 
@@ -1198,10 +1198,10 @@ Notas:
 
 Archivos:
 
-- `APP2/Src/association/scores/sets/neighbor_sets_score.py`
-- `APP2/Src/association/scores/sets/sets_options.py`
-- `APP2/Src/association/scores/sets/sets_search.py`
-- `APP2/Src/association/scores/sets/sets_scoring.py`
+- `REMIND/association/scores/sets/neighbor_sets_score.py`
+- `REMIND/association/scores/sets/sets_options.py`
+- `REMIND/association/scores/sets/sets_search.py`
+- `REMIND/association/scores/sets/sets_scoring.py`
 
 Bloque objetivo:
 
@@ -1233,10 +1233,10 @@ Riesgo:
 Validación:
 
 - `python3 -m py_compile` sobre:
-  - `APP2/Src/association/scores/sets/neighbor_sets_score.py`
-  - `APP2/Src/association/scores/sets/sets_options.py`
-  - `APP2/Src/association/scores/sets/sets_search.py`
-  - `APP2/Src/association/scores/sets/sets_scoring.py`
+  - `REMIND/association/scores/sets/neighbor_sets_score.py`
+  - `REMIND/association/scores/sets/sets_options.py`
+  - `REMIND/association/scores/sets/sets_search.py`
+  - `REMIND/association/scores/sets/sets_scoring.py`
 - revisión manual de que:
   - no cambian thresholds, pesos ni fórmulas de score;
   - el cambio afecta a representación interna, caché y filtrado, no a la semántica objetivo.
@@ -1254,9 +1254,9 @@ Notas:
 
 Archivos:
 
-- `APP2/Src/memory/neighbor_distance_graph.py`
-- `APP2/Src/update/update_general.py`
-- `APP2/Src/association/disambiguation/known_set_distance_disambiguator.py`
+- `REMIND/memory/neighbor_distance_graph.py`
+- `REMIND/update/update_general.py`
+- `REMIND/association/disambiguation/known_set_distance_disambiguator.py`
 
 Bloque objetivo:
 
@@ -1291,9 +1291,9 @@ Notas:
 
 Archivos:
 
-- `APP2/Src/association/policy/outcome_policy.py`
-- `APP2/Src/association/engine/data_association.py`
-- `APP2/Src/association/flow/frame_association_flow.py`
+- `REMIND/association/policy/outcome_policy.py`
+- `REMIND/association/engine/data_association.py`
+- `REMIND/association/flow/frame_association_flow.py`
 
 Bloque objetivo:
 
@@ -1334,9 +1334,9 @@ Notas:
 
 Archivos:
 
-- `APP2/Src/memory/neighbor_distance_graph.py`
-- `APP2/Src/update/update_general.py`
-- `APP2/Src/association/disambiguation/known_set_distance_disambiguator.py`
+- `REMIND/memory/neighbor_distance_graph.py`
+- `REMIND/update/update_general.py`
+- `REMIND/association/disambiguation/known_set_distance_disambiguator.py`
 
 Bloque objetivo:
 
@@ -1365,9 +1365,9 @@ Riesgo:
 Validación:
 
 - Se revirtió el experimento en:
-  - `APP2/Src/memory/neighbor_distance_graph.py`
-  - `APP2/Src/update/update_general.py`
-  - `APP2/Src/association/disambiguation/known_set_distance_disambiguator.py`
+  - `REMIND/memory/neighbor_distance_graph.py`
+  - `REMIND/update/update_general.py`
+  - `REMIND/association/disambiguation/known_set_distance_disambiguator.py`
 - `python3 -m py_compile` sobre los tres archivos tras revertir.
 
 Notas:
@@ -1378,7 +1378,7 @@ Notas:
 
 Archivos:
 
-- `APP2/Src/memory/neighbor_distance_graph.py`
+- `REMIND/memory/neighbor_distance_graph.py`
 
 Bloque objetivo:
 
@@ -1402,7 +1402,7 @@ Riesgo:
 
 Validación:
 
-- `python3 -m py_compile APP2/Src/memory/neighbor_distance_graph.py`
+- `python3 -m py_compile REMIND/memory/neighbor_distance_graph.py`
 
 Notas:
 
@@ -1412,9 +1412,9 @@ Notas:
 
 Archivos:
 
-- `APP2/Src/update/update_general.py`
-- `APP2/Src/config/default_config.yaml`
-- `APP2/Src/config/CONFIG_TIERS.md`
+- `REMIND/update/update_general.py`
+- `REMIND/config/default_config.yaml`
+- `REMIND/config/CONFIG_TIERS.md`
 
 Bloque objetivo:
 
@@ -1442,7 +1442,7 @@ Riesgo:
 
 Validación:
 
-- `python3 -m py_compile APP2/Src/update/update_general.py`
+- `python3 -m py_compile REMIND/update/update_general.py`
 
 Notas:
 
@@ -1454,9 +1454,9 @@ Notas:
 
 Archivos:
 
-- `APP2/Src/update/update_general.py`
-- `APP2/Src/config/default_config.yaml`
-- `APP2/Src/config/CONFIG_TIERS.md`
+- `REMIND/update/update_general.py`
+- `REMIND/config/default_config.yaml`
+- `REMIND/config/CONFIG_TIERS.md`
 
 Bloque objetivo:
 
@@ -1484,7 +1484,7 @@ Riesgo:
 
 Validación:
 
-- `python3 -m py_compile APP2/Src/update/update_general.py`
+- `python3 -m py_compile REMIND/update/update_general.py`
 
 Notas:
 
@@ -1496,11 +1496,11 @@ Notas:
 
 Archivos:
 
-- `APP2/Src/association/scores/sets/neighbor_sets_score.py`
-- `APP2/Src/association/scores/sets/sets_search.py`
-- `APP2/Src/association/scores/sets/sets_scoring.py`
-- `APP2/Src/association/scores/sets/sets_graph_utils.py`
-- `APP2/Src/config/default_config.yaml`
+- `REMIND/association/scores/sets/neighbor_sets_score.py`
+- `REMIND/association/scores/sets/sets_search.py`
+- `REMIND/association/scores/sets/sets_scoring.py`
+- `REMIND/association/scores/sets/sets_graph_utils.py`
+- `REMIND/config/default_config.yaml`
 
 Bloque objetivo:
 
@@ -1539,10 +1539,10 @@ Notas:
 
 Archivos:
 
-- `APP2/Src/association/scores/sets/sets_search.py`
-- `APP2/Src/association/scores/sets/sets_scoring.py`
-- `APP2/Src/association/scores/sets/sets_options.py`
-- `APP2/Src/association/scores/sets/sets_graph_utils.py`
+- `REMIND/association/scores/sets/sets_search.py`
+- `REMIND/association/scores/sets/sets_scoring.py`
+- `REMIND/association/scores/sets/sets_options.py`
+- `REMIND/association/scores/sets/sets_graph_utils.py`
 
 Bloque objetivo:
 
@@ -1571,13 +1571,13 @@ Riesgo:
 
 Validación:
 
-- `python3 -m py_compile APP2/Src/association/scores/sets/neighbor_sets_score.py APP2/Src/association/scores/sets/sets_search.py APP2/Src/association/scores/sets/sets_scoring.py APP2/Src/association/scores/sets/sets_options.py APP2/Src/association/scores/sets/sets_graph_utils.py`
+- `python3 -m py_compile REMIND/association/scores/sets/neighbor_sets_score.py REMIND/association/scores/sets/sets_search.py REMIND/association/scores/sets/sets_scoring.py REMIND/association/scores/sets/sets_options.py REMIND/association/scores/sets/sets_graph_utils.py`
 
 ### 41. `neighbor_sets` - fast-path adicional en `density`/`maturity` por máscara (sin cambios de criterio)
 
 Archivos:
 
-- `APP2/Src/association/scores/sets/sets_graph_utils.py`
+- `REMIND/association/scores/sets/sets_graph_utils.py`
 
 Bloque objetivo:
 
@@ -1601,16 +1601,16 @@ Riesgo:
 
 Validación:
 
-- `python3 -m py_compile APP2/Src/association/scores/sets/sets_graph_utils.py APP2/Src/association/scores/sets/sets_search.py APP2/Src/association/scores/sets/sets_scoring.py APP2/Src/association/scores/sets/sets_options.py APP2/Src/association/scores/sets/neighbor_sets_score.py`
+- `python3 -m py_compile REMIND/association/scores/sets/sets_graph_utils.py REMIND/association/scores/sets/sets_search.py REMIND/association/scores/sets/sets_scoring.py REMIND/association/scores/sets/sets_options.py REMIND/association/scores/sets/neighbor_sets_score.py`
 
 ### 42. `dino_extractor` + `neighbor_distance_graph` + `assignment_result_applier` + `sets_scoring` - recortes de overhead Python en rutas calientes
 
 Archivos:
 
-- `APP2/Src/features/dino_extractor.py`
-- `APP2/Src/memory/neighbor_distance_graph.py`
-- `APP2/Src/association/engine/assignment_result_applier.py`
-- `APP2/Src/association/scores/sets/sets_scoring.py`
+- `REMIND/features/dino_extractor.py`
+- `REMIND/memory/neighbor_distance_graph.py`
+- `REMIND/association/engine/assignment_result_applier.py`
+- `REMIND/association/scores/sets/sets_scoring.py`
 
 Bloques objetivo:
 
@@ -1641,13 +1641,13 @@ Riesgo:
 
 Validación:
 
-- `python3 -m py_compile APP2/Src/features/dino_extractor.py APP2/Src/memory/neighbor_distance_graph.py APP2/Src/association/engine/assignment_result_applier.py APP2/Src/association/scores/sets/sets_scoring.py`
+- `python3 -m py_compile REMIND/features/dino_extractor.py REMIND/memory/neighbor_distance_graph.py REMIND/association/engine/assignment_result_applier.py REMIND/association/scores/sets/sets_scoring.py`
 
 ### 43. `utils/math.py` - `kmeans_np` más eficiente para `parts_kmeans` (sin cambiar API)
 
 Archivo:
 
-- `APP2/Src/utils/math.py`
+- `REMIND/utils/math.py`
 
 Bloque objetivo:
 
@@ -1672,14 +1672,14 @@ Riesgo:
 
 Validación:
 
-- `python3 -m py_compile APP2/Src/utils/math.py APP2/Src/features/part_features.py`
+- `python3 -m py_compile REMIND/utils/math.py REMIND/features/part_features.py`
 - prueba sintética local de sanidad de shapes/inercia para varios `(N,D,K)`.
 
 ### 44. `candidate_generation.py` - eliminar doble combinación de similitud en `sim_candidates`
 
 Archivo:
 
-- `APP2/Src/association/engine/candidate_generation.py`
+- `REMIND/association/engine/candidate_generation.py`
 
 Bloque objetivo:
 
@@ -1701,13 +1701,13 @@ Riesgo:
 
 Validación:
 
-- `python3 -m py_compile APP2/Src/association/engine/candidate_generation.py`
+- `python3 -m py_compile REMIND/association/engine/candidate_generation.py`
 
 ### 45. `candidate_score_policy.py` - precálculo de top-k frame-local para evitar resortes repetidos en tablas de asignación
 
 Archivo:
 
-- `APP2/Src/association/policy/candidate_score_policy.py`
+- `REMIND/association/policy/candidate_score_policy.py`
 
 Bloque objetivo:
 
@@ -1730,7 +1730,7 @@ Riesgo:
 
 Validación:
 
-- `python3 -m py_compile APP2/Src/association/policy/candidate_score_policy.py`
+- `python3 -m py_compile REMIND/association/policy/candidate_score_policy.py`
 
 ## Cambios explícitamente revertidos
 
@@ -1745,7 +1745,7 @@ Validación:
 
 Revisar primero:
 
-- `APP2/Src/memory/neighbor_distance_graph.py`
+- `REMIND/memory/neighbor_distance_graph.py`
 
 Especialmente:
 
@@ -1757,10 +1757,10 @@ Especialmente:
 
 Revisar primero:
 
-- `APP2/Src/association/scores/sets/sets_graph_utils.py`
-- `APP2/Src/association/scores/sets/sets_search.py`
-- `APP2/Src/association/scores/sets/sets_scoring.py`
-- `APP2/Src/association/scores/sets/sets_options.py`
+- `REMIND/association/scores/sets/sets_graph_utils.py`
+- `REMIND/association/scores/sets/sets_search.py`
+- `REMIND/association/scores/sets/sets_scoring.py`
+- `REMIND/association/scores/sets/sets_options.py`
 
 ### Si sube el tiempo pero no falla nada
 
@@ -1774,14 +1774,14 @@ Mirar primero:
 
 Pendientes con mejor pinta:
 
-- `APP2/Src/detection/davis_segmenter.py`
-- `APP2/Src/features/background_features.py`
+- `REMIND/detection/davis_segmenter.py`
+- `REMIND/features/background_features.py`
   - especialmente prototipos y construcción de anillos
-- `APP2/Src/features/part_features.py`
+- `REMIND/features/part_features.py`
   - reducir más coste de `parts_kmeans`
-- `APP2/Src/association/engine/assignment_result_applier.py`
+- `REMIND/association/engine/assignment_result_applier.py`
   - revisar `temporal_reconcile`
-- `APP2/Src/features/object_features.py`
+- `REMIND/features/object_features.py`
   - posible reutilización de cobertura/máscara para evitar trabajo duplicado
 
 ## Regla para futuras entradas

@@ -13,7 +13,7 @@ def default_run_timestamp() -> str:
 
 class TeeStdout:
     """
-    Duplica todo lo que se imprime a consola a un archivo, sin cambiar los prints.
+    Duplicate everything printed to console into a file without changing prints.
     Respeta exactamente el formato (tablas, saltos, etc.).
 
     Uso:

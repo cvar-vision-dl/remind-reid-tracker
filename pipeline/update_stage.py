@@ -7,7 +7,7 @@ from update.memory_manager import MemoryManager
 
 class UpdateStage:
     """
-    Etapa de actualización de memoria (lifecycle + modelos).
+    Memory update stage (lifecycle + models).
     """
 
     def __init__(self, config: dict, memory_store, class_id_to_name=None):

@@ -1,6 +1,6 @@
 # Metrics Summary For TFM
 
-Este documento resume, en formato breve y mas academico, las metricas y salidas generadas por el pipeline de evaluacion de tracking e identidad en `APP2/Src/testing`. Su objetivo es servir como base reutilizable para la redaccion del TFM y para futuras tablas o secciones de resultados.
+Este documento resume, en formato breve y mas academico, las metricas y salidas generadas por el pipeline de evaluacion de tracking e identidad en `REMIND/testing`. Su objetivo es servir como base reutilizable para la redaccion del TFM y para tablas o secciones de resultados.
 
 ## 1. Objetivo de la evaluacion
 

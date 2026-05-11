@@ -65,7 +65,7 @@ class YoloSegmenter:
             return None
 
         if self.model is None:
-            raise RuntimeError("YOLO no cargado. Llama a load_model() antes de resolve_classes().")
+            raise RuntimeError("YOLO is not loaded. Call load_model() before resolve_classes().")
 
         id_to_name = self.class_id_to_name or self.build_id_to_name_map(self.model)
         name_to_id = {v.lower(): k for k, v in id_to_name.items()}
@@ -92,7 +92,7 @@ class YoloSegmenter:
 
     def erode_mask(self, mask_bool: np.ndarray, erosion_px: int, erosion_iters: int) -> np.ndarray:
         """
-        Erosiona una máscara booleana (H,W) en píxeles.
+        Erode a boolean mask (H,W) in pixels.
         """
         r = int(max(0, erosion_px))
         it = int(max(1, erosion_iters))
@@ -111,7 +111,7 @@ class YoloSegmenter:
 
     def mask_center_and_area(self, mask: np.ndarray) -> dict:
         """
-        Centroide y área a partir de máscara booleana.
+        Centroid and area from a boolean mask.
         """
         ys, xs = np.nonzero(mask)
         area = float(len(xs))
@@ -136,7 +136,7 @@ class YoloSegmenter:
         Ejecuta YOLO-seg sobre un frame
         """
         if self.model is None:
-            raise RuntimeError("YOLO no cargado. Llama a load_model() antes de segment().")
+            raise RuntimeError("YOLO is not loaded. Call load_model() before segment().")
 
         sys_cfg = self.sys_cfg
         ycfg = self.yolo_cfg

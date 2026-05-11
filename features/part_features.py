@@ -7,13 +7,13 @@ from utils.time import ExecutionTimer
 
 class PartFeatureExtractor:
     """
-    Extrae un set de descriptores (multi-prototype) por objeto, usando "partes" internas.
+    Extract a descriptor set (multi-prototype) per object using internal parts.
 
     Backends (por config):
-      - kmeans (proponer varios prototipos y luego hacer merge básico intra-frame)
-      - attention (part proposals a partir de atención patch->patch)
+      - kmeans (propose several prototypes and then do basic intra-frame merge)
+      - attention (part proposals from patch->patch attention)
 
-    Salida por método:
+    Output by method:
       {
         "part_descs": [np.ndarray(D,), ...]
         "part_masks": [np.ndarray(Hp,Wp), ...] | None
@@ -92,9 +92,9 @@ class PartFeatureExtractor:
         }
 
         attn:
-          - None: no se calcula attention parts
-          - (N,N): atención patch->patch promedio
-          - (H,N,N): atención por head (promediada en capas)
+          - None: attention parts are not computed
+          - (N,N): average patch->patch attention
+          - (H,N,N): per-head attention (averaged across layers)
         """
         parts_out = {"kmeans": None, "attention": None}
         if fmap is None or obj_mask_px is None:
@@ -419,8 +419,8 @@ class PartFeatureExtractor:
         Attention-based part proposals (intra-frame).
 
         attn puede ser:
-          - (N,N): atención patch->patch promedio
-          - (H,N,N): atención por head (promediada en capas)
+          - (N,N): average patch->patch attention
+          - (H,N,N): per-head attention (averaged across layers)
         """
         hp, wp, dim = fmap.shape
         n_total = hp * wp
@@ -548,8 +548,8 @@ class PartFeatureExtractor:
     def resolve_attention_matrix(self, attn, n_total: int) -> np.ndarray:
         """
         Convierte attn a una matriz (N,N) en float32.
-        - Si attn es (H,N,N) y hay head_ids, promedia solo esas heads.
-        - Si attn es (H,N,N) sin head_ids, promedia todas.
+        - If attn is (H,N,N) and head_ids exist, average only those heads.
+        - If attn is (H,N,N) without head_ids, average all heads.
         - Si attn es (N,N), lo usa tal cual.
         """
         a = np.asarray(attn)

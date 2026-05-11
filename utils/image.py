@@ -7,8 +7,8 @@ from collections import OrderedDict
 
 class ImageHistory:
     """
-    Cache híbrido:
-      - RAM: LRU (últimos N frames)
+    Hybrid cache:
+      - RAM: LRU (last N frames)
       - DISK: PNG por frame (persistente)
     """
 
@@ -95,7 +95,7 @@ def align_frame_to_patches_crop(
     center: bool = True,
 ):
     """
-    Recorta el frame para que H y W sean múltiplos de patch_multiple.
+    Crop the frame so H and W are multiples of patch_multiple.
     NO padding. Solo crop.
 
     Si center=True, reparte el recorte de forma equilibrada:
@@ -105,7 +105,7 @@ def align_frame_to_patches_crop(
 
     Returns:
       frame_aligned
-      meta: dict con crop y tamaños
+      meta: dict with crop and sizes
         {
           "mode": "crop",
           "crop": (x0, y0, x1, y1),
@@ -122,7 +122,7 @@ def align_frame_to_patches_crop(
     h_eff = (h // p) * p
     w_eff = (w // p) * p
     if h_eff <= 0 or w_eff <= 0:
-        # demasiado pequeño: devuelvo tal cual para no petar el pipeline
+        # too small: return unchanged to keep the pipeline running
         meta = {
             "mode": "crop",
             "crop": (0, 0, w, h),

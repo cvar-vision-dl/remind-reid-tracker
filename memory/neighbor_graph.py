@@ -32,7 +32,7 @@ class NeighborEdge:
 
 class NeighborGraph:
     """
-    Modelo (memoria) de vecinos para un objeto A (dirigido A -> B)..
+    Neighbor memory model for object A (directed A -> B).
     """
 
     def __init__(self, config: dict | None = None):
@@ -58,7 +58,7 @@ class NeighborGraph:
         self.pending_hits = 0
 
     # ------------------------------------------------------------------
-    # Queries / métricas (no policy)
+    # Queries / metrics (no policy)
     # ------------------------------------------------------------------
 
     def self_episode_count(self) -> int:
@@ -105,7 +105,7 @@ class NeighborGraph:
 
     def neighbors(self) -> List[dict]:
         """
-        Devuelve vecinos ordenados según trim_strategy.
+        Return neighbors ordered by trim_strategy.
         """
         items = list(self.edges.items())
         if self.trim_strategy == "recent":

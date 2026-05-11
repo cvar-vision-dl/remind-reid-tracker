@@ -35,7 +35,7 @@ def brighten_bgr(bgr: tuple, add: int = 40) -> tuple:
 
 
 def overlay_header(frame_bgr: np.ndarray, text: str) -> np.ndarray:
-    """Añade una banda superior negra fuera del frame con texto blanco."""
+    """Add a black top band outside the frame with white text."""
     if frame_bgr is None:
         return None
 
@@ -64,7 +64,7 @@ def overlay_header(frame_bgr: np.ndarray, text: str) -> np.ndarray:
 
 
 def overlay_mask_bgr(img_bgr: np.ndarray, mask: np.ndarray, bgr: tuple, alpha: float) -> np.ndarray:
-    """Alpha-blend sobre img_bgr donde mask==True (mask 2D bool)."""
+    """Alpha-blend over img_bgr where mask==True (2D bool mask)."""
     if img_bgr is None:
         return None
     if mask is None:
@@ -137,7 +137,7 @@ def draw_dino_patch_grid(
 
 
 def resolve_bg_rings_from_det_feats(det_feats: dict | None):
-    """Resuelve ring_inner/ring_outer (patch masks) desde det_feats['bg']."""
+    """Resolve ring_inner/ring_outer (patch masks) from det_feats['bg']."""
     if not isinstance(det_feats, dict):
         return None, None
 
@@ -518,9 +518,9 @@ def draw_track_labels_from_update_output(
     if not det2obj:
         return out
 
-    # Evitar tapar máscaras:
-    # - siempre intenta evitar tapar máscaras de otros objetos
-    # - puede permitir tapar SU propia máscara si es suficientemente grande (para no alejar el label)
+    # Avoid covering masks:
+    # - always try to avoid covering other object masks
+    # - may allow covering its own mask if it is large enough to keep the label nearby
     union_integral = None
     mask_integral_by_det_id: dict[int, np.ndarray] = {}
     mask_area_by_det_id: dict[int, int] = {}
@@ -559,7 +559,7 @@ def draw_track_labels_from_update_output(
         det_id_to_local[int(did)] = int(i)
 
     placed_boxes: list[tuple[int, int, int, int]] = []
-    # Cache persistente (por proceso) para estabilizar posiciones de labels entre frames.
+    # Process-persistent cache to stabilize label positions across frames.
     # key: object_id -> (x0,y0,x1,y1)
     last_boxes_by_obj = getattr(draw_track_labels_from_update_output, "_last_boxes_by_obj", None)
     if not isinstance(last_boxes_by_obj, dict):
@@ -605,7 +605,7 @@ def draw_track_labels_from_update_output(
 
         margin = 6
 
-        # Candidatos en anillos alrededor del anchor (más opciones => menos solapes).
+        # Candidates in rings around the anchor (more options => fewer overlaps).
         cand: list[tuple[int, int]] = []
         for s in (1, 2, 3, 4):
             dxs = [0, -bw // 2, bw // 2, -bw, bw]
@@ -663,16 +663,16 @@ def draw_track_labels_from_update_output(
                 return False
             return True
 
-        # Sticky placement: si el rect anterior sigue siendo válido y no está demasiado lejos, mantenerlo.
+        # Sticky placement: keep the previous rect if it is still valid and not too far away.
         if sticky:
             prev = last_boxes_by_obj.get(int(obj_id), None)
             if isinstance(prev, (tuple, list)) and len(prev) == 4:
                 px0, py0, px1, py1 = (int(prev[0]), int(prev[1]), int(prev[2]), int(prev[3]))
-                # Ajustar dentro de frame y al tamaño actual de la caja
+                # Clamp inside the frame and to the current box size
                 px0 = int(max(0, min(int(w) - bw, px0)))
                 py0 = int(max(0, min(int(h) - bh, py0)))
                 prev_rect = (px0, py0, px0 + bw, py0 + bh)
-                # Distancia desde el anchor al rect (punto más cercano)
+                # Distance from the anchor to the rect (closest point)
                 qx = int(max(prev_rect[0], min(prev_rect[2], ax)))
                 qy = int(max(prev_rect[1], min(prev_rect[3], ay)))
                 dx = qx - ax
@@ -712,7 +712,7 @@ def draw_track_labels_from_update_output(
                 best_score = score
                 best = (x0, y0)
 
-        # Pass 2: permite tapar su propia máscara si es grande (pero nunca otras máscaras), sin solapar labels.
+        # Pass 2: allow covering its own mask if it is large, but never other masks or labels.
         if best is None and is_large:
             for x0, y0 in cand:
                 x0 = int(max(0, min(int(w) - bw, int(x0))))
@@ -739,7 +739,7 @@ def draw_track_labels_from_update_output(
                     best_score = score
                     best = (x0, y0)
 
-        # Pass 3 (último recurso): permitir solapes mínimos, minimizando tapado.
+        # Pass 3 (last resort): allow minimal overlaps while minimizing coverage.
         if best is None:
             for x0, y0 in cand:
                 x0 = int(max(0, min(int(w) - bw, int(x0))))
@@ -770,7 +770,7 @@ def draw_track_labels_from_update_output(
 
         return best
 
-    # Orden: primero los objetos pequeños (más importante no tapar), los grandes al final.
+    # Order: small objects first (most important not to cover), large ones last.
     det_list = []
     for det in (detections or []):
         did = getattr(det, "detection_id", None)

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 
 class LockResolver:
-    """Resuelve locks obvios antes de Hungarian sin conocer policy contextual."""
+    """Resolve obvious locks before Hungarian without contextual policy access."""
 
     def __init__(
         self,
@@ -136,4 +136,3 @@ class LockResolver:
             used_obj_ids.add(int(oid))
 
         return locked
-

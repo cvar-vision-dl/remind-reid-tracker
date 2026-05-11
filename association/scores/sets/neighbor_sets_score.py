@@ -11,7 +11,7 @@ from utils.time import ExecutionTimer
 
 
 class NeighborSetsScore:
-    """Genera hipótesis de conjuntos (subconjuntos de detecciones <-> subconjuntos de IDs) usando grafo ONLINE."""
+    """Generate set hypotheses (detection subsets <-> ID subsets) using the ONLINE graph."""
 
     def __init__(self, config: dict | None = None, memory_store=None):
         self.config = config or {}
@@ -76,8 +76,8 @@ class NeighborSetsScore:
         self.class_fill_gamma = float(cls_cfg.get("fill_gamma", 1.0))
         self.class_fill_gamma = max(0.0, self.class_fill_gamma)
 
-        # Reponderación por tamaño de set (k):
-        # - sets pequeños: "rareza"/información de clase importa más
+        # Reweighting by set size (k):
+        # - small sets: class "rarity"/information matters more
         # - sets grandes: esa rareza importa menos (el propio set ya es discriminativo)
         self.info_k_ref = float(cls_cfg.get("info_k_ref", 2.0))
         self.info_k_gamma = float(cls_cfg.get("info_k_gamma", 0.5))
@@ -176,14 +176,14 @@ class NeighborSetsScore:
         self.options_obj_Lmax = max(1, self.options_obj_Lmax)
         self.options_det_combo_max = int(opt_cfg.get("det_combo_max", 32))
         self.options_det_combo_max = max(1, self.options_det_combo_max)
-        # Nº de variantes de combinación de detecciones por k (por clase).
-        # Nota: el score de set NO depende del subset de detecciones, solo de cuántas se explican.
-        # Mantener pocas variantes reduce explosión de estados sin afectar score_sets.
+        # Number of detection-combination variants per k (per class).
+        # Note: set score does NOT depend on the detection subset, only on how many are explained.
+        # Keeping few variants reduces state explosion without affecting score_sets.
         self.options_det_variants = int(opt_cfg.get("det_variants", 2))
         self.options_det_variants = max(1, self.options_det_variants)
-        # Nº de variantes de combinación de objetos por k (por clase).
-        # Motivación: evitar explosión combinatoria (C(L,k)) que domina tiempo.
-        # 1 => solo top-1; 2 => top-1 y top-2 (recomendado).
+        # Number of object-combination variants per k (per class).
+        # Motivation: avoid the combinatorial explosion (C(L,k)) that dominates runtime.
+        # 1 => top-1 only; 2 => top-1 and top-2 (recommended).
         self.options_obj_variants = int(opt_cfg.get("obj_variants", 2))
         self.options_obj_variants = max(1, self.options_obj_variants)
         raw_beam_state_mode = sc.get("beam_state_mode", "classic")

@@ -38,7 +38,7 @@ def proto_domain(e: dict) -> str:
 
 
 def proto_extra(e: dict) -> str:
-    """Extra compacto para evento: filtra core keys y formatea el resto."""
+    """Compact event extract: filter core keys and format the rest."""
     if isinstance(e.get("promote_hits", None), (int, float)):
         return f"promote_hits={int(e.get('promote_hits'))}"
 
@@ -65,7 +65,7 @@ def proto_extra(e: dict) -> str:
 
 
 def bg_scope_fields(e: dict) -> dict:
-    """Campos derivados de scope para BG: bank/region/ring."""
+    """Scope-derived fields for BG: bank/region/ring."""
     s = e.get("scope", {}) if isinstance(e.get("scope", None), dict) else {}
     bank = str(s.get("bank", "")).upper()
     region = str(s.get("region", "")).upper()
@@ -122,7 +122,7 @@ def count_bank(bank) -> int:
 
 
 def memory_store_to_dataframe(memory_store):
-    """Resumen por objeto: estado + nº protos (obj/parts/bg) + hits/misses."""
+    """Per-object summary: state + proto counts (obj/parts/bg) + hits/misses."""
     rows = []
     if memory_store is None:
         return pd.DataFrame()

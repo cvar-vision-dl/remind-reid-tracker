@@ -166,9 +166,9 @@ def discover_scene_ids(
     if skipped_count > 0:
         suffix = ""
         if skipped_examples:
-            suffix = f" | ejemplos: {'; '.join(skipped_examples)}"
+            suffix = f" | examples: {'; '.join(skipped_examples)}"
         print(
-            f"[D4SM][BATCH] Scene discovery skipped {skipped_count} escenas sin inputs listos "
+            f"[D4SM][BATCH] Scene discovery skipped {skipped_count} scenes without ready inputs "
             f"(variant={mask_variant}, image_subdir={image_subdir}){suffix}"
         )
     return unique_preserve_order(scene_ids)
@@ -235,7 +235,7 @@ def build_scene_input_source(
             image_subdir=image_subdir,
         )
         raise FileNotFoundError(
-            f"Escena {scene_id} sin inputs de testing preparados: {', '.join(issues)}"
+            f"Scene {scene_id} has no prepared testing inputs: {', '.join(issues)}"
         )
     return {
         "mode": "external_scannetpp_batch",
@@ -1093,17 +1093,12 @@ def write_scene_outputs(
 
 def main() -> None:
     config_path = SRC_DIR / "config" / "default_config.yaml"
+    default_data_root = SRC_DIR / "data" / "scannetpp_data"
     masks_root_base = Path(
-        os.environ.get(
-            "APP2_SCANNETPP_MASKS_ROOT",
-            "/media/pablo/LINUX/Qsync/2026_tracker_reid/datasets/scannetpp_data",
-        )
+        os.environ.get("APP2_SCANNETPP_MASKS_ROOT", str(default_data_root))
     ).expanduser().resolve()
     images_root_base = Path(
-        os.environ.get(
-            "APP2_SCANNETPP_IMAGES_ROOT",
-            "/media/pablo/LINUX/Qsync/2026_tracker_reid/datasets/scannetpp_data",
-        )
+        os.environ.get("APP2_SCANNETPP_IMAGES_ROOT", str(default_data_root))
     ).expanduser().resolve()
     image_subdir = os.environ.get("APP2_IMAGE_SUBDIR", "dslr/resized_images").strip() or "dslr/resized_images"
     mask_variant = os.environ.get("APP2_MASK_VARIANT", "benchmark").strip().lower() or "benchmark"
@@ -1118,7 +1113,7 @@ def main() -> None:
     )
     scene_ids = unique_preserve_order([str(scene_id) for scene_id in scene_ids])
     if not scene_ids:
-        raise RuntimeError("No se resolvieron escenas para el batch de d4sm.")
+        raise RuntimeError("No scenes were resolved for the d4sm batch.")
 
     run_id = "d4sm"
     output_root = (PROJECT_DIR / "outputs" / "d4sm" / "testing_batch").resolve()
@@ -1204,7 +1199,7 @@ def main() -> None:
         failed_scene_errors=failed_scene_errors,
     )
     if not scene_ids:
-        print("[D4SM][BATCH] No hay escenas pendientes para esta ejecucion.")
+        print("[D4SM][BATCH] No pending scenes for this run.")
         return
 
     for scene_id in scene_ids:
@@ -1274,7 +1269,7 @@ def main() -> None:
             )
             if final_scene_dir.exists():
                 raise RuntimeError(
-                    f"Ya existe output final para {scene_id}: {final_scene_dir}. No se sobreescribe automaticamente."
+                    f"Final output already exists for {scene_id}: {final_scene_dir}. It is not overwritten automatically."
                 )
             temp_scene_dir.rename(final_scene_dir)
             rebuild_batch_outputs(

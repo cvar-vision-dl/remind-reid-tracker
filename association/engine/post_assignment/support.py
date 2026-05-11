@@ -2,7 +2,7 @@ from __future__ import annotations
 
 
 class PostAssignmentSupport:
-    """Utilidades compartidas para normalizar y materializar resultados post-Hungarian."""
+    """Shared utilities to normalize and materialize post-Hungarian results."""
 
     def normalize_matches(
         self,

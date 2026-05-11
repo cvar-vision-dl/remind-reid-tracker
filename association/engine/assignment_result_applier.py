@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from association.disambiguation.known_set_distance_disambiguator import KnownSetDistanceDisambiguator
-from association.engine.assignment_result_trace_runtime import AssignmentResultTraceRuntime
 from association.engine.post_assignment import (
     NormalizedAssignmentState,
     PostAssignmentSupport,
@@ -14,7 +13,6 @@ class AssignmentResultApplier:
     def __init__(self, *, outcome_policy, config, memory_store=None):
         self.outcome_policy = outcome_policy
         self.memory_store = memory_store
-        self.trace_collector = None
         config = config or {}
         identity_stability_cfg_key = "association.matching.hungarian.identity_stability"
         legacy_identity_stability_cfg_key = "association.matching.identity_stability"
@@ -112,152 +110,11 @@ class AssignmentResultApplier:
             min_value=1,
         )
         self.post_assignment_support = PostAssignmentSupport()
-        self.trace_runtime = AssignmentResultTraceRuntime(applier=self)
 
-    def set_trace_frame(self, frame_id: int) -> None:
-        self.trace_runtime.set_trace_frame(frame_id=frame_id)
-
-    def clear_trace_frame(self) -> None:
-        self.trace_runtime.clear_trace_frame()
-
-    def trace_scope_key(self, *, class_id: int) -> dict:
-        return self.trace_runtime.trace_scope_key(class_id=class_id)
-
-    def trace_participants_by_class(self, *, reports_by_det_id: dict) -> dict[int, dict[str, list[int]]]:
-        return self.trace_runtime.trace_participants_by_class(reports_by_det_id=reports_by_det_id)
-
-    def trace_skip_node_for_class(
-        self,
-        *,
-        node_id: str,
-        class_id: int,
-        reason: str,
-        participants: dict | None,
-    ) -> None:
-        self.trace_runtime.trace_skip_node_for_class(
-            node_id=node_id,
-            class_id=class_id,
-            reason=reason,
-            participants=participants,
-        )
-
-    def trace_identity_stability(
-        self,
-        *,
-        reports_by_det_id: dict,
-        initial_matches: list[tuple[int, int, float]],
-        final_matches: list[tuple[int, int, float]],
-        final_creates: list[dict],
-    ) -> None:
-        self.trace_runtime.trace_identity_stability(
-            reports_by_det_id=reports_by_det_id,
-            initial_matches=initial_matches,
-            final_matches=final_matches,
-            final_creates=final_creates,
-        )
-
-    def trace_assignment_ambiguity(
-        self,
-        *,
-        reports_by_det_id: dict,
-        match_by_det_id: dict[int, tuple[int, float]],
-        component_rows_by_class: dict[int, list[dict]] | None,
-        enabled: bool,
-    ) -> None:
-        self.trace_runtime.trace_assignment_ambiguity(
-            reports_by_det_id=reports_by_det_id,
-            match_by_det_id=match_by_det_id,
-            component_rows_by_class=component_rows_by_class,
-            enabled=enabled,
-        )
-
-    def trace_create_competition(
-        self,
-        *,
-        reports_by_det_id: dict,
-        decided_matches: list[tuple[int, int, float]],
-        create_entries: list[dict],
-        competition_rows_by_class: dict[int, list[dict]] | None,
-        enabled: bool,
-    ) -> None:
-        self.trace_runtime.trace_create_competition(
-            reports_by_det_id=reports_by_det_id,
-            decided_matches=decided_matches,
-            create_entries=create_entries,
-            competition_rows_by_class=competition_rows_by_class,
-            enabled=enabled,
-        )
-
-    def trace_ambiguous_track_candidates(
-        self,
-        *,
-        reports_by_det_id: dict,
-        trace_rows: list[dict],
-    ) -> None:
-        self.trace_runtime.trace_ambiguous_track_candidates(
-            reports_by_det_id=reports_by_det_id,
-            trace_rows=trace_rows,
-        )
-
-    def trace_known_set_distance_disambiguation(
-        self,
-        *,
-        reports_by_det_id: dict,
-        known_set_debug: dict,
-    ) -> None:
-        self.trace_runtime.trace_known_set_distance_disambiguation(
-            reports_by_det_id=reports_by_det_id,
-            known_set_debug=known_set_debug,
-        )
-
-    def trace_provisional_reconciliation(
-        self,
-        *,
-        reports_by_det_id: dict,
-        provisional_entries: list[dict],
-        postcreate_debug_entries: list[dict],
-    ) -> None:
-        self.trace_runtime.trace_provisional_reconciliation(
-            reports_by_det_id=reports_by_det_id,
-            provisional_entries=provisional_entries,
-            postcreate_debug_entries=postcreate_debug_entries,
-        )
-
-    def trace_final_decision_pack(
-        self,
-        *,
-        reports_by_det_id: dict,
-        decided_matches: list[tuple[int, int, float]],
-        create_entries: list[dict],
-        ambiguous_entries: list[dict],
-        provisional_entries: list[dict],
-        final_pack: dict,
-    ) -> None:
-        self.trace_runtime.trace_final_decision_pack(
-            reports_by_det_id=reports_by_det_id,
-            decided_matches=decided_matches,
-            create_entries=create_entries,
-            ambiguous_entries=ambiguous_entries,
-            provisional_entries=provisional_entries,
-            final_pack=final_pack,
-        )
-
-    def trace_after_ambiguous_candidate_build(
-        self,
-        *,
-        reports_by_det_id: dict,
-        ambiguous_pack: dict | None,
-    ) -> None:
-        self.trace_ambiguous_track_candidates(
-            reports_by_det_id=reports_by_det_id,
-            trace_rows=list((ambiguous_pack or {}).get("trace_rows", []) or []),
-        )
-
-    def publish_temporal_debug_and_trace(
+    def publish_temporal_debug(
         self,
         *,
         out,
-        reports_by_det_id: dict,
         temporal_state: TemporalResolutionState,
     ) -> None:
         debug_bucket = self.ensure_debug_bucket(out)
@@ -267,34 +124,6 @@ class AssignmentResultApplier:
             for item in (temporal_state.postcreate_debug_entries or [])
             if isinstance(item, dict)
         ]
-        self.trace_known_set_distance_disambiguation(
-            reports_by_det_id=reports_by_det_id,
-            known_set_debug=temporal_state.known_set_distance_disambiguation,
-        )
-        self.trace_provisional_reconciliation(
-            reports_by_det_id=reports_by_det_id,
-            provisional_entries=temporal_state.provisional_entries,
-            postcreate_debug_entries=temporal_state.postcreate_debug_entries,
-        )
-
-    def trace_after_final_pack(
-        self,
-        *,
-        reports_by_det_id: dict,
-        decided_matches: list[tuple[int, int, float]],
-        create_entries: list[dict],
-        ambiguous_entries: list[dict],
-        provisional_entries: list[dict],
-        final_pack: dict,
-    ) -> None:
-        self.trace_final_decision_pack(
-            reports_by_det_id=reports_by_det_id,
-            decided_matches=decided_matches,
-            create_entries=create_entries,
-            ambiguous_entries=ambiguous_entries,
-            provisional_entries=provisional_entries,
-            final_pack=final_pack,
-        )
 
     def publish_final_pack_to_output(
         self,
@@ -358,10 +187,6 @@ class AssignmentResultApplier:
             identity_ambiguous_entries=identity_ambiguous_entries,
         )
         ambiguous_entries = list((ambiguous_pack or {}).get("entries", []) or [])
-        self.trace_after_ambiguous_candidate_build(
-            reports_by_det_id=out.reports_by_det_id,
-            ambiguous_pack=ambiguous_pack,
-        )
         temporal_state = timer.run(
             "post_assignment/temporal_reconcile",
             self.reconcile_temporal_resolution,
@@ -372,9 +197,8 @@ class AssignmentResultApplier:
             ambiguous_entries=ambiguous_entries,
             assigned_by_det_id=guarded_state.assigned_by_det_id,
         )
-        self.publish_temporal_debug_and_trace(
+        self.publish_temporal_debug(
             out=out,
-            reports_by_det_id=out.reports_by_det_id,
             temporal_state=temporal_state,
         )
         blocked_create_det_ids = self.det_ids_from_entries(temporal_state.provisional_entries)
@@ -388,14 +212,6 @@ class AssignmentResultApplier:
             create_entries=create_entries,
             ambiguous_entries=temporal_state.ambiguous_entries,
             provisional_entries=temporal_state.provisional_entries,
-        )
-        self.trace_after_final_pack(
-            reports_by_det_id=out.reports_by_det_id,
-            decided_matches=temporal_state.decided_matches,
-            create_entries=create_entries,
-            ambiguous_entries=temporal_state.ambiguous_entries,
-            provisional_entries=temporal_state.provisional_entries,
-            final_pack=final_pack,
         )
         self.publish_final_pack_to_output(
             out=out,
@@ -462,7 +278,7 @@ class AssignmentResultApplier:
             assigned_by_det_id=assigned_by_det_id,
         )
         merged_by_det_id: dict[int, dict] = {}
-        trace_rows_by_det_id: dict[int, dict] = {}
+        selected_source_by_det_id: dict[int, str] = {}
         source_priority = {
             "ambiguous_track_policy": 10,
             "identity_stability": 20,
@@ -473,58 +289,13 @@ class AssignmentResultApplier:
             det_id = int(item.get("det_id", -1))
             if det_id < 0:
                 return
-            class_id = int(item.get("class_id", -1))
             existing = merged_by_det_id.get(int(det_id), None)
             current_priority = int(source_priority.get(str(source), 0))
-            existing_priority = int(source_priority.get(str((existing or {}).get("_trace_selected_source", "")), 0))
+            existing_priority = int(source_priority.get(str(selected_source_by_det_id.get(int(det_id), "")), 0))
             if existing is None or current_priority >= existing_priority:
                 merged_item = dict(item)
-                merged_item["_trace_selected_source"] = str(source)
                 merged_by_det_id[int(det_id)] = merged_item
-
-            trace_row = trace_rows_by_det_id.setdefault(
-                int(det_id),
-                {
-                    "det_id": int(det_id),
-                    "class_id": int(class_id),
-                    "from_policy": False,
-                    "from_identity_stability": False,
-                    "from_committed_new": False,
-                    "selected_source": "",
-                    "candidate_ids": [],
-                    "candidate_scores": {},
-                    "best_score": 0.0,
-                    "score_gap": 0.0,
-                    "reason": "",
-                    "committed_new_object_id": None,
-                    "committed_new_parent_ids": [],
-                },
-            )
-            trace_row["class_id"] = int(class_id)
-            if str(source) == "ambiguous_track_policy":
-                trace_row["from_policy"] = True
-            elif str(source) == "identity_stability":
-                trace_row["from_identity_stability"] = True
-            elif str(source) == "committed_new_competition":
-                trace_row["from_committed_new"] = True
-
-            if current_priority >= int(source_priority.get(str(trace_row.get("selected_source", "")), 0)):
-                trace_row["selected_source"] = str(source)
-                trace_row["candidate_ids"] = [
-                    int(x) for x in (item.get("candidate_ids", []) or []) if x is not None
-                ]
-                trace_row["candidate_scores"] = {
-                    int(k): float(v)
-                    for k, v in ((item.get("candidate_scores", {}) or {}).items())
-                    if k is not None and v is not None
-                }
-                trace_row["best_score"] = float(item.get("best_score", 0.0) or 0.0)
-                trace_row["score_gap"] = float(item.get("score_gap", 0.0) or 0.0)
-                trace_row["reason"] = str(item.get("reason", "") or "")
-                trace_row["committed_new_object_id"] = item.get("committed_new_object_id", None)
-                trace_row["committed_new_parent_ids"] = [
-                    int(x) for x in (item.get("committed_new_parent_ids", []) or []) if x is not None
-                ]
+                selected_source_by_det_id[int(det_id)] = str(source)
 
         for source, entries in (
             ("ambiguous_track_policy", ambiguous_entries),
@@ -537,16 +308,10 @@ class AssignmentResultApplier:
 
         merged_entries = []
         for det_id, item in sorted(merged_by_det_id.items(), key=lambda kv: int(kv[0])):
-            clean_item = {
-                key: value
-                for key, value in dict(item).items()
-                if not str(key).startswith("_trace_")
-            }
-            merged_entries.append(clean_item)
+            merged_entries.append(dict(item))
 
         return {
             "entries": list(merged_entries),
-            "trace_rows": [dict(item) for _, item in sorted(trace_rows_by_det_id.items(), key=lambda kv: int(kv[0]))],
         }
 
     def ensure_debug_bucket(self, out) -> dict:
@@ -828,26 +593,9 @@ class AssignmentResultApplier:
         reports_by_det_id: dict,
         initial_matches: list[tuple[int, int, float]],
         to_create: list[tuple[int, int]],
-        trace_enabled: bool,
     ) -> tuple[list[tuple[int, int, float]], list[dict]]:
         final_matches = list(initial_matches or [])
         final_creates = self.normalize_create_entries(to_create)
-        initial_match_by_det_id = {
-            int(det_id): (int(obj_id), float(score_final))
-            for det_id, obj_id, score_final in (final_matches or [])
-        }
-        self.trace_assignment_ambiguity(
-            reports_by_det_id=reports_by_det_id,
-            match_by_det_id=initial_match_by_det_id,
-            component_rows_by_class={},
-            enabled=bool(trace_enabled),
-        )
-        self.trace_identity_stability(
-            reports_by_det_id=reports_by_det_id,
-            initial_matches=list(initial_matches or []),
-            final_matches=final_matches,
-            final_creates=final_creates,
-        )
         return final_matches, final_creates
 
     def build_identity_candidate_edges(
@@ -983,7 +731,6 @@ class AssignmentResultApplier:
                 reports_by_det_id=reports_by_det_id,
                 initial_matches=list(decided_matches or []),
                 to_create=to_create,
-                trace_enabled=False,
             )
 
         current_matches = [
@@ -995,7 +742,6 @@ class AssignmentResultApplier:
                 reports_by_det_id=reports_by_det_id,
                 initial_matches=current_matches,
                 to_create=to_create,
-                trace_enabled=True,
             )
 
         match_by_det_id = {int(det_id): (int(obj_id), float(score_final)) for det_id, obj_id, score_final in current_matches}
@@ -1118,18 +864,6 @@ class AssignmentResultApplier:
             for _, item in sorted(create_by_det_id.items(), key=lambda kv: int(kv[0]))
             if isinstance(item, dict)
         ]
-        self.trace_assignment_ambiguity(
-            reports_by_det_id=reports_by_det_id,
-            match_by_det_id=match_by_det_id,
-            component_rows_by_class=assignment_ambiguity_rows_by_class,
-            enabled=True,
-        )
-        self.trace_identity_stability(
-            reports_by_det_id=reports_by_det_id,
-            initial_matches=current_matches,
-            final_matches=final_matches,
-            final_creates=final_creates,
-        )
         return final_matches, final_creates
 
     def build_identity_stability_ambiguous_entries(
@@ -1217,24 +951,10 @@ class AssignmentResultApplier:
         assigned_by_det_id: dict[int, int],
     ) -> list[dict]:
         if not self.committed_new_enabled or self.memory_store is None:
-            self.trace_create_competition(
-                reports_by_det_id=reports_by_det_id,
-                decided_matches=decided_matches,
-                create_entries=[dict(x) for x in (to_create or []) if isinstance(x, dict)],
-                competition_rows_by_class={},
-                enabled=False,
-            )
             return []
 
         create_entries = [dict(x) for x in (to_create or []) if isinstance(x, dict)]
         if not create_entries or not decided_matches:
-            self.trace_create_competition(
-                reports_by_det_id=reports_by_det_id,
-                decided_matches=decided_matches,
-                create_entries=create_entries,
-                competition_rows_by_class={},
-                enabled=True,
-            )
             return []
 
         matched_det_by_obj_id = {int(obj_id): int(det_id) for det_id, obj_id, _ in (decided_matches or [])}
@@ -1343,13 +1063,6 @@ class AssignmentResultApplier:
                 )
 
         if not competitions:
-            self.trace_create_competition(
-                reports_by_det_id=reports_by_det_id,
-                decided_matches=decided_matches,
-                create_entries=create_entries,
-                competition_rows_by_class=competition_rows_by_class,
-                enabled=True,
-            )
             return []
 
         remaining_create_det_ids = {
@@ -1397,13 +1110,6 @@ class AssignmentResultApplier:
                 }
             )
 
-        self.trace_create_competition(
-            reports_by_det_id=reports_by_det_id,
-            decided_matches=decided_matches,
-            create_entries=create_entries,
-            competition_rows_by_class=competition_rows_by_class,
-            enabled=True,
-        )
         return out
 
     def find_top_assigned_parent_candidate(
@@ -1837,7 +1543,7 @@ class AssignmentResultApplier:
 
             det = det_by_id.get(int(det_id), None)
             if det is None:
-                raise RuntimeError(f"Detection {det_id} missing para build_geom_by_object_id.")
+                raise RuntimeError(f"Detection {det_id} missing for build_geom_by_object_id.")
 
             geom = getattr(det, "geom", None)
             if not isinstance(geom, dict):
@@ -1846,7 +1552,7 @@ class AssignmentResultApplier:
             center = geom.get("center", None)
             area = geom.get("area", None)
             if center is None or area is None or not isinstance(center, (tuple, list)) or len(center) != 2:
-                raise RuntimeError(f"Detection {det_id} geom inválida: {geom}")
+                raise RuntimeError(f"Detection {det_id} has invalid geometry: {geom}")
 
             bbox = getattr(det, "bbox", None)
             mask = getattr(det, "mask", None)

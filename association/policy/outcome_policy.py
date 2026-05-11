@@ -67,7 +67,7 @@ class TemporalDecision:
 
 
 class AssociationOutcomePolicy:
-    """Aplica diagnosticos de ambiguedad y reinterpreta los outcomes del resolver."""
+    """Apply ambiguity diagnostics and reinterpret resolver outcomes."""
 
     def __init__(self, *, config: dict, combiner, neighbor_sets_influence):
         self.config = config or {}
@@ -737,10 +737,10 @@ class AssociationOutcomePolicy:
                 continue
             if not self.candidate_has_ambiguous_support(c):
                 continue
-            # Si el mejor conocido está bloqueado, preferimos conservar una
-            # ambigüedad conocida antes que degradar a "new-like". No exigimos
-            # `decision_keep`, porque ese gate ya depende de la ocupación del
-            # frame y puede ocultar al segundo conocido plausible.
+            # If the best known candidate is blocked, prefer keeping known
+            # ambiguity instead of degrading to "new-like". We do not require
+            # `decision_keep`, because that gate already depends on row occupancy
+            # in the frame and can hide the second plausible known candidate.
             extras.append((float(score), int(oid)))
 
         extras.sort(key=lambda item: (float(item[0]), int(item[1])), reverse=True)
@@ -1056,10 +1056,10 @@ class AssociationOutcomePolicy:
         score_sets = float(candidate.get("score_sets", 0.0) or 0.0)
         support_sets = float(candidate.get("support_sets", 0.0) or 0.0)
         min_kernel_abs = float(getattr(self.neighbor_sets_influence, "support_min_kernel_abs", 0.0) or 0.0)
-        # `compat_band`/`compat_rel` capturan pertenencia blanda al vecindario
-        # plausible, pero por si solos pueden aparecer sin cobertura suficiente
-        # para soporte contextual real. Para ambigüedad final solo tratamos como
-        # "soporte" aquello que ya trae apoyo positivo efectivo de sets.
+        # `compat_band`/`compat_rel` capture soft membership in the plausible
+        # neighborhood, but by themselves can appear without enough coverage
+        # for real contextual support. For final ambiguity we only treat as
+        # "support" only what already carries effective positive set support.
         has_positive_sets_support = bool(support_sets > 1e-12 or score_sets > 1e-12)
         compat_rel_ok = bool(
             has_positive_sets_support

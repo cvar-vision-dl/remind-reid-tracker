@@ -2,7 +2,7 @@ from __future__ import annotations
 
 
 class OutcomePostcreateRuntime:
-    """Runtime helper para decisiones temporales postcreate."""
+    """Runtime helper for temporal postcreate decisions."""
 
     def __init__(self, *, policy):
         self.policy = policy
@@ -140,11 +140,11 @@ class OutcomePostcreateRuntime:
             )
             has_known_context = bool(supported)
             context_missing = bool(not has_known_context)
-            # Para provisionales, un unico candidato "supported" no debe
-            # colapsar por si solo el diagnostico temporal a STRONG si el resto
-            # de conocidos plausibles sigue compitiendo visualmente. Reservamos
-            # el diagnostico sobre el subset soportado para casos realmente
-            # multi-soporte; en singleton evaluamos contra todos los plausibles.
+            # For provisionals, one single "supported" candidate should not
+            # collapse temporal diagnostics to STRONG by itself if the rest
+            # if the rest of plausible known candidates still compete visually. Reserve
+            # the diagnostics over the supported subset for truly
+            # multi-support cases; in singleton cases evaluate against all plausible candidates.
             diag_candidates = list(supported) if len(supported) >= 2 else list(cands)
             diag_temporal = policy.compute_temporal_support_diag_from_candidates(
                 diag_candidates,

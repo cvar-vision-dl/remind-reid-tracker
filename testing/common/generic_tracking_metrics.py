@@ -31,14 +31,14 @@ def _mt_pt_ml_label_from_recall(tracking_recall: float | None) -> str | None:
 
 class TrackingOnlyEvaluator:
     """
-    Evaluador generico para trackers que solo exponen trayectorias/mascaras.
+    Generic evaluator for trackers that only expose trajectories/masks.
 
     Mantiene la misma filosofia de evaluacion global del pipeline propio:
-    - mapping GT<->pred de referencia por clase con Hungarian;
+    - reference GT<->pred mapping by class with Hungarian;
     - metricas de identidad globales;
-    - analisis por objeto, por frame, por clase y por track predicho;
+    - analysis by object, frame, class, and predicted track;
     - eventos tipo swap/theft;
-    - sin metricas internas de decision, incertidumbre o memoria del pipeline.
+    - without internal pipeline decision, uncertainty, or memory metrics.
     """
 
     def __init__(
@@ -1436,7 +1436,7 @@ class TrackingOnlyEvaluator:
         try:
             from scipy.optimize import linear_sum_assignment
         except Exception as e:
-            raise RuntimeError("El evaluador generico requiere scipy para el matching global GT<->pred.") from e
+            raise RuntimeError("The generic evaluator requires scipy for global GT<->pred matching.") from e
 
         overlap_counts: dict[tuple[int, int], int] = defaultdict(int)
         overlap_iou_sum: dict[tuple[int, int], float] = defaultdict(float)

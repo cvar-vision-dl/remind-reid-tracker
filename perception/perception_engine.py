@@ -52,7 +52,7 @@ class PerceptionEngine:
       - resize
       - align to patch multiple
       - YOLO on aligned
-      - DINO once on aligned (fmap, y attn solo si es necesaria)
+      - DINO once on aligned input (fmap, and attn only if needed)
       - per-detection packs: obj / bg / parts
     """
 
@@ -248,7 +248,7 @@ class PerceptionEngine:
             if head_ids is not None and attn_heads is None:
                 raise RuntimeError("Parts attention pide head_ids pero attn_heads=None.")
             if attn_for_parts is None:
-                raise RuntimeError("Parts attention enabled pero no hay atención (attn_for_parts=None).")
+                raise RuntimeError("Parts attention is enabled but attention is missing (attn_for_parts=None).")
 
         out.frame_features = {
             "space": "full",
@@ -301,7 +301,7 @@ class PerceptionEngine:
             c = geom.get("center", None)
             a = geom.get("area", None)
             if c is None or a is None or not isinstance(c, (tuple, list)) or len(c) != 2:
-                raise RuntimeError(f"Detection {det_id} geom inválida: {geom}")
+                raise RuntimeError(f"Detection {det_id} has invalid geometry: {geom}")
 
             obj_patch_cache = None
             if obj_mask is not None and fmap_full is not None and fmap_full.ndim == 3:

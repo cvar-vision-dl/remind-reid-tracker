@@ -186,9 +186,9 @@ def _build_scene_bundle(
     data_tar_path = _scene_tar_path(data_tar_root, scene_id)
     annotations_tar_path = _scene_tar_path(annotations_tar_root, scene_id)
     if not data_tar_path.is_file():
-        raise FileNotFoundError(f"Falta data tar para {scene_id}: {data_tar_path}")
+        raise FileNotFoundError(f"Missing data tar for {scene_id}: {data_tar_path}")
     if not annotations_tar_path.is_file():
-        raise FileNotFoundError(f"Falta annotations tar para {scene_id}: {annotations_tar_path}")
+        raise FileNotFoundError(f"Missing annotations tar for {scene_id}: {annotations_tar_path}")
 
     data_members_by_rel = _build_tar_member_index(data_tar_path)
     annotation_members_by_rel = _build_tar_member_index(annotations_tar_path)
@@ -228,7 +228,7 @@ def _build_scene_bundle(
     if missing_frames:
         preview = ", ".join(missing_frames[:5])
         raise FileNotFoundError(
-            f"Faltan {len(missing_frames)} frames listados en {data_tar_path}. Ejemplos: {preview}"
+            f"Missing {len(missing_frames)} frames listed in {data_tar_path}. Examples: {preview}"
         )
 
     annotation_prefix = f"annotations/{normalized_variant}/"
@@ -240,7 +240,7 @@ def _build_scene_bundle(
     if missing_masks:
         preview = ", ".join(str(idx) for idx in missing_masks[:5])
         raise FileNotFoundError(
-            f"Faltan {len(missing_masks)} mascaras en {annotations_tar_path}. Ejemplos de frame_id: {preview}"
+            f"Missing {len(missing_masks)} masks in {annotations_tar_path}. frame_id examples: {preview}"
         )
 
     return TarSceneBundle(
@@ -273,7 +273,7 @@ class TarDavisSegmenter(DavisSegmenter):
     def resolve_tar_bundle(self) -> TarSceneBundle:
         bundle = self.davis_cfg.get("tar_scene_bundle", None)
         if not isinstance(bundle, TarSceneBundle):
-            raise RuntimeError("TarDavisSegmenter requiere config['davis']['tar_scene_bundle'].")
+            raise RuntimeError("TarDavisSegmenter requires config['davis']['tar_scene_bundle'].")
         return bundle
 
     def load_model(self) -> None:
@@ -534,17 +534,12 @@ def resolve_testing_input_source(project_dir: str) -> dict[str, str]:
             "image_subdir": "",
         }
 
+    local_scannetpp_root = SRC_DIR / "data" / "scannetpp_data"
     external_masks_root_base = Path(
-        os.environ.get(
-            "APP2_SCANNETPP_MASKS_ROOT",
-            "/media/pablo/LINUX/Qsync/2026_tracker_reid/datasets/scannetpp_data",
-        )
+        os.environ.get("APP2_SCANNETPP_MASKS_ROOT", str(local_scannetpp_root))
     ).expanduser().resolve()
     external_images_root_base = Path(
-        os.environ.get(
-            "APP2_SCANNETPP_IMAGES_ROOT",
-            "/media/pablo/LINUX/Qsync/2026_tracker_reid/datasets/scannetpp_data",
-        )
+        os.environ.get("APP2_SCANNETPP_IMAGES_ROOT", str(local_scannetpp_root))
     ).expanduser().resolve()
     scene_id = os.environ.get("APP2_SCENE_ID", "00a231a370").strip() or "00a231a370"
     mask_variant = os.environ.get("APP2_MASK_VARIANT", "benchmark").strip().lower() or "benchmark"
@@ -616,7 +611,7 @@ def resolve_frame_files_for_testing(frames_dir: str, *, davis_meta_path: str = "
             if missing:
                 preview = ", ".join(missing[:5])
                 raise FileNotFoundError(
-                    f"Faltan {len(missing)} frames del meta en {frames_root}. Ejemplos: {preview}"
+                    f"Missing {len(missing)} meta frames in {frames_root}. Examples: {preview}"
                 )
             if out:
                 return out, True
@@ -655,16 +650,16 @@ def resolve_d4sm_runtime_config() -> dict[str, Any]:
 
 def create_d4sm_tracker(*, runtime_config: dict[str, Any] | None = None):
     if torch is None:
-        raise RuntimeError("d4sm requiere torch, pero el interprete actual no puede importarlo.")
+        raise RuntimeError("d4sm requires torch, but the current interpreter cannot import it.")
     if not bool(torch.cuda.is_available()):
         cuda_visible_devices = str(os.environ.get("CUDA_VISIBLE_DEVICES", "") or "").strip()
         suffix = ""
         if cuda_visible_devices:
             suffix = f" CUDA_VISIBLE_DEVICES={cuda_visible_devices!r}."
         raise RuntimeError(
-            "d4sm requiere una GPU CUDA visible para cargar SAM2/D4SM, "
-            "pero torch.cuda.is_available() == False."
-            f"{suffix} Comprueba `nvidia-smi`, el driver, el entorno conda y la GPU seleccionada."
+            "d4sm requires a visible CUDA GPU to load SAM2/D4SM, "
+            "but torch.cuda.is_available() == False."
+            f"{suffix} Check `nvidia-smi`, the driver, the conda environment, and the selected GPU."
         )
     cfg = dict(runtime_config or resolve_d4sm_runtime_config())
     from tracking_wrapper_mot import DAM4SAMMOT
@@ -798,7 +793,7 @@ def evaluate_scene(
     tracker: Any | None = None,
 ) -> tuple[dict[str, Any], str]:
     if torch is None:
-        raise RuntimeError("d4sm requiere torch, pero el interprete actual no puede importarlo.")
+        raise RuntimeError("d4sm requires torch, but the current interpreter cannot import it.")
     _ = project_dir
     from hydra.core.global_hydra import GlobalHydra
 
@@ -827,7 +822,7 @@ def evaluate_scene(
         if max_frames is not None:
             frame_files = frame_files[: max(0, int(max_frames))]
         if not frame_files:
-            raise RuntimeError(f"No hay frames a evaluar para {scene_bundle.scene_id}")
+            raise RuntimeError(f"No frames to evaluate for {scene_bundle.scene_id}")
         use_sequential_frame_ids = True
         tar_patch_ctx = _patched_tar_davis_segmenter()
     else:
@@ -895,7 +890,7 @@ def evaluate_scene(
                 frame_bgr = tar_frame_source.read_bgr(str(frame_path))
                 if frame_bgr is None:
                     raise RuntimeError(
-                        f"No se pudo leer frame {frame_path} desde {scene_bundle.data_tar_path}"
+                        f"Could not read frame {frame_path} from {scene_bundle.data_tar_path}"
                     )
                 frame_rgb = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB)
                 image = Image.fromarray(frame_rgb)

@@ -6,7 +6,7 @@ import yaml
 
 class Config:
     """
-    Contenedor central de configuración del sistema.
+    Central system configuration container.
     """
 
     def __init__(

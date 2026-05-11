@@ -2,7 +2,7 @@
 
 ## Objetivo
 
-Definir un protocolo de analisis de sensibilidad de parametros para el pipeline de `APP2/Src` orientado a medir que cambios mueven de verdad las metricas sobre una tanda representativa del dataset, con coste computacional controlado y con decisiones reproducibles.
+Definir un protocolo de analisis de sensibilidad de parametros para el pipeline de `REMIND` orientado a medir que cambios mueven de verdad las metricas sobre una tanda representativa del dataset, con coste computacional controlado y con decisiones reproducibles.
 
 Este documento es de planificacion. No define todavia codigo de automatizacion. La idea es cerrar aqui:
 
@@ -15,10 +15,10 @@ Este documento es de planificacion. No define todavia codigo de automatizacion. 
 
 ## Referencias del repositorio
 
-- Configuracion base: `APP2/Src/config/default_config.yaml`
-- Tiers de parametros: `APP2/Src/config/CONFIG_TIERS.md`
-- Runner de evaluacion: `APP2/Src/testing/run_tracking_test.py`
-- Metricas de tracking: `APP2/Src/testing/tracking_metrics.py`
+- Configuracion base: `REMIND/config/default_config.yaml`
+- Tiers de parametros: `REMIND/config/CONFIG_TIERS.md`
+- Runner de evaluacion: `REMIND/testing/run_tracking_test.py`
+- Metricas de tracking: `REMIND/testing/tracking_metrics.py`
 
 ## Principios de trabajo
 
@@ -607,7 +607,7 @@ Si entran parametros de tamano de memoria, tambien conviene vigilar:
 
 La definicion detallada de telemetria de memoria e informacion a guardar no pertenece a este plan de sensibilidad, sino a la documentacion de metricas y salidas:
 
-- ver `APP2/Src/testing/METRICS_AND_OUTPUTS.md`
+- ver `REMIND/testing/METRICS_AND_OUTPUTS.md`
 
 En este plan solo interesa recordar que, para las variantes de tamano de memoria, conviene analizar despues:
 

@@ -1,6 +1,6 @@
 class Detection:
     """
-    Detección puntual en un frame.
+    Point detection in one frame.
     """
 
     def __init__(

@@ -8,18 +8,18 @@ from memory.tracked_object import TrackedObject
 
 class MemoryStore:
     """
-    Contenedor de todos los objetos persistentes en memoria.
+    Container for all persistent objects in memory.
 
     Responsabilidad:
-      - asignar object_id únicos
-      - almacenar objetos
+      - assign unique object_id values
+      - store objects
       - indexar por class_id
       - asignar instance_label
     """
 
     def __init__(self, config: dict, start_object_id: int = 0):
         """
-        Inicializa la memoria y los contadores internos.
+        Initialize memory and internal counters.
         """
         self.config = config
 
@@ -37,7 +37,7 @@ class MemoryStore:
 
     def alloc_instance_label(self, tracked_object: TrackedObject) -> str:
         """
-        Genera un instance_label único por clase (ej. CHAIR_1).
+        Generate a unique instance_label per class (for example CHAIR_1).
         Incrementa el contador interno asociado al class_id.
         """
         cid = int(tracked_object.class_id)
@@ -55,7 +55,7 @@ class MemoryStore:
 
     def ensure_instance_label(self, tracked_object: TrackedObject) -> None:
         """
-        Garantiza que el objeto tenga instance_label válido.
+        Ensure the object has a valid instance_label.
         Si ya existe, sincroniza el contador interno.
         """
         if tracked_object is None:
@@ -77,7 +77,7 @@ class MemoryStore:
         tracked_object.instance_label = self.alloc_instance_label(tracked_object)
 
     # ------------------------------------------------------------------
-    # Creación / eliminación
+    # Creation / deletion
     # ------------------------------------------------------------------
 
     def create_tracked_object(
@@ -87,8 +87,8 @@ class MemoryStore:
         class_name=None
     ):
         """
-        Crea un nuevo TrackedObject con object_id único,
-        asigna instance_label y lo registra en memoria.
+        Create a new TrackedObject with a unique object_id,
+        assign instance_label, and register it in memory.
         """
         object_id = self.next_object_id
         self.next_object_id += 1
@@ -114,8 +114,8 @@ class MemoryStore:
         class_name=None,
     ):
         """
-        Crea o recupera un TrackedObject con object_id prefijado.
-        Se usa para materializar identidades ya comprometidas aguas arriba.
+        Create or retrieve a TrackedObject with a prefixed object_id.
+        Used to materialize identities already committed upstream.
         """
         object_id = int(object_id)
         existing = self.objects.get(int(object_id), None)
@@ -139,8 +139,8 @@ class MemoryStore:
 
     def add(self, tracked_object: TrackedObject):
         """
-        Inserta un TrackedObject en memoria y actualiza
-        los índices por class_id.
+        Insert a TrackedObject into memory and update
+        indexes by class_id.
         """
         self.ensure_instance_label(tracked_object)
 
@@ -154,7 +154,7 @@ class MemoryStore:
 
     def remove(self, object_id: int):
         """
-        Elimina un objeto de memoria y actualiza los índices.
+        Remove an object from memory and update indexes.
         No falla si el ID no existe.
         """
         obj = self.objects.pop(object_id, None)
@@ -345,21 +345,21 @@ class MemoryStore:
     def get(self, object_id: int):
         """
         Devuelve el TrackedObject asociado al object_id,
-        o None si no existe.
+        or None if it does not exist.
         """
         return self.objects.get(object_id, None)
 
     def get_by_class(self, class_id: int):
         """
-        Devuelve la lista de objetos activos pertenecientes
-        a una clase concreta.
+        Return the list of active objects belonging
+        to a specific class.
         """
         ids = self.objects_by_class.get(class_id, [])
         return [self.objects[i] for i in ids]
 
     def all_objects(self):
         """
-        Devuelve todos los objetos actualmente almacenados.
+        Return all currently stored objects.
         """
         return list(self.objects.values())
 

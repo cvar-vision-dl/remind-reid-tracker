@@ -11,7 +11,7 @@ from .debug_assoc_dataframes import (
 
 
 def print_assoc_table(config, frame_id, assoc_out, memory_store, det_id_to_local=None):
-    """Imprime tabla de asociación (candidates) por clase."""
+    """Print association table (candidates) by class."""
     dbg = (config.get("debug", {}) or {})
     if not dbg.get("enabled", False):
         return
@@ -131,7 +131,7 @@ def print_assoc_table(config, frame_id, assoc_out, memory_store, det_id_to_local
 
 
 def print_assoc_diagnostics_table(config, frame_id, assoc_out, memory_store, det_id_to_local=None):
-    """Imprime tabla de diagnósticos (SIM vs FINAL) por clase."""
+    """Print diagnostics table (SIM vs FINAL) by class."""
     dbg = (config.get("debug", {}) or {})
     if not dbg.get("enabled", False):
         return
@@ -218,7 +218,7 @@ def print_assoc_diagnostics_table(config, frame_id, assoc_out, memory_store, det
 
 
 def print_assoc_similarity_details_table(config, frame_id, assoc_out, memory_store, det_id_to_local=None):
-    """Imprime tabla separada con el desglose de score_sim por canal."""
+    """Print a separate table with the score_sim breakdown by channel."""
     dbg = (config.get("debug", {}) or {})
     if not dbg.get("enabled", False):
         return

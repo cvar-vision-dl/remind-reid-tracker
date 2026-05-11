@@ -2,7 +2,7 @@ from __future__ import annotations
 
 
 class OutcomeCandidateRuntime:
-    """Runtime helper para filtrado y score comparable de candidatos."""
+    """Runtime helper for candidate filtering and comparable score."""
 
     def __init__(self, *, combiner):
         self.combiner = combiner
@@ -55,14 +55,14 @@ class OutcomeCandidateRuntime:
         if scope == "raw":
             out = [c for c in cands if isinstance(c, dict)]
         elif scope == "eligible":
-            # `decision_keep` = candidato elegible para decision final.
+            # `decision_keep` = candidate eligible for final decision.
             out = [
                 c for c in cands
                 if isinstance(c, dict) and int(c.get("decision_keep", 0) or 0) == 1
             ]
         elif scope == "ambiguity":
             # `known_plausible_keep` = candidato conocido todavia plausible
-            # para razonamiento de ambiguedad temporal.
+            # for temporal ambiguity reasoning.
             out = [
                 c for c in cands
                 if isinstance(c, dict) and int(c.get("known_plausible_keep", 0) or 0) == 1

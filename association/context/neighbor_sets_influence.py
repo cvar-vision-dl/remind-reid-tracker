@@ -6,12 +6,12 @@ from association.policy.sets_rule_policy import SetsRulePolicy
 
 class NeighborSetsInfluence:
     """
-    Convierte neighbor-sets en un contexto aditivo barato:
-      - quality: fiabilidad global del contexto
-      - support : apoyo positivo a candidatos dentro del subcontexto plausible
-      - contradiction: penalización suave a candidatos claramente fuera de contexto
+    Converts neighbor sets into a cheap additive context:
+      - quality: global context reliability
+      - support : positive support for candidates inside the plausible subcontext
+      - contradiction: soft penalty for candidates clearly out of context
 
-    No modifica la búsqueda de hipótesis; solo reutiliza sus salidas resumidas.
+    Does not modify hypothesis search; only reuses its summarized outputs.
     """
 
     def __init__(self, config: dict, memory_store):
@@ -66,7 +66,7 @@ class NeighborSetsInfluence:
         self.support_top_weight = max(0.0, self.support_top_weight)
         self.support_sum_weight = float(scfg.get("sum_weight", 0.35))
         self.support_sum_weight = max(0.0, self.support_sum_weight)
-        # Comprime diferencias relativas para no sobredistinguir identidades menos consolidadas.
+        # Compress relative differences to avoid over-separating less consolidated identities.
         self.support_kernel_rel_gamma = float(scfg.get("kernel_rel_gamma", 0.75))
         self.support_kernel_rel_gamma = max(1e-6, self.support_kernel_rel_gamma)
         self.support_hyp_rel_gamma = float(scfg.get("hyp_rel_gamma", 0.75))

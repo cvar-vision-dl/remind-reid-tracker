@@ -117,8 +117,8 @@ def proto_quality_value(proto) -> float:
         confidence = quality
     confidence = float(max(0.0, min(1.0, confidence)))
 
-    # Queremos autoridad del proto, no solo "limpieza" visual: una vista poco soportada
-    # no debería mandar igual que un proto consolidado aunque su embedding encaje bien.
+    # Prefer proto authority, not only visual "cleanliness": a weakly supported view
+    # should not dominate like a consolidated proto even if its embedding fits well.
     return float(max(0.0, min(1.0, math.sqrt(max(0.0, quality * confidence)))))
 
 
@@ -147,7 +147,7 @@ def best_single_proto_score(obs_desc, protos, clamp_nonneg: bool) -> dict:
 
 
 class PartsSimilarityScorer:
-    """Score por partes por canal con work/stable y colapso max(work, stable)."""
+    """Part score per channel with work/stable and max(work, stable) collapse."""
 
     def __init__(self, config: dict):
         parts_cfg = ((config.get("association", {}) or {}).get("similarity", {}) or {}).get("parts", {}) or {}
@@ -180,7 +180,7 @@ class PartsSimilarityScorer:
 
 
 class BackgroundSimilarityScorer:
-    """Background scoring con work/stable y colapso max(work, stable) por término."""
+    """Background scoring with work/stable and max(work, stable) collapse per term."""
 
     def __init__(self, config: dict):
         bgp_cfg = ((config.get("association", {}) or {}).get("similarity", {}) or {}).get("background_partials", {}) or {}
@@ -266,7 +266,7 @@ class BackgroundSimilarityScorer:
 
 
 class ObjectSimilarityScorer:
-    """Score de objeto por canal con prioridad a stable y fallback a work."""
+    """Object score per channel with stable priority and work fallback."""
 
     def __init__(self, config: dict | None = None):
         self.use_stable = bool(use_stable_for_scores(config))
@@ -328,7 +328,7 @@ class ObjectSimilarityScorer:
 
 
 class SimilarityComputer:
-    """Evidencias entre una detección (det_feats) y un TrackedObject."""
+    """Evidence between one detection (det_feats) and a TrackedObject."""
 
     def __init__(self, config: dict):
         self.obj_scorer = ObjectSimilarityScorer(config)

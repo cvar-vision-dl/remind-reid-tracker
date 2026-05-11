@@ -2,8 +2,7 @@
 
 ## Objetivo
 
-Este documento fija una lectura por capas de las reglas de asociación sin
-modificar su implementación histórica.
+Este documento fija una lectura por capas de las reglas de asociación.
 
 La idea es que el árbol de `policy/` pueda leerse como un conjunto de puertas:
 
@@ -14,17 +13,16 @@ La idea es que el árbol de `policy/` pueda leerse como un conjunto de puertas:
 
 ## Capa 1. Reliable Visual Anchors
 
-- `APP2/Src/association/policy/confirmation_policy.py`
-- implementación histórica: `APP2/Src/association/policy/confirmation_policy.py`
+- `REMIND/association/policy/confirmation_policy.py`
 
 ## Capa 2. Candidate Context
 
 - estado actual:
-  - no existe hoy un wrapper `APP2/Src/association/policy/path/candidate_context.py`
+  - no hay un wrapper `REMIND/association/policy/path/candidate_context.py`
   - esta capa vive repartida entre:
-    - `APP2/Src/association/policy/candidate_score_policy.py`
-    - `APP2/Src/association/policy/known_plausible_keep_policy.py`
-    - `APP2/Src/association/policy/sets_rule_policy.py`
+    - `REMIND/association/policy/candidate_score_policy.py`
+    - `REMIND/association/policy/known_plausible_keep_policy.py`
+    - `REMIND/association/policy/sets_rule_policy.py`
 
 Responsabilidad:
 
@@ -37,10 +35,10 @@ Responsabilidad:
 
 ## Capa 3. Candidate Rows
 
-- implementación actual principal: `APP2/Src/association/policy/candidate_score_policy.py`
+- implementación principal: `REMIND/association/policy/candidate_score_policy.py`
 - reglas base que alteran la fila:
-  - `APP2/Src/association/policy/sets_rule_policy.py`
-  - `APP2/Src/association/policy/known_plausible_keep_policy.py`
+  - `REMIND/association/policy/sets_rule_policy.py`
+  - `REMIND/association/policy/known_plausible_keep_policy.py`
 
 Responsabilidad:
 
@@ -51,7 +49,7 @@ Responsabilidad:
 
 ## Capa 4. Outcomes
 
-- implementación actual: `APP2/Src/association/policy/outcome_policy.py`
+- implementación: `REMIND/association/policy/outcome_policy.py`
 
 Responsabilidad:
 
@@ -62,5 +60,5 @@ Responsabilidad:
 ## Compatibilidad
 
 La taxonomía sigue siendo semántica: algunas capas viven repartidas entre varias
-policies reales del módulo. Este documento prioriza esa implementación actual
+policies reales del módulo. Este documento prioriza la implementación activa
 frente a una taxonomía idealizada para no inducir a error.

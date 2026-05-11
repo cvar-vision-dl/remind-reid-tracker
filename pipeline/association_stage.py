@@ -13,10 +13,10 @@ class FrameAssociationContext:
 
 class AssociationStage:
     """
-    Etapa de asociación por frame.
+    Per-frame association stage.
 
-    Calcula evidencias, aplica contexto y deja preparada la decisión
-    consumida por update:
+    Computes evidence, applies context, and prepares the decision consumed by
+    update:
       - decided_matches
       - to_create
       - to_ambiguous

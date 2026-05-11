@@ -16,7 +16,7 @@ Los tres tiers son:
 
 Ademas, se separan unos `Parametros fuera del tiering comportamental`: sirven para ejecutar, depurar, visualizar o reproducir, pero no son buenos candidatos para estudios de comportamiento del pipeline.
 
-La referencia es `APP2/Src/config/default_config.yaml` y el codigo actual del repositorio.
+La referencia es `REMIND/config/default_config.yaml` y el codigo actual del repositorio.
 
 ## Regla de uso
 

@@ -7,7 +7,7 @@ from utils.math import l2_normalize_rows
 
 class ObjectFeatureExtractor:
     """
-    Extrae representaciones de objeto:
+    Extract object representations:
       - descriptor global
       - descriptor global trimmed
       - descriptores por patch (N,D)
@@ -99,7 +99,7 @@ class ObjectFeatureExtractor:
                 trimmed_min_patches=self.trimmed_min_patches,
             )
 
-        # 3) Patch descriptors (todos los patches del objeto, individualmente)
+        # 3) Patch descriptors (all object patches, individually)
         if self.enable_patch_descs:
             patch_descs, patch_cov = self.extract_patch_descriptors(
                 dino,
@@ -137,10 +137,10 @@ class ObjectFeatureExtractor:
     ):
         """
         Devuelve:
-          - patch_descs: (N,D) embeddings de los patches del objeto
+          - patch_descs: (N,D) object patch embeddings
           - patch_cov: (N,) cobertura por patch (o None si return_coverage=False)
 
-        N = número de patches que pasan la política (any/threshold).
+        N = number of patches that pass the policy (any/threshold).
         """
         if fmap is None or fmap.ndim != 3:
             return None, None

@@ -8,11 +8,11 @@ from association.scores.neighbor_sets_score import NeighborSetsScore
 
 class ScoreAggregator:
     """
-    Orquesta la computación de módulos de scoring.
+    Orchestrates scoring module computation.
 
     - BaseScores: obj/bg/parts
-    - NeighborSetsScore: hipótesis de sets (contexto global)
-    - El módulo relacional de distancias ya no participa aquí en scoring base.
+    - NeighborSetsScore: set hypotheses (global context)
+    - Base scoring uses obj/bg/parts; global context uses set hypotheses.
     """
 
     def __init__(self, config: dict, memory_store=None):

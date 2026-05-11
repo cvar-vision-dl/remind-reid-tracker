@@ -8,12 +8,12 @@ from memory.neighbor_distance_graph import compute_relation_observation
 
 class PairAnchorDiscriminator:
     """
-    Estadística histórica por pareja (obj_a, obj_b) y anchor.
+    Historical statistics per pair (obj_a, obj_b) and anchor.
 
-    Se centra en responder:
-      - cuánto separa históricamente un anchor a una pareja;
-      - cuán consistente es esa separación;
-      - qué resumen explicable podemos enseñar en debug.
+    Focuses on answering:
+      - how strongly an anchor historically separates a pair;
+      - how consistent that separation is;
+      - which explainable summary can be shown in debug.
     """
 
     def __init__(self, *, config: dict, memory_store) -> None:

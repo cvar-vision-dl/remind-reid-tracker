@@ -465,13 +465,13 @@ class RelationEdge:
 
 class NeighborDistanceGraph:
     """
-    Memoria relacional simple orientada a desambiguación.
+    Simple relational memory for disambiguation.
 
-    No guarda vistas ni modos geométricos complejos. Consolida por episodios:
-      - gap mínimo entre máscaras/cajas
+    Does not store views or complex geometric modes. Consolidates by episodes:
+      - minimum gap between masks/boxes
       - distancia entre centros
-      - ranking de cercanía dentro del contexto estable
-      - patrón de contacto
+      - proximity ranking inside the stable context
+      - contact pattern
       - soporte/inside-like
     """
 

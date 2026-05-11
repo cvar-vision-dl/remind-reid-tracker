@@ -4,7 +4,7 @@ from association.engine.assignment_path.contracts import AssignmentPartition, Pr
 
 
 class AssignmentPathSupport:
-    """Infraestructura ligera para preparar y recorrer el camino de asignacion."""
+    """Lightweight infrastructure to prepare and traverse the assignment path."""
 
     def partition_detections(self, detections: list) -> AssignmentPartition:
         by_class: dict[int, list[int]] = {}

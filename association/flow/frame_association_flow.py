@@ -7,10 +7,10 @@ from utils.time import ExecutionTimer
 
 class FrameAssociationFlow:
     """
-    Orquesta la asociación siguiendo un camino de decisión explícito.
+    Orchestrates association through an explicit decision path.
 
-    La intención de esta capa es hacer visible el orden conceptual del
-    pipeline sin alterar las reglas ni los componentes ya existentes.
+    This layer makes the conceptual order of the pipeline visible without
+    changing existing rules or components.
     """
 
     def __init__(self, engine):
@@ -110,7 +110,6 @@ class FrameAssociationFlow:
         }
         out.reliable_anchor_object_ids = sorted(list(out.reliable_anchor_det_by_object_id.keys()))
         out.frame_summary["n_reliable_anchors"] = int(len(out.reliable_anchor_object_ids))
-        self.engine.observability.trace_after_reliable_anchor_selection(out=out)
 
     def activate_context_layers(
         self,
@@ -128,7 +127,6 @@ class FrameAssociationFlow:
             runtime=runtime_flags,
             timer=timer,
         )
-        self.engine.observability.trace_after_context_activation(out=out)
 
     def diagnose_reports(
         self,
@@ -179,7 +177,6 @@ class FrameAssociationFlow:
         self.update_frame_summary_after_assignment(out=out)
 
         self.engine.annotate_final_ambiguity(out=out, timer=timer)
-        self.engine.observability.trace_finalize_outcomes(out=out)
         self.engine.observability.build_debug_view_if_enabled(
             out=out,
             frame_context=frame_context,

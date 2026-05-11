@@ -3,19 +3,19 @@ from __future__ import annotations
 
 class KnownPlausibleKeepPolicy:
     """
-    Decide si un candidato conocido sigue siendo plausible para razonamiento
-    de ambiguedad temporal.
+    Decide whether a known candidate remains plausible for temporal ambiguity
+    reasoning.
 
-    Esta policy formaliza la semantica de `known_plausible_keep`:
-      - parte de "keep" por defecto
-      - solo cae si existe un veto contextual fuerte
+    This policy formalizes `known_plausible_keep` semantics:
+      - starts from default "keep"
+      - drops only under a strong contextual veto
 
-    Contrato publico:
-      - el campo expuesto se llama `known_plausible_keep`;
-      - no expresa elegibilidad para matching final.
+    Public contract:
+      - the exposed field is named `known_plausible_keep`;
+      - it does not express final matching eligibility.
 
-    No decide elegibilidad para Hungarian ni para la decision final; eso sigue
-    siendo responsabilidad de `decision_keep`.
+    Does not decide Hungarian eligibility or the final decision; that remains
+    the responsibility of `decision_keep`.
     """
 
     def __init__(self, *, context_veto_reason_fn):

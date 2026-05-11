@@ -65,11 +65,11 @@ def cfg_str(cfg, key, default="") -> str:
 
 def bg_partials_enabled(cfg) -> bool:
     """
-    Flag central para activar/desactivar por completo la rama `bg_partials`.
+    Central flag to fully enable/disable the `bg_partials` branch.
 
     Requiere:
-    - `association.similarity.background_partials.enabled` si está definido
-    - `bg_local.prototypes.enabled` para que existan prototipos observados
+    - `association.similarity.background_partials.enabled` if defined
+    - `bg_local.prototypes.enabled` so observed prototypes exist
     """
     branch_enabled = bool(cfg_get(cfg, "association.similarity.background_partials.enabled", True))
     proto_enabled = bool(cfg_get(cfg, "bg_local.prototypes.enabled", True))

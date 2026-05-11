@@ -2,16 +2,16 @@
 
 ## Alcance
 
-Este documento describe las heurísticas internas del motor de hipótesis de `sets`. No cubre las reglas de policy de asociación posteriores, que están documentadas en `APP2/Src/association/policy/SETS_RULES.md`.
+Este documento describe las heurísticas internas del motor de hipótesis de `sets`. No cubre las reglas de policy de asociación posteriores, que están documentadas en `REMIND/association/policy/SETS_RULES.md`.
 
 El motor se implementa en:
 
-- `APP2/Src/association/scores/sets/neighbor_sets_score.py`
-- `APP2/Src/association/scores/sets/sets_options.py`
-- `APP2/Src/association/scores/sets/sets_search.py`
-- `APP2/Src/association/scores/sets/sets_scoring.py`
-- `APP2/Src/association/scores/sets/sets_graph_utils.py`
-- `APP2/Src/association/scores/sets/sets_summary.py`
+- `REMIND/association/scores/sets/neighbor_sets_score.py`
+- `REMIND/association/scores/sets/sets_options.py`
+- `REMIND/association/scores/sets/sets_search.py`
+- `REMIND/association/scores/sets/sets_scoring.py`
+- `REMIND/association/scores/sets/sets_graph_utils.py`
+- `REMIND/association/scores/sets/sets_summary.py`
 
 ## Fases del algoritmo
 
@@ -27,7 +27,7 @@ El motor opera en cinco fases:
 
 ### Selección top de detecciones por clase
 
-Archivo: `APP2/Src/association/scores/sets/sets_options.py`
+Archivo: `REMIND/association/scores/sets/sets_options.py`
 
 Regla:
 
@@ -40,7 +40,7 @@ Finalidad:
 
 ### Límite de clases participantes
 
-Archivo: `APP2/Src/association/scores/sets/neighbor_sets_score.py`
+Archivo: `REMIND/association/scores/sets/neighbor_sets_score.py`
 
 Regla:
 
@@ -55,7 +55,7 @@ Finalidad:
 
 ### Pool base por clase
 
-Archivo: `APP2/Src/association/scores/sets/sets_options.py`
+Archivo: `REMIND/association/scores/sets/sets_options.py`
 
 Regla:
 
@@ -96,7 +96,7 @@ Finalidad:
 
 ### Opción vacía bajo cobertura parcial
 
-Archivo: `APP2/Src/association/scores/sets/sets_options.py`
+Archivo: `REMIND/association/scores/sets/sets_options.py`
 
 Regla:
 
@@ -169,7 +169,7 @@ Finalidad:
 
 ### Estado inicial
 
-Archivo: `APP2/Src/association/scores/sets/sets_search.py`
+Archivo: `REMIND/association/scores/sets/sets_search.py`
 
 Regla:
 
@@ -220,7 +220,7 @@ Finalidad:
 
 ### Cobertura efectiva
 
-Archivo: `APP2/Src/association/scores/sets/sets_scoring.py`
+Archivo: `REMIND/association/scores/sets/sets_scoring.py`
 
 Regla:
 
@@ -242,7 +242,7 @@ Regla:
 
 ### Densidad y conectividad
 
-Archivo: `APP2/Src/association/scores/sets/sets_graph_utils.py`
+Archivo: `REMIND/association/scores/sets/sets_graph_utils.py`
 
 Reglas:
 
@@ -326,7 +326,7 @@ La exclusividad solo entra si:
 
 ### Filtro por tamaño mínimo en frames no triviales
 
-Archivo: `APP2/Src/association/scores/sets/neighbor_sets_score.py`
+Archivo: `REMIND/association/scores/sets/neighbor_sets_score.py`
 
 Regla:
 
@@ -356,7 +356,7 @@ Regla:
 
 ## Reglas de resumen final
 
-Archivo: `APP2/Src/association/scores/sets/sets_summary.py`
+Archivo: `REMIND/association/scores/sets/sets_summary.py`
 
 Reglas:
 

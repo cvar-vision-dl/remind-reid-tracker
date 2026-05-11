@@ -4,7 +4,7 @@ from association.reports import SimilarityReport
 
 
 class CandidateGenerator:
-    """Construye reports de similitud por deteccion sin aplicar policy contextual."""
+    """Build similarity reports per detection without applying contextual policy."""
 
     def __init__(self, *, scores, combiner, memory_store):
         self.scores = scores

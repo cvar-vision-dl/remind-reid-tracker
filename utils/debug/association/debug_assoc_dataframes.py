@@ -53,7 +53,7 @@ from .debug_assoc_core import (
 )
 
 def assoc_output_to_dataframe(assoc_out, memory_store, det_id_to_local=None, topk=5, config: dict | None = None):
-    """Tabla principal de candidates por detección."""
+    """Main candidates table by detection."""
     rows = []
     reports = getattr(assoc_out, "reports_by_det_id", {}) or {}
 
@@ -70,7 +70,7 @@ def assoc_output_to_dataframe(assoc_out, memory_store, det_id_to_local=None, top
     min_match_score = float(upd_cfg.get("min_match_score", 0.0))
 
     # Cuando global_ok es true, Hungarian desactiva el gate por match_thr
-    # y usa un umbral mínimo más blando.
+        # and uses a softer minimum threshold.
     soft_mode = False
     soft_thr = 0.0
 
@@ -156,7 +156,7 @@ def assoc_output_to_dataframe(assoc_out, memory_store, det_id_to_local=None, top
                 "S_known": fmt(candidate_score_known(c)),
                 "S_final2": fmt(final2_by_oid.get(int(oid_int), candidate_score_final(c)) if oid_int is not None else 0.0),
                 "KP_keep": int(candidate_known_plausible_keep(c)),
-                # Indicadores rápidos: ¿pasaría el gating de Hungarian por similitud pura?
+                # Quick indicators: would pure similarity pass Hungarian gating?
                 "G_thr": int((not gate_by_match_thr) or soft_mode or (candidate_score_sim(c) >= match_thr)),
                 "G_min": int((not gate_by_min_match) or (candidate_score_sim(c) >= (soft_thr if soft_mode else min_match_score))),
                 "conf_f": conf,
@@ -184,7 +184,7 @@ def assoc_output_to_dataframe(assoc_out, memory_store, det_id_to_local=None, top
 
 
 def assoc_diagnostics_output_to_dataframe(assoc_out, memory_store, det_id_to_local=None, config: dict | None = None):
-    """Tabla de diagnósticos por detección: SIM vs FINAL + decisión final."""
+    """Diagnostics table by detection: SIM vs FINAL + final decision."""
     rows = []
     reports = getattr(assoc_out, "reports_by_det_id", {}) or {}
 
@@ -354,7 +354,7 @@ def assoc_diagnostics_output_to_dataframe(assoc_out, memory_store, det_id_to_loc
 
 
 def assoc_similarity_details_to_dataframe(assoc_out, memory_store, det_id_to_local=None, topk=3):
-    """Tabla separada para inspeccionar el desglose del score_sim por canal."""
+    """Separate table for inspecting the score_sim breakdown by channel."""
     rows = []
     reports = getattr(assoc_out, "reports_by_det_id", {}) or {}
 
@@ -408,7 +408,7 @@ def assoc_similarity_details_to_dataframe(assoc_out, memory_store, det_id_to_loc
 
 
 def neighbor_sets_candidates_to_dataframe(assoc_out, memory_store, det_id_to_local=None, topk=5):
-    """Tabla dedicada de cómo `sets` afecta a candidatos por detección."""
+    """Dedicated table for how `sets` affects candidates by detection."""
     rows = []
     reports = getattr(assoc_out, "reports_by_det_id", {}) or {}
 
@@ -564,7 +564,7 @@ def local_context_candidates_to_dataframe(
 
 
 def neighbor_sets_output_to_dataframes(neigh_sets_out, memory_store, det_id_to_local=None):
-    """Convierte salida neighbor-sets a (df_sets, df_obj_priors)."""
+    """Convert neighbor-sets output to (df_sets, df_obj_priors)."""
     out = neigh_sets_out if isinstance(neigh_sets_out, dict) else {}
     core = out.get("core", {}) if isinstance(out.get("core", None), dict) else {}
     dbg = out.get("debug", {}) if isinstance(out.get("debug", None), dict) else {}

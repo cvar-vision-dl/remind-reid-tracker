@@ -9,23 +9,21 @@ from association.engine.observability_runtime import DataAssociationObservabilit
 from association.engine.assignment_result_applier import AssignmentResultApplier
 from association.engine.candidate_generation import CandidateGenerator
 from association.engine.debug_view_builder import DebugViewBuilder
-from association.engine.trace_runtime import DataAssociationTraceRuntime
 from association.models import AssignmentResult
 from association.policy.confirmation_policy import ReliableVisualAnchorPolicy
 from association.policy.outcome_policy import AssociationOutcomePolicy
 from association.reports import FrameAssociationOutput, SimilarityReport
 from association.score_aggregator import ScoreAggregator
 from association.scores.base_scores import SimilarityCombiner
-from association_trace import create_association_trace_collector
 from utils.time import ExecutionTimer
 
 
 class DataAssociationEngine:
     """
     Association por frame:
-      - calcula candidatos (score_sim)
-      - decide MATCH/NEW con Hungarian
-      - expone decisiones y geometría para Update
+      - computes candidates (score_sim)
+      - decides MATCH/NEW with Hungarian
+      - exposes decisions and geometry for Update
     """
 
     def __init__(self, config, memory_store, output_dir=None, class_id_to_name=None):
@@ -90,32 +88,9 @@ class DataAssociationEngine:
             debug_topk=self.debug_topk,
             sets_provider=self.sets_provider,
         )
-        self.trace_collector = create_association_trace_collector(
-            config=config,
-            output_dir=output_dir,
-        )
-        self.trace_enabled = bool(getattr(self.trace_collector, "enabled", False))
-        self.assigner.trace_collector = self.trace_collector if self.trace_enabled else None
-        self.assignment_result_applier.trace_collector = self.trace_collector if self.trace_enabled else None
-        self.trace_runtime = DataAssociationTraceRuntime(
-            trace_collector=self.trace_collector,
-            class_id_to_name=self.class_id_to_name,
-            memory_store=self.memory_store,
-            assigner=self.assigner,
-            assignment_result_applier=self.assignment_result_applier,
-            pick_best=self.pick_best,
-            pick_second_best=self.pick_second_best,
-            confirm_thr_strong=self.confirm_thr_strong,
-            confirm_clear_margin=self.confirm_clear_margin,
-            sets_provider=self.sets_provider,
-            scores=self.scores,
-            neighbor_sets_influence=self.neighbor_sets_influence,
-        )
         self.observability = DataAssociationObservabilityRuntime(
-            trace_runtime=self.trace_runtime,
             debug_view_builder=self.debug_view_builder,
             debug_enabled=self.debug_enabled,
-            trace_enabled=self.trace_enabled,
         )
         self.flow = FrameAssociationFlow(self)
 
@@ -197,10 +172,6 @@ class DataAssociationEngine:
                 det_id = int(det_id)
                 det_feats = det_features_by_id.get(det_id, None)
                 out.reports_by_det_id[det_id] = self.process_one_detection(det_id, det, det_feats, frame_context)
-        self.observability.trace_after_similarity_reports(
-            out=out,
-            detections=detections,
-        )
 
     def resolve_runtime_flags(self) -> dict:
         dbg_cfg = (self.config.get("debug", {}) or {})
@@ -241,7 +212,6 @@ class DataAssociationEngine:
         out.frame_summary["n_strong"] = int(counts.get("strong", 0))
         out.frame_summary["n_ambiguous"] = int(counts.get("ambiguous", 0))
         out.frame_summary["n_weak"] = int(counts.get("weak", 0))
-        self.observability.trace_after_similarity_diagnosis(out=out)
 
     def run_assignment(
         self,
@@ -280,7 +250,6 @@ class DataAssociationEngine:
     def annotate_final_ambiguity(self, *, out: FrameAssociationOutput, timer: ExecutionTimer) -> None:
         with timer.measure("ambiguity_final"):
             self.outcome_policy.annotate_final_ambiguity(out.reports_by_det_id)
-        self.observability.trace_after_final_ambiguity(out=out)
 
     def annotate_reports_final_decisions(
         self,

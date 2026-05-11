@@ -170,9 +170,9 @@ def _build_scene_bundle(
     data_tar_path = _scene_tar_path(data_tar_root, scene_id)
     annotations_tar_path = _scene_tar_path(annotations_tar_root, scene_id)
     if not data_tar_path.is_file():
-        raise FileNotFoundError(f"Falta data tar para {scene_id}: {data_tar_path}")
+        raise FileNotFoundError(f"Missing data tar for {scene_id}: {data_tar_path}")
     if not annotations_tar_path.is_file():
-        raise FileNotFoundError(f"Falta annotations tar para {scene_id}: {annotations_tar_path}")
+        raise FileNotFoundError(f"Missing annotations tar for {scene_id}: {annotations_tar_path}")
 
     data_members_by_rel = _build_tar_member_index(data_tar_path)
     annotation_members_by_rel = _build_tar_member_index(annotations_tar_path)
@@ -213,7 +213,7 @@ def _build_scene_bundle(
     if missing_frames:
         preview = ", ".join(missing_frames[:5])
         raise FileNotFoundError(
-            f"Faltan {len(missing_frames)} frames listados en {data_tar_path}. Ejemplos: {preview}"
+            f"Missing {len(missing_frames)} frames listed in {data_tar_path}. Examples: {preview}"
         )
 
     annotation_prefix = f"annotations/{normalized_variant}/"
@@ -225,7 +225,7 @@ def _build_scene_bundle(
     if missing_masks:
         preview = ", ".join(str(idx) for idx in missing_masks[:5])
         raise FileNotFoundError(
-            f"Faltan {len(missing_masks)} mascaras en {annotations_tar_path}. Ejemplos de frame_id: {preview}"
+            f"Missing {len(missing_masks)} masks in {annotations_tar_path}. frame_id examples: {preview}"
         )
 
     return TarSceneBundle(
@@ -258,7 +258,7 @@ class TarDavisSegmenter(DavisSegmenter):
     def resolve_tar_bundle(self) -> TarSceneBundle:
         bundle = self.davis_cfg.get("tar_scene_bundle", None)
         if not isinstance(bundle, TarSceneBundle):
-            raise RuntimeError("TarDavisSegmenter requiere config['davis']['tar_scene_bundle'].")
+            raise RuntimeError("TarDavisSegmenter requires config['davis']['tar_scene_bundle'].")
         return bundle
 
     def load_model(self) -> None:
@@ -409,15 +409,12 @@ def _evaluate_scene_tar(
     timing_cfg["enabled"] = False
     timing_cfg["table"] = False
     timing_cfg["detail_keys"] = []
-    trace_cfg = config.setdefault("debug", {}).setdefault("association_trace", {})
-    trace_cfg["enabled"] = False
-    trace_cfg["mode"] = "off"
 
     frame_names = list(scene_bundle.frame_names)
     if max_frames is not None:
         frame_names = frame_names[: max(0, int(max_frames))]
     if not frame_names:
-        raise RuntimeError(f"No hay frames a evaluar para {scene_bundle.scene_id}")
+        raise RuntimeError(f"No frames to evaluate for {scene_bundle.scene_id}")
 
     frame_source = TarFrameSource(scene_bundle)
     process = make_process_handle()
@@ -459,7 +456,7 @@ def _evaluate_scene_tar(
                 read_ms = (perf_counter() - read_t0) * 1000.0
                 if frame is None:
                     raise RuntimeError(
-                        f"No se pudo leer frame {frame_name} desde {scene_bundle.data_tar_path}"
+                        f"Could not read frame {frame_name} from {scene_bundle.data_tar_path}"
                     )
                 rss_after_read = read_process_rss_bytes(process)
 
@@ -586,10 +583,7 @@ def main() -> None:
     config_path = src_dir / "config" / "default_config.yaml"
 
     dataset_root = Path(
-        _env_str(
-            "APP2_SCANNETPP_TAR_ROOT",
-            "/mnt/a/alejodosr/qsync/2026_tracker_reid/datasets/scannetpp_data",
-        )
+        _env_str("APP2_SCANNETPP_TAR_ROOT", str(project_dir / "data" / "scannetpp_data"))
     ).expanduser().resolve()
     data_tar_root = Path(
         _env_str("APP2_SCANNETPP_DATA_TAR_ROOT", str(dataset_root / "data"))
@@ -606,7 +600,7 @@ def main() -> None:
         annotations_tar_root=annotations_tar_root,
     )
     if not scene_ids:
-        raise RuntimeError("No se resolvieron escenas .tar para el batch.")
+        raise RuntimeError("No .tar scenes were resolved for the batch.")
 
     run_id = "our_pipeline_tar"
     output_root = (project_dir / "outputs" / "tfm" / "testing_batch_tar").resolve()
@@ -672,7 +666,7 @@ def main() -> None:
         failed_scene_errors=failed_scene_errors,
     )
     if not scene_ids:
-        print("[BATCH-TAR] No hay escenas pendientes para esta ejecucion.")
+        print("[BATCH-TAR] No pending scenes for this run.")
         return
 
     for scene_id in scene_ids:
@@ -734,7 +728,7 @@ def main() -> None:
             )
             if final_scene_dir.exists():
                 raise RuntimeError(
-                    f"Ya existe output final para {scene_id}: {final_scene_dir}. No se sobreescribe automaticamente."
+                    f"Final output already exists for {scene_id}: {final_scene_dir}. It is not overwritten automatically."
                 )
             temp_scene_dir.rename(final_scene_dir)
             base_batch.rebuild_batch_outputs(

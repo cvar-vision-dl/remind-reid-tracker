@@ -162,9 +162,9 @@ def resolve_testing_input_source(
             "image_subdir": "",
         }
 
-    _default_data_root = "/media/pablo/LINUX/Qsync/2026_tracker_reid/datasets/scannetpp_data"
-    external_masks_root_base = Path(masks_root or _default_data_root).expanduser().resolve()
-    external_images_root_base = Path(images_root or _default_data_root).expanduser().resolve()
+    default_data_root = str(project_path / "data" / "scannetpp_data")
+    external_masks_root_base = Path(masks_root or default_data_root).expanduser().resolve()
+    external_images_root_base = Path(images_root or default_data_root).expanduser().resolve()
     scene_id = scene_id or "00a231a370"
     mask_variant = (mask_variant or "benchmark").strip().lower() or "benchmark"
     image_subdir = image_subdir or "dslr/resized_images"
@@ -245,7 +245,7 @@ def resolve_frame_files_for_testing(frames_dir: str, *, davis_meta_path: str = "
             if missing:
                 preview = ", ".join(missing[:5])
                 raise FileNotFoundError(
-                    f"Faltan {len(missing)} frames del meta en {frames_root}. "
+                    f"Missing {len(missing)} meta frames in {frames_root}. "
                     f"Ejemplos: {preview}"
                 )
 
@@ -322,7 +322,7 @@ def choose_unique_dir(base_dir: Path) -> Path:
 
 def format_testing_timestamp_from_paths(paths: list[Path]) -> str:
     if not paths:
-        raise ValueError("Se esperaba al menos un path para calcular el timestamp del run.")
+        raise ValueError("At least one path is required to compute the run timestamp.")
 
     latest_mtime = max(float(path.stat().st_mtime) for path in paths)
     return datetime.fromtimestamp(latest_mtime).strftime("%Y%m%d_%H%M%S")
@@ -496,9 +496,6 @@ def main():
     timing_cfg["enabled"] = False
     timing_cfg["table"] = False
     timing_cfg["detail_keys"] = []
-    trace_cfg = config.setdefault("debug", {}).setdefault("association_trace", {})
-    trace_cfg["enabled"] = False
-    trace_cfg["mode"] = "off"
 
     ctx = initialize_system(config)
     pipeline = ReIDPipeline(ctx)

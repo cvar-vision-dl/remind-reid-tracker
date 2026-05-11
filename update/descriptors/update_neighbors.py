@@ -10,9 +10,9 @@ class NeighborUpdater:
     """
     Update del grafo de vecinos por episodios (debounce + decay + trim).
 
-    Política anti-contaminación:
-      - observe_frame (dist_graph) se permite siempre si hay geometría.
-      - accept_episode (consolidar stable_context/edges) solo si allow_episode=True.
+    Anti-contamination policy:
+      - observe_frame (dist_graph) is always allowed when geometry exists.
+      - accept_episode (consolidate stable_context/edges) only if allow_episode=True.
     """
 
     def __init__(self, config: dict | None = None):

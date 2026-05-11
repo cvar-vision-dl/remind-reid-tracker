@@ -451,11 +451,11 @@ def cropped_mask_iou(
 
 def match_detections_to_gt(detections: list, gt_objects: dict[int, Any]) -> dict[int, tuple[int, float]]:
     """
-    Empareja det_id -> (gt_instance_id, iou) con matching 1-a-1 maximizando IoU.
+    Match det_id -> (gt_instance_id, iou) with 1-to-1 IoU-maximizing matching.
 
-    Si hay clase disponible en deteccion y GT, el emparejamiento se restringe
-    a pares compatibles. Se mantiene la semantica historica de considerar
-    candidatos solo cuando IoU > 0.
+    If class is available in detection and GT, matching is restricted
+    to compatible pairs. Keeps the previous semantics of considering
+    candidates only when IoU > 0.
     """
     pairs: list[tuple[float, int, int]] = []
     gt_packs = []
@@ -2220,7 +2220,7 @@ class TrackingEvaluator:
         try:
             from scipy.optimize import linear_sum_assignment
         except Exception as e:
-            raise RuntimeError("El evaluador offline requiere scipy para el matching global GT<->pred.") from e
+            raise RuntimeError("The offline evaluator requires scipy for global GT<->pred matching.") from e
 
         overlap_counts: dict[tuple[int, int], int] = defaultdict(int)
         overlap_iou_sum: dict[tuple[int, int], float] = defaultdict(float)
@@ -2536,7 +2536,7 @@ class TrackingEvaluator:
         try:
             from scipy.optimize import linear_sum_assignment
         except Exception as e:
-            raise RuntimeError("El evaluador offline requiere scipy para calcular IDF1/IDP/IDR.") from e
+            raise RuntimeError("The offline evaluator requires scipy to compute IDF1/IDP/IDR.") from e
 
         visible_rows = [
             row for row in case_rows
@@ -2908,7 +2908,7 @@ class TrackingEvaluator:
             from scipy.optimize import linear_sum_assignment
         except Exception as e:
             raise RuntimeError(
-                "El modo de colapsado 'hungarian' requiere scipy para resolver conflictos ambiguos."
+                "Collapse mode 'hungarian' requires scipy to resolve ambiguous conflicts."
             ) from e
 
         resolved: dict[int, tuple[str, int | None]] = {}

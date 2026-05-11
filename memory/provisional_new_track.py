@@ -4,7 +4,7 @@ from memory.temporary_track_base import TemporaryTrackBase
 
 
 class ProvisionalNewTrack(TemporaryTrackBase):
-    """Entidad temporal para posibles objetos nuevos aún no comprometidos."""
+    """Temporary entity for possible new objects that are not committed yet."""
 
     def __init__(
         self,
@@ -143,8 +143,8 @@ class ProvisionalNewTrack(TemporaryTrackBase):
             return f"T_{self.class_name}_PARENT"
 
         _ = memory_store
-        # Un provisional puede estar relacionado con conocidos ya ocupados en el
-        # mismo frame; mostrar esos IDs en la etiqueta visual induce a leerlo
-        # como "podria ser ese conocido", cuando semanticamente sigue siendo
-        # una hipotesis de novedad.
+        # A provisional can be related to known tracks already occupied in the
+        # same frame; showing those IDs in the visual label suggests reading it
+        # as "could be that known track", while semantically it is still
+        # a novelty hypothesis.
         return f"T_{self.class_name}_NEW"

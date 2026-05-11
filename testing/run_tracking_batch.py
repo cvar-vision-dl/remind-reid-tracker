@@ -272,9 +272,9 @@ def discover_scene_ids(
     if skipped_count > 0:
         suffix = ""
         if skipped_examples:
-            suffix = f" | ejemplos: {'; '.join(skipped_examples)}"
+            suffix = f" | examples: {'; '.join(skipped_examples)}"
         print(
-            f"[BATCH] Scene discovery skipped {skipped_count} escenas sin inputs listos "
+            f"[BATCH] Scene discovery skipped {skipped_count} scenes without ready inputs "
             f"(variant={mask_variant}, image_subdir={image_subdir}){suffix}"
         )
     return unique_preserve_order(scene_ids)
@@ -365,7 +365,7 @@ def build_scene_input_source(
     if not annotations_dir.is_dir():
         issues.append(f"missing_annotations_dir:{annotations_dir}")
     raise FileNotFoundError(
-        f"Escena {scene_id} sin inputs de testing preparados: {', '.join(issues)}"
+        f"Scene {scene_id} has no prepared testing inputs: {', '.join(issues)}"
     )
 
 
@@ -944,9 +944,6 @@ def evaluate_scene(
     timing_cfg["enabled"] = False
     timing_cfg["table"] = False
     timing_cfg["detail_keys"] = []
-    trace_cfg = config.setdefault("debug", {}).setdefault("association_trace", {})
-    trace_cfg["enabled"] = False
-    trace_cfg["mode"] = "off"
 
     ctx = initialize_system(config)
     pipeline = ReIDPipeline(ctx)
@@ -1464,10 +1461,10 @@ def build_batch_report(*, summary_row: dict, per_scene_rows: list[dict]) -> str:
     }
     lines.append("")
     lines.append("[BATCH][Notes]")
-    lines.append("  per_class.csv concatena filas por clase y por escena; usa per_class_global.csv para el agregado global real por clase.")
-    lines.append("  En per_case.csv, final_decision=MATCH significa 'asignado a un track existente', no 'identidad correcta'; usa final_decision_parent_correct/final_decision_global_correct o firm_global_correct.")
+    lines.append("  per_class.csv concatenates rows by class and scene; use per_class_global.csv for the real global aggregate by class.")
+    lines.append("  In per_case.csv, final_decision=MATCH means 'assigned to an existing track', not 'correct identity'; use final_decision_parent_correct/final_decision_global_correct or firm_global_correct.")
     if detector_backends == {"davis"}:
-        lines.append("  Con detector_backend=davis y mascaras GT exactas, mean_tracking_iou coincide con tracking_recall; no lo interpretes como una metrica geometrica independiente.")
+        lines.append("  With detector_backend=davis and exact GT masks, mean_tracking_iou matches tracking_recall; do not interpret it as an independent geometric metric.")
 
     return "\n".join(lines)
 
@@ -1733,10 +1730,11 @@ def main() -> None:
     else:
         masks_root_env = _e(args.masks_root, "SCANNETPP_MASKS_ROOT")
         images_root_env = _e(args.images_root, "SCANNETPP_IMAGES_ROOT")
+        default_data_root = str(project_dir / "data" / "scannetpp_data")
         if not masks_root_env:
-            masks_root_env = "/media/pablo/LINUX/Qsync/2026_tracker_reid/datasets/scannetpp_data"
+            masks_root_env = default_data_root
         if not images_root_env:
-            images_root_env = "/media/pablo/LINUX/Qsync/2026_tracker_reid/datasets/scannetpp_data"
+            images_root_env = default_data_root
         masks_root_base = Path(masks_root_env).expanduser().resolve()
         images_root_base = Path(images_root_env).expanduser().resolve()
         print(f"[BATCH] Mode -> scannetpp (masks={masks_root_base}, images={images_root_base})")
@@ -1831,7 +1829,7 @@ def main() -> None:
         failed_scene_errors=failed_scene_errors,
     )
     if not scene_ids:
-        print("[BATCH] No hay escenas pendientes para esta ejecucion.")
+        print("[BATCH] No pending scenes for this run.")
         return
 
     for scene_id in scene_ids:
@@ -1896,7 +1894,7 @@ def main() -> None:
             )
             if final_scene_dir.exists():
                 raise RuntimeError(
-                    f"Ya existe output final para {scene_id}: {final_scene_dir}. No se sobreescribe automaticamente."
+                    f"Final output already exists for {scene_id}: {final_scene_dir}. It is not overwritten automatically."
                 )
             temp_scene_dir.rename(final_scene_dir)
             rebuild_batch_outputs(

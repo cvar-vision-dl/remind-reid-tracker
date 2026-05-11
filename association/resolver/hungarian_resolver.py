@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 class HungarianResolver:
-    """Construye la matriz de coste y resuelve MATCH vs NEW sobre una tabla ya preparada."""
+    """Build the cost matrix and resolve MATCH vs NEW on a prepared table."""
 
     def __init__(
         self,
@@ -33,9 +33,9 @@ class HungarianResolver:
                 score_assign = row_assign.get(int(oid), None)
                 if score_assign is None:
                     continue
-                # Hungarian optimiza la señal estable de identidad. Los bonus
-                # de sets siguen abriendo candidatos por gating, pero no roban
-                # identidades durante la asignacion global.
+                # Hungarian optimizes the stable identity signal. Set bonuses
+                # still open candidates through gating, but do not steal
+                # identities during global assignment.
                 cost[i][j] = -float(score_assign)
 
             if n_dummies > 0:

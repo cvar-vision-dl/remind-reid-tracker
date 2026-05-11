@@ -8,10 +8,10 @@ _LAST_INT_RE = re.compile(r"(\d+)")
 
 def parse_frame_id(path: str) -> int | None:
     """
-    Extrae un frame_id numérico desde el nombre de archivo.
+    Extract a numeric frame_id from the file name.
 
     Prioriza patrones tipo: frame_000610.png -> 610.
-    Fallback: último grupo de dígitos en el basename.
+    Fallback: last digit group in the basename.
     """
     if path is None:
         return None
@@ -28,7 +28,7 @@ def parse_frame_id(path: str) -> int | None:
 
 def iter_frames_from_folder(folder_path):
     """
-    Itera imágenes de una carpeta en orden lexicográfico.
+    Iterate images from a folder in lexicographic order.
     Devuelve (frame, frame_name).
     """
     exts = (".png", ".jpg", ".jpeg")
@@ -67,9 +67,9 @@ def decode_action(key: int) -> str:
         return "right"
 
     # Flechas (waitKeyEx)
-    if k in (2424832, 65361):  # left (según backend)
+    if k in (2424832, 65361):  # left, backend-dependent
         return "left"
-    if k in (2555904, 65363):  # right (según backend)
+    if k in (2555904, 65363):  # right, backend-dependent
         return "right"
 
     return "none"

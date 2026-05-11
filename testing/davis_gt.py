@@ -19,11 +19,11 @@ class GroundTruthObject:
 
 class DavisGroundTruthLoader:
     """
-    Carga GT DAVIS con IDs de instancia preservados.
+    Load DAVIS GT with preserved instance IDs.
 
-    Reutiliza la misma resolución de rutas y la misma transformación espacial
-    que usa DavisSegmenter para asegurar que GT y detecciones vivan en el mismo
-    espacio de evaluación.
+    Reuses the same path resolution and spatial transform
+    used by DavisSegmenter to ensure GT and detections live in the same
+    evaluation space.
     """
 
     def __init__(self, config: dict):
