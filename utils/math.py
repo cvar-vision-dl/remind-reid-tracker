@@ -2,6 +2,17 @@
 
 import numpy as np
 
+def clamp01(value) -> float:
+    return float(max(0.0, min(1.0, float(value))))
+
+def ramp(x: float | int | None, x0: float, x1: float) -> float:
+    if x is None:
+        return 0.0
+    xv = float(x)
+    if x1 <= x0:
+        return 1.0 if xv >= x1 else 0.0
+    return clamp01((xv - x0) / (x1 - x0))
+
 def l2_normalize_vector(x: np.ndarray, eps: float = 1e-12) -> np.ndarray:
     x = np.asarray(x, dtype=np.float32).reshape(-1)
     n = float(np.linalg.norm(x))

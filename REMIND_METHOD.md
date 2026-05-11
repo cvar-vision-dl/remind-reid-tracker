@@ -280,7 +280,6 @@ The `MemoryStore` is the central data structure holding:
 - A dictionary of `TrackedObject` instances indexed by `object_id`.
 - A class-based index for efficient same-class retrieval during association.
 - Temporary track pools (`AmbiguousTrack`, `ProvisionalNewTrack`) with TTL-based lifecycle.
-- An `AnchorViewStore` for managing canonical views.
 
 Each `TrackedObject` aggregates:
 
@@ -289,7 +288,6 @@ Each `TrackedObject` aggregates:
 - `LocalBackgroundModel`: inner/outer ring prototype memory.
 - `NeighborGraph`: co-occurrence frequency model.
 - `NeighborDistanceGraph`: pairwise spatial relation statistics.
-- `CrossViewIdentity`: viewpoint-relative spatial identity.
 
 ### 4.3 Processing Flow Summary
 

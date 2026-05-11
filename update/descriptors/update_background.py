@@ -5,6 +5,7 @@ from __future__ import annotations
 import numpy as np
 
 from utils.math import l2_normalize_vector
+from utils.math import ramp as linear_ramp
 from utils.config import bg_partials_enabled
 from update.descriptors.proto_ops import (
     compute_sims_to_protos,
@@ -66,12 +67,7 @@ class BackgroundUpdater:
         return protos
 
     def ramp(self, x: float | int | None, x0: float, x1: float) -> float:
-        if x is None:
-            return 0.0
-        xv = float(x)
-        if x1 <= x0:
-            return 1.0 if xv >= x1 else 0.0
-        return float(max(0.0, min(1.0, (xv - x0) / (x1 - x0))))
+        return linear_ramp(x, x0, x1)
 
     def bank_capacity(self, bank) -> int:
         return int(getattr(bank, "max_size", 0))

@@ -540,13 +540,10 @@ class NeighborDistanceGraph:
         stable_context: set[int],
         timestamp: float,
         episode_idx: int,
-        view_id: int | None = None,
     ) -> None:
         if not self.enabled:
             self.clear_pending()
             return
-
-        del view_id
 
         per_other = {}
         for oid in stable_context or set():
@@ -637,8 +634,7 @@ class NeighborDistanceGraph:
 
         self.clear_pending()
 
-    def get_edge(self, dst_id: int, view_id: int | None = None) -> RelationEdge | None:
-        del view_id
+    def get_edge(self, dst_id: int) -> RelationEdge | None:
         return self.edges.get(int(dst_id), None)
 
     def majority_state(self, counts: dict[str, int]) -> str:

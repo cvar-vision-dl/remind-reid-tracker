@@ -41,6 +41,21 @@ def make_proto_event(
     return d
 
 
+def ensure_channel_lists(ch):
+    work = getattr(ch, "work_protos", None)
+    stable = getattr(ch, "stable_protos", None)
+
+    if work is None:
+        work = []
+        ch.work_protos = work
+
+    if stable is None:
+        stable = []
+        ch.stable_protos = stable
+
+    return work, stable
+
+
 def stack_embeddings(protos) -> np.ndarray:
     return np.stack([p.embedding for p in protos], axis=0).astype(np.float32, copy=False)
 
@@ -179,5 +194,4 @@ def update_proto_dup_gated_ema(
 
     proto.embedding = l2_normalize_vector(((1.0 - alpha) * proto.embedding) + (alpha * x_norm))
     return "DUP_EMA"
-
 

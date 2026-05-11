@@ -4,7 +4,6 @@ from memory.object_appearance import ObjectAppearanceModel
 from memory.part_model import PartModel
 from memory.neighbor_graph import NeighborGraph
 from memory.background_model import LocalBackgroundModel
-from memory.cross_view_identity import CrossViewIdentity
 from memory.neighbor_distance_graph import NeighborDistanceGraph
 
 
@@ -59,8 +58,5 @@ class TrackedObject:
 
         dist_cfg = mem_cfg.get("neighbors_distance", {}) or {}
         self.neighbor_dist = NeighborDistanceGraph(config=dist_cfg)
-
-        cv_cfg = mem_cfg.get("cross_view_identity", {}) or {}
-        self.cross_view = CrossViewIdentity(config=cv_cfg)
 
         self.background = LocalBackgroundModel(config=config)

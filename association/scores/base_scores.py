@@ -6,6 +6,8 @@ import math
 
 from association.similarity_computer import SimilarityComputer
 from utils.config import bg_partials_enabled
+from utils.math import clamp01 as clamp01_value
+from utils.math import ramp as linear_ramp
 
 
 class BaseScores:
@@ -62,12 +64,7 @@ class BaseScores:
         return out
 
     def ramp(self, x: float | int | None, x0: float, x1: float) -> float:
-        if x is None:
-            return 0.0
-        xv = float(x)
-        if x1 <= x0:
-            return 1.0 if xv >= x1 else 0.0
-        return float(max(0.0, min(1.0, (xv - x0) / (x1 - x0))))
+        return linear_ramp(x, x0, x1)
 
     def compute_patch_density(
         self,
@@ -699,15 +696,10 @@ class SimilarityCombiner:
         return bool(collapsed.get(str(term), None) is not None)
 
     def clamp01(self, value) -> float:
-        return float(max(0.0, min(1.0, float(value))))
+        return clamp01_value(value)
 
     def ramp(self, x: float | int | None, x0: float, x1: float) -> float:
-        if x is None:
-            return 0.0
-        xv = float(x)
-        if x1 <= x0:
-            return 1.0 if xv >= x1 else 0.0
-        return float(max(0.0, min(1.0, (xv - x0) / (x1 - x0))))
+        return linear_ramp(x, x0, x1)
 
     def compute_patch_density(
         self,

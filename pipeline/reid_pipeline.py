@@ -92,7 +92,6 @@ class ReIDPipeline:
                 "provisional_tracks",
                 "neighbor_graphs",
                 "neighbor_graphs/dist_observations",
-                "neighbor_graphs/cross_view",
                 "neighbor_graphs/graph_updates",
                 "misses",
                 "finalize",

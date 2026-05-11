@@ -5,7 +5,6 @@ from __future__ import annotations
 import os
 from concurrent.futures import ThreadPoolExecutor
 
-from memory.cross_view_identity import relation_affinity, zone_key_from_support_bbox
 from memory.neighbor_distance_graph import compute_relation_observation, prepare_relation_mask_runtime
 from update.descriptors.update_background import BackgroundUpdater
 from update.descriptors.update_neighbors import NeighborUpdater
@@ -73,15 +72,6 @@ class UpdatePolicies:
         self.bg_upd = BackgroundUpdater(config)
         self.parts_upd = PartsUpdater(config)
         self.neigh_upd = NeighborUpdater(config)
-
-        mem_cfg = (config.get("memory", {}) or {}) if isinstance(config, dict) else {}
-        cv_cfg = (mem_cfg.get("cross_view_identity", {}) or {}) if isinstance(mem_cfg, dict) else {}
-        self.cross_view_enabled = bool(cv_cfg.get("enabled", True))
-        self.cross_view_min_support_like = max(0.0, min(1.0, float(cv_cfg.get("min_support_like", 0.35))))
-        self.cross_view_grid_rows = max(1, int(cv_cfg.get("grid_rows", 3)))
-        self.cross_view_grid_cols = max(1, int(cv_cfg.get("grid_cols", 3)))
-        self.cross_view_anchor_topk = max(1, int(cv_cfg.get("max_anchor_rank", 3)))
-        self.cross_view_support_neighbor_topk = max(1, int(cv_cfg.get("max_support_neighbor_rank", 3)))
 
     def resolve_class_name(self, class_id: int):
         if self.class_id_to_name is not None:
@@ -291,163 +281,6 @@ class UpdatePolicies:
 
         return True
 
-    def _support_assignment_for_object(
-        self,
-        oid: int,
-        ids: list[int],
-        geom: dict[int, dict],
-        dist_obs_by_object_id: dict[int, dict[int, dict]],
-    ) -> tuple[int | None, float, dict | None]:
-        geom_self = geom.get(int(oid), None)
-        if not isinstance(geom_self, dict):
-            return None, 0.0, None
-        area_self = float(max(1e-6, geom_self.get("area", 0.0)))
-
-        best_oid = None
-        best_score = 0.0
-        best_obs = None
-        for other_id in ids:
-            other_id = int(other_id)
-            if other_id == int(oid):
-                continue
-            geom_other = geom.get(int(other_id), None)
-            if not isinstance(geom_other, dict):
-                continue
-            area_other = float(max(1e-6, geom_other.get("area", 0.0)))
-            if area_other <= float(area_self * 1.15):
-                continue
-            obs = ((dist_obs_by_object_id.get(int(oid), {}) or {}).get(int(other_id), None))
-            if not isinstance(obs, dict):
-                continue
-            support_like = float(max(0.0, min(1.0, obs.get("support_like", 0.0))))
-            if support_like < float(self.cross_view_min_support_like):
-                continue
-            if support_like > float(best_score):
-                best_oid = int(other_id)
-                best_score = float(support_like)
-                best_obs = obs
-        return best_oid, float(best_score), best_obs
-
-    def _rank_context_ids(
-        self,
-        oid: int,
-        context_ids: list[int],
-        dist_obs_by_object_id: dict[int, dict[int, dict]],
-        *,
-        topk: int,
-    ) -> list[int]:
-        scored = []
-        for other_id in context_ids or []:
-            other_id = int(other_id)
-            if other_id == int(oid):
-                continue
-            obs = ((dist_obs_by_object_id.get(int(oid), {}) or {}).get(int(other_id), None))
-            if not isinstance(obs, dict):
-                continue
-            scored.append((float(relation_affinity(obs)), int(other_id)))
-        scored.sort(key=lambda kv: float(kv[0]), reverse=True)
-        return [int(oid2) for score, oid2 in scored[: max(1, int(topk))] if float(score) > 0.0]
-
-    def _update_cross_view_identity(
-        self,
-        ids: list[int],
-        geom: dict[int, dict],
-        dist_obs_by_object_id: dict[int, dict[int, dict]],
-        allow_episode_by_object_id: dict[int, bool],
-        episode_idx: int,
-    ) -> None:
-        if not self.cross_view_enabled or not geom:
-            return
-
-        support_by_oid: dict[int, tuple[int | None, float, dict | None]] = {}
-        for oid in ids:
-            support_by_oid[int(oid)] = self._support_assignment_for_object(
-                oid=int(oid),
-                ids=ids,
-                geom=geom,
-                dist_obs_by_object_id=dist_obs_by_object_id,
-            )
-
-        confirmed_ids = []
-        for oid in ids:
-            obj = self.memory_store.get(int(oid))
-            if obj is None:
-                continue
-            if str(getattr(obj, "state", "")).upper() == "CONFIRMED":
-                confirmed_ids.append(int(oid))
-
-        for oid in ids:
-            if not bool(allow_episode_by_object_id.get(int(oid), True)):
-                continue
-            obj = self.memory_store.get(int(oid))
-            if obj is None:
-                continue
-            cv = getattr(obj, "cross_view", None)
-            if cv is None or not getattr(cv, "enabled", False):
-                continue
-            if str(getattr(obj, "state", "")).upper() not in ("CONFIRMED", "TENTATIVE"):
-                continue
-
-            support_oid, support_like, support_obs = support_by_oid.get(int(oid), (None, 0.0, None))
-            geom_self = geom.get(int(oid), None)
-            if not isinstance(geom_self, dict):
-                continue
-
-            support_bbox = None
-            if support_oid is not None:
-                support_geom = geom.get(int(support_oid), None)
-                if isinstance(support_geom, dict):
-                    support_bbox = support_geom.get("bbox", None)
-            zone_key = zone_key_from_support_bbox(
-                support_bbox,
-                geom_self.get("center", None),
-                rows=int(self.cross_view_grid_rows),
-                cols=int(self.cross_view_grid_cols),
-            )
-
-            anchor_context_ids = [int(x) for x in confirmed_ids if int(x) != int(oid)]
-            anchor_order = self._rank_context_ids(
-                oid=int(oid),
-                context_ids=anchor_context_ids,
-                dist_obs_by_object_id=dist_obs_by_object_id,
-                topk=int(self.cross_view_anchor_topk),
-            )
-
-            support_neighbor_ids = []
-            if support_oid is not None:
-                for other_id in confirmed_ids:
-                    other_id = int(other_id)
-                    if other_id in (int(oid), int(support_oid)):
-                        continue
-                    other_support_oid, other_support_like, _ = support_by_oid.get(int(other_id), (None, 0.0, None))
-                    if other_support_oid is None or int(other_support_oid) != int(support_oid):
-                        continue
-                    if float(other_support_like) < float(self.cross_view_min_support_like):
-                        continue
-                    support_neighbor_ids.append(int(other_id))
-            support_neighbor_order = self._rank_context_ids(
-                oid=int(oid),
-                context_ids=support_neighbor_ids,
-                dist_obs_by_object_id=dist_obs_by_object_id,
-                topk=int(self.cross_view_support_neighbor_topk),
-            )
-
-            on_support_like = float(max(0.0, min(1.0, support_like)))
-            inside_support_like = 0.0
-            if isinstance(support_obs, dict):
-                inside_support_like = float(on_support_like * (1.0 if bool(support_obs.get("center_inside", False)) else 0.0))
-
-            cv.observe(
-                support_oid=int(support_oid) if support_oid is not None else None,
-                support_like=float(support_like),
-                zone_key=zone_key,
-                anchor_order=anchor_order,
-                support_neighbor_order=support_neighbor_order,
-                on_support_like=float(on_support_like),
-                inside_support_like=float(inside_support_like),
-                episode_idx=int(episode_idx),
-            )
-
     def update_neighbor_graphs(
         self,
         visible_object_ids: list,
@@ -482,30 +315,6 @@ class UpdatePolicies:
                 geom=geom,
                 allow_episode_by_object_id=allow_episode_by_object_id,
             )
-        view_id = self.resolve_anchor_view_id(
-            ids=ids,
-            geom=geom,
-            allow_episode_by_object_id=allow_episode_by_object_id,
-        )
-
-        if timer is not None:
-            timer.run(
-                step("cross_view"),
-                self._update_cross_view_identity,
-                ids=ids,
-                geom=geom,
-                dist_obs_by_object_id=dist_obs_by_object_id,
-                allow_episode_by_object_id=allow_episode_by_object_id,
-                episode_idx=int(frame_id if frame_id is not None else round(float(timestamp))),
-            )
-        else:
-            self._update_cross_view_identity(
-                ids=ids,
-                geom=geom,
-                dist_obs_by_object_id=dist_obs_by_object_id,
-                allow_episode_by_object_id=allow_episode_by_object_id,
-                episode_idx=int(frame_id if frame_id is not None else round(float(timestamp))),
-            )
 
         def _apply_graph_updates() -> None:
             object_ids = [int(oid) for oid in ids]
@@ -534,7 +343,6 @@ class UpdatePolicies:
                     geom_by_object_id=geom,
                     dist_obs_by_other_id=dist_obs,
                     allow_episode=allow,
-                    view_id=view_id,
                 )
 
             if workers <= 1:
@@ -708,13 +516,3 @@ class UpdatePolicies:
             return max(1, int(fixed))
         cpu = max(1, int(os.cpu_count() or 1))
         return max(1, min(int(cpu), int(self.graph_updates_parallel_max_auto_workers)))
-
-    def resolve_anchor_view_id(
-        self,
-        *,
-        ids: list[int],
-        geom: dict[int, dict],
-        allow_episode_by_object_id: dict[int, bool],
-    ) -> int | None:
-        del ids, geom, allow_episode_by_object_id
-        return None

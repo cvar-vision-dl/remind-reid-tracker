@@ -93,8 +93,6 @@ Orden recomendado de estudio:
 - `memory.background.enabled`
 - `memory.neighbors.enabled`
 - `memory.neighbors_distance.enabled`
-- `memory.anchor_views.enabled`
-- `memory.cross_view_identity.enabled`
 
 ### Politica principal de asociacion
 
@@ -225,8 +223,6 @@ Orden recomendado de estudio:
 - `memory.background.*`
 - `memory.neighbors.*`
 - `memory.neighbors_distance.*`
-- `memory.anchor_views.*`
-- `memory.cross_view_identity.*`
 
 ### Similaridad base, calidad y Hungarian
 
@@ -397,7 +393,6 @@ Si se quiere una lista reducida para experimentacion manual, la recomendacion in
 - `bg_local.prototypes.enabled`
 - `memory.neighbors.enabled`
 - `memory.neighbors_distance.enabled`
-- `memory.cross_view_identity.enabled`
 - `association.similarity.quality.enabled`
 - `association.confirmation.*`
 - `association.matching.match_thr`

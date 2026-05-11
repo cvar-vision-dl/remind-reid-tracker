@@ -52,6 +52,37 @@ from .debug_assoc_core import (
     _report_decision_summary,
 )
 
+
+def _final_score_by_object_id(candidates: list[dict]) -> dict[int, float]:
+    out = {}
+    for candidate in candidates:
+        if not isinstance(candidate, dict):
+            continue
+        oid = candidate.get("object_id", None)
+        if oid is None:
+            continue
+        oid = int(oid)
+        out[oid] = float(candidate_score_final(candidate))
+    return {int(oid): float(score) for oid, score in out.items()}
+
+
+def _rank_key_post_dist(candidate: dict, final_score_by_object_id: dict[int, float]):
+    scores = candidate.get("scores", {}) or {}
+    obj = scores.get("object", {}) or {}
+    bg = scores.get("background", {}) or {}
+
+    oid = candidate.get("object_id", None)
+    oid = int(oid) if oid is not None else None
+    s_final2 = (
+        float(final_score_by_object_id.get(int(oid), candidate_score_final(candidate)))
+        if oid is not None
+        else 0.0
+    )
+    best_obj = safe_best_score_map(obj)
+    bg_c = safe_float(bg.get("combined", None), default=0.0)
+    return (float(s_final2), float(best_obj), float(bg_c))
+
+
 def assoc_output_to_dataframe(assoc_out, memory_store, det_id_to_local=None, topk=5, config: dict | None = None):
     """Main candidates table by detection."""
     rows = []
@@ -91,30 +122,8 @@ def assoc_output_to_dataframe(assoc_out, memory_store, det_id_to_local=None, top
             )
             continue
 
-        base_by_oid = {}
-        for c in cands:
-            if not isinstance(c, dict):
-                continue
-            oid = c.get("object_id", None)
-            if oid is None:
-                continue
-            oid = int(oid)
-            base_by_oid[oid] = float(candidate_score_final(c))
-        final2_by_oid = {int(oid): float(s) for oid, s in base_by_oid.items()}
-
-        def rank_key_post_dist(candidate: dict):
-            scores = candidate.get("scores", {}) or {}
-            obj = scores.get("object", {}) or {}
-            bg = scores.get("background", {}) or {}
-
-            oid = candidate.get("object_id", None)
-            oid = int(oid) if oid is not None else None
-            s_final2 = float(final2_by_oid.get(int(oid), candidate_score_final(candidate))) if oid is not None else 0.0
-            best_obj = safe_best_score_map(obj)
-            bg_c = safe_float(bg.get("combined", None), default=0.0)
-            return (float(s_final2), float(best_obj), float(bg_c))
-
-        ranked_all = sorted(cands, key=rank_key_post_dist, reverse=True)
+        final2_by_oid = _final_score_by_object_id(cands)
+        ranked_all = sorted(cands, key=lambda c: _rank_key_post_dist(c, final2_by_oid), reverse=True)
         selected_track_id = pick_selected_track_id(rep)
         ranked = ranked_all[: max(1, int(topk))]
 
@@ -230,30 +239,8 @@ def assoc_diagnostics_output_to_dataframe(assoc_out, memory_store, det_id_to_loc
         sf2_sel = 0.0
 
         if cands:
-            base_by_oid = {}
-            for c in cands:
-                if not isinstance(c, dict):
-                    continue
-                oid = c.get("object_id", None)
-                if oid is None:
-                    continue
-                oid = int(oid)
-                base_by_oid[oid] = float(candidate_score_final(c))
-            final2_by_oid = {int(oid): float(s) for oid, s in base_by_oid.items()}
-
-            def rank_key_post_dist(candidate: dict):
-                scores = candidate.get("scores", {}) or {}
-                obj = scores.get("object", {}) or {}
-                bg = scores.get("background", {}) or {}
-
-                oid = candidate.get("object_id", None)
-                oid = int(oid) if oid is not None else None
-                s_final2 = float(final2_by_oid.get(int(oid), candidate_score_final(candidate))) if oid is not None else 0.0
-                best_obj = safe_best_score_map(obj)
-                bg_c = safe_float(bg.get("combined", None), default=0.0)
-                return (float(s_final2), float(best_obj), float(bg_c))
-
-            ranked = sorted(cands, key=rank_key_post_dist, reverse=True)
+            final2_by_oid = _final_score_by_object_id(cands)
+            ranked = sorted(cands, key=lambda c: _rank_key_post_dist(c, final2_by_oid), reverse=True)
             selected_track_id = pick_selected_track_id(rep)
             focus_track_id = pick_focus_track_id(rep, ranked)
             sel_cand = find_candidate_by_track_id(cands, focus_track_id) or ranked[0]

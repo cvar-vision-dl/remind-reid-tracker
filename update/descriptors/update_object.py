@@ -5,9 +5,11 @@ from __future__ import annotations
 import numpy as np
 
 from utils.math import l2_normalize_vector
+from utils.math import ramp as linear_ramp
 from update.descriptors.proto_ops import (
     choose_evict_index,
     compute_sims_to_protos,
+    ensure_channel_lists,
     find_best_internal_pair,
     make_proto_event,
     update_proto_dup_gated_ema,
@@ -69,26 +71,10 @@ class ObjectUpdater:
         return 0 if k is None else int(k)
 
     def ensure_channel_lists(self, ch):
-        work = getattr(ch, "work_protos", None)
-        stable = getattr(ch, "stable_protos", None)
-
-        if work is None:
-            work = []
-            ch.work_protos = work
-
-        if stable is None:
-            stable = []
-            ch.stable_protos = stable
-
-        return work, stable
+        return ensure_channel_lists(ch)
 
     def ramp(self, x: float | int | None, x0: float, x1: float) -> float:
-        if x is None:
-            return 0.0
-        xv = float(x)
-        if x1 <= x0:
-            return 1.0 if xv >= x1 else 0.0
-        return float(max(0.0, min(1.0, (xv - x0) / (x1 - x0))))
+        return linear_ramp(x, x0, x1)
 
     def observation_quality(self, det_feats: dict | None, channel_name: str) -> float:
         meta = ((det_feats or {}).get("meta", {}) or {})

@@ -1,7 +1,6 @@
 # memory/memory_store.py
 
 from memory.ambiguous_track import AmbiguousTrack
-from memory.anchor_view_store import AnchorViewStore
 from memory.provisional_new_track import ProvisionalNewTrack
 from memory.tracked_object import TrackedObject
 
@@ -32,8 +31,6 @@ class MemoryStore:
         self.next_provisional_id = 0
 
         self.class_instance_counters = {}
-        mem_cfg = (config.get("memory", {}) or {}) if isinstance(config, dict) else {}
-        self.anchor_views = AnchorViewStore(config=mem_cfg)
 
     def alloc_instance_label(self, tracked_object: TrackedObject) -> str:
         """

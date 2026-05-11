@@ -47,7 +47,6 @@ class NeighborUpdater:
         geom_by_object_id: dict | None = None,
         dist_obs_by_other_id: dict | None = None,
         allow_episode: bool = True,
-        view_id: int | None = None,
     ) -> None:
         if not self.enabled or not graph.enabled:
             return
@@ -74,11 +73,11 @@ class NeighborUpdater:
             return
 
         if self.should_force_episode(graph, frame_id):
-            self.accept_episode(graph, dist_graph, cur, timestamp, frame_id, view_id=view_id)
+            self.accept_episode(graph, dist_graph, cur, timestamp, frame_id)
             return
 
         if graph.stable_context is None:
-            self.accept_episode(graph, dist_graph, cur, timestamp, frame_id, view_id=view_id)
+            self.accept_episode(graph, dist_graph, cur, timestamp, frame_id)
             return
 
         if jaccard(cur, graph.stable_context) >= self.jaccard_thr:
@@ -93,7 +92,7 @@ class NeighborUpdater:
             graph.pending_hits += 1
 
         if graph.pending_hits >= self.debounce_frames:
-            self.accept_episode(graph, dist_graph, set(cur), timestamp, frame_id, view_id=view_id)
+            self.accept_episode(graph, dist_graph, set(cur), timestamp, frame_id)
             graph.pending_context = None
             graph.pending_hits = 0
 
@@ -111,7 +110,6 @@ class NeighborUpdater:
         new_context: set[int],
         timestamp: float,
         frame_id: int | None,
-        view_id: int | None = None,
     ) -> None:
         graph.episode_count += 1
         graph.episode_idx += 1
@@ -138,7 +136,6 @@ class NeighborUpdater:
                 stable_context=set(graph.stable_context),
                 timestamp=timestamp,
                 episode_idx=ep,
-                view_id=view_id,
             )
 
     def apply_decay(self, graph: NeighborGraph) -> None:

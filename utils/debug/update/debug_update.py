@@ -240,15 +240,6 @@ def print_neighbor_distance_graph(
             f"var_floor={fmt(var_floor)} scale_min={fmt(scale_min)}"
         )
 
-        cv = getattr(obj, "cross_view", None)
-        if cv is not None and getattr(cv, "enabled", False):
-            cv_sum = cv.summary() if hasattr(cv, "summary") else {}
-            print(
-                f"    cross_view: support={cv_sum.get('support_oid', None)} "
-                f"conf={fmt(cv_sum.get('support_conf', None))} zone={cv_sum.get('top_zone', None)} "
-                f"obs={cv_sum.get('obs_count', None)} last_ep={cv_sum.get('last_episode', None)}"
-            )
-
         if not enabled or not edges:
             continue
 

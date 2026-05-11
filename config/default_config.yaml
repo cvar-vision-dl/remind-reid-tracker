@@ -16,7 +16,7 @@ timing:
   table: true
   detail_keys: ["detector", "detector/segment", "detector/ignored_filter", "dino", "obj_features", "bg_features", "bg_features/bg_rings", "bg_features/bg_inner_global", "bg_features/bg_outer_global", "bg_features/bg_proto_inner", "bg_features/bg_proto_outer", "parts_features", "parts_features/parts_kmeans", "parts_features/parts_attention"]
   association_detail_keys: ["sim_candidates", "reliable_anchor_ids", "neighbor_sets", "ambiguity_sim", "hungarian", "hungarian/partition", "hungarian/prepare", "hungarian/prepare/context", "hungarian/prepare/shortlist", "hungarian/prepare/soft_gate", "hungarian/assign_classes", "hungarian/assign_classes/score_tables", "hungarian/assign_classes/locks", "hungarian/assign_classes/solve", "hungarian/assign_classes/solve/score_tables", "hungarian/assign_classes/solve/cost_matrix", "hungarian/assign_classes/solve/resolve", "post_assignment", "post_assignment/identity_stability", "post_assignment/ambiguous_candidates", "post_assignment/temporal_reconcile", "post_assignment/final_pack", "post_assignment/geom_pack", "post_assignment/finalize", "ambiguity_final"]
-  update_detail_keys: ["matches", "creates", "ambiguous_tracks", "provisional_tracks", "neighbor_graphs", "neighbor_graphs/dist_observations", "neighbor_graphs/cross_view", "neighbor_graphs/graph_updates", "misses", "finalize"]
+  update_detail_keys: ["matches", "creates", "ambiguous_tracks", "provisional_tracks", "neighbor_graphs", "neighbor_graphs/dist_observations", "neighbor_graphs/graph_updates", "misses", "finalize"]
 
 paths:
   output_dir: "outputs"
@@ -228,25 +228,6 @@ memory:
     contact_margin_px: 2.0
     near_thresh_n: 1.25
     exact_gap_max_n: 1.75
-
-  anchor_views:
-    enabled: true
-    min_anchors: 3
-    max_anchors: 5
-    max_views: 12
-    match_min_score: 0.72
-    dist_sigma: 0.35
-    contact_weight: 0.35
-    support_weight: 0.15
-
-  cross_view_identity:
-    enabled: true
-    grid_rows: 3
-    grid_cols: 3
-    max_anchor_rank: 3
-    max_support_neighbor_rank: 3
-    min_support_like: 0.35
-    conf_tau: 4.0
 
 # =============================================================================
 # ASSOCIATION

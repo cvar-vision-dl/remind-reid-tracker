@@ -6,12 +6,13 @@ import numpy as np
 
 from utils.math import l2_normalize_vector
 from update.descriptors.proto_ops import (
-    compute_sims_to_protos,
-    find_best_internal_pair,
     choose_evict_index,
+    compute_sims_to_protos,
+    ensure_channel_lists,
+    find_best_internal_pair,
+    make_proto_event,
     merge_two_protos_inplace,
     update_proto_dup_gated_ema,
-    make_proto_event,
 )
 
 
@@ -60,18 +61,7 @@ class PartsUpdater:
         return int(k)
 
     def ensure_channel_lists(self, ch):
-        work = getattr(ch, "work_protos", None)
-        stable = getattr(ch, "stable_protos", None)
-
-        if work is None:
-            work = []
-            ch.work_protos = work
-
-        if stable is None:
-            stable = []
-            ch.stable_protos = stable
-
-        return work, stable
+        return ensure_channel_lists(ch)
 
     def try_promote_work_proto(
         self,
