@@ -30,7 +30,7 @@ def det_local(det_id, det_id_to_local=None):
 
 
 def short_class_code(name: str | None, n: int = 3) -> str | None:
-    """Recorta class_name a n letras (upper)."""
+    """Trim class_name to n uppercase letters."""
     if not name:
         return None
     s = str(name).strip().upper()
@@ -61,7 +61,7 @@ def short_instance_label(lbl: str | None, n: int = 3) -> str | None:
 
 
 def get_track_label_short(memory_store, track_id, n: int = 3) -> str | None:
-    """Devuelve instance_label acortado (p.ej. 'LAPTOP_1' -> 'LAP-1')."""
+    """Return a shortened instance_label (for example, 'LAPTOP_1' -> 'LAP-1')."""
     lbl = get_track_label(memory_store, track_id)
     return short_instance_label(lbl, n=n) if lbl else None
 

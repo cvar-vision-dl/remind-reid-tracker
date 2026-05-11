@@ -18,13 +18,6 @@ def cfg_get(cfg, key, default=None):
     return cur
 
 
-def cfg_dict(cfg, key, default=None) -> dict:
-    value = cfg_get(cfg, key, default if default is not None else {})
-    if isinstance(value, dict):
-        return value
-    return {} if default is None else (default if isinstance(default, dict) else {})
-
-
 def cfg_bool(cfg, key, default=False) -> bool:
     value = cfg_get(cfg, key, default)
     return bool(default if value is None else value)
@@ -67,7 +60,7 @@ def bg_partials_enabled(cfg) -> bool:
     """
     Central flag to fully enable/disable the `bg_partials` branch.
 
-    Requiere:
+    Requires:
     - `association.similarity.background_partials.enabled` if defined
     - `bg_local.prototypes.enabled` so observed prototypes exist
     """

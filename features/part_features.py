@@ -418,7 +418,7 @@ class PartFeatureExtractor:
         """
         Attention-based part proposals (intra-frame).
 
-        attn puede ser:
+        attn can be:
           - (N,N): average patch->patch attention
           - (H,N,N): per-head attention (averaged across layers)
         """
@@ -547,10 +547,10 @@ class PartFeatureExtractor:
 
     def resolve_attention_matrix(self, attn, n_total: int) -> np.ndarray:
         """
-        Convierte attn a una matriz (N,N) en float32.
+        Convert attn to an (N,N) float32 matrix.
         - If attn is (H,N,N) and head_ids exist, average only those heads.
         - If attn is (H,N,N) without head_ids, average all heads.
-        - Si attn es (N,N), lo usa tal cual.
+        - If attn is (N,N), use it as-is.
         """
         a = np.asarray(attn)
         if a.ndim == 2:
@@ -574,4 +574,4 @@ class PartFeatureExtractor:
 
             return a[ids].mean(axis=0).astype(np.float32, copy=False)
 
-        raise ValueError(f"attn debe ser (N,N) o (H,N,N), pero es {a.shape}")
+        raise ValueError(f"attn must be (N,N) or (H,N,N), got {a.shape}")

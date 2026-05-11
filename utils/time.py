@@ -253,7 +253,7 @@ def format_timing_tree_table(
     Hierarchical timing table in ms.
 
     - Keeps `total_seconds` separate to avoid double counting.
-    - Muestra sub-bloques indentados bajo su etapa.
+    - Shows indented sub-blocks below their stage.
     - Supports hierarchical keys with `/` to nest several levels.
     """
     stages = stage_seconds or {}

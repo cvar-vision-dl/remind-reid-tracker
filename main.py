@@ -59,10 +59,10 @@ def resolve_main_input_source(project_dir: str) -> dict[str, str]:
     """
     project_path = Path(project_dir).resolve()
 
-    explicit_frames_dir = os.environ.get("APP2_INPUT_FRAMES_DIR", "").strip()
-    explicit_meta_path = os.environ.get("APP2_DAVIS_META_PATH", "").strip()
-    explicit_annotations_dir = os.environ.get("APP2_DAVIS_ANNOTATIONS_DIR", "").strip()
-    explicit_sequence_name = os.environ.get("APP2_DAVIS_SEQUENCE_NAME", "").strip()
+    explicit_frames_dir = os.environ.get("REMIND_INPUT_FRAMES_DIR", "").strip()
+    explicit_meta_path = os.environ.get("REMIND_DAVIS_META_PATH", "").strip()
+    explicit_annotations_dir = os.environ.get("REMIND_DAVIS_ANNOTATIONS_DIR", "").strip()
+    explicit_sequence_name = os.environ.get("REMIND_DAVIS_SEQUENCE_NAME", "").strip()
 
     if explicit_frames_dir:
         frames_dir = Path(explicit_frames_dir).expanduser().resolve()
@@ -76,14 +76,14 @@ def resolve_main_input_source(project_dir: str) -> dict[str, str]:
 
     local_scannetpp_root = project_path / "data" / "scannetpp_data"
     external_masks_root_base = Path(
-        os.environ.get("APP2_SCANNETPP_MASKS_ROOT", str(local_scannetpp_root))
+        os.environ.get("REMIND_SCANNETPP_MASKS_ROOT", str(local_scannetpp_root))
     ).expanduser().resolve()
     external_images_root_base = Path(
-        os.environ.get("APP2_SCANNETPP_IMAGES_ROOT", str(local_scannetpp_root))
+        os.environ.get("REMIND_SCANNETPP_IMAGES_ROOT", str(local_scannetpp_root))
     ).expanduser().resolve()
-    scene_id = os.environ.get("APP2_SCENE_ID", "00a231a370").strip() or "00a231a370"
-    mask_variant = os.environ.get("APP2_MASK_VARIANT", "benchmark").strip().lower() or "benchmark"
-    image_subdir = os.environ.get("APP2_IMAGE_SUBDIR", "dslr/resized_images").strip() or "dslr/resized_images"
+    scene_id = os.environ.get("REMIND_SCENE_ID", "00a231a370").strip() or "00a231a370"
+    mask_variant = os.environ.get("REMIND_MASK_VARIANT", "benchmark").strip().lower() or "benchmark"
+    image_subdir = os.environ.get("REMIND_IMAGE_SUBDIR", "dslr/resized_images").strip() or "dslr/resized_images"
 
     if mask_variant == "benchmark":
         mask_variant = "benchmark_instance"
@@ -93,7 +93,7 @@ def resolve_main_input_source(project_dir: str) -> dict[str, str]:
     external_annotations_dir = (external_masks_root / "annotations" / mask_variant).resolve()
     external_frames_dir = (external_images_root_base / "data" / scene_id / image_subdir).resolve()
 
-    prefer_external = _env_flag("APP2_PREFER_EXTERNAL_SCENE", default=True)
+    prefer_external = _env_flag("REMIND_PREFER_EXTERNAL_SCENE", default=True)
     external_ready = (
         external_frames_dir.is_dir()
         and external_meta_path.is_file()
@@ -141,7 +141,7 @@ def resolve_frame_files_for_main(frames_dir: str, *, davis_meta_path: str = "") 
 
     Returns:
     - lista de paths de frame en el orden correcto
-    - bool indicando si el `frame_id` debe ser secuencial (0..N-1)
+    - bool indicating whether `frame_id` should be sequential (0..N-1)
     """
     meta_path = Path(str(davis_meta_path).strip()).expanduser() if str(davis_meta_path).strip() else None
     frames_root = Path(frames_dir).expanduser().resolve()

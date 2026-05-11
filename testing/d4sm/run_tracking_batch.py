@@ -71,7 +71,7 @@ def unique_preserve_order(values: list[str]) -> list[str]:
 def read_scene_ids_from_file(path: str) -> list[str]:
     p = Path(path).expanduser().resolve()
     if not p.is_file():
-        raise FileNotFoundError(f"No existe APP2_D4SM_BATCH_SCENES_FILE: {p}")
+        raise FileNotFoundError(f"REMIND_D4SM_BATCH_SCENES_FILE does not exist: {p}")
     lines = []
     for raw in p.read_text(encoding="utf-8").splitlines():
         text = str(raw).strip()
@@ -181,9 +181,9 @@ def resolve_batch_scene_ids(
     mask_variant: str,
     image_subdir: str,
 ) -> list[str]:
-    scenes_env = os.environ.get("APP2_D4SM_BATCH_SCENES", "").strip()
-    scenes_file = os.environ.get("APP2_D4SM_BATCH_SCENES_FILE", "").strip()
-    single_scene = os.environ.get("APP2_SCENE_ID", "").strip()
+    scenes_env = os.environ.get("REMIND_D4SM_BATCH_SCENES", "").strip()
+    scenes_file = os.environ.get("REMIND_D4SM_BATCH_SCENES_FILE", "").strip()
+    single_scene = os.environ.get("REMIND_SCENE_ID", "").strip()
 
     if scenes_file:
         return read_scene_ids_from_file(scenes_file)
@@ -1095,13 +1095,13 @@ def main() -> None:
     config_path = SRC_DIR / "config" / "default_config.yaml"
     default_data_root = SRC_DIR / "data" / "scannetpp_data"
     masks_root_base = Path(
-        os.environ.get("APP2_SCANNETPP_MASKS_ROOT", str(default_data_root))
+        os.environ.get("REMIND_SCANNETPP_MASKS_ROOT", str(default_data_root))
     ).expanduser().resolve()
     images_root_base = Path(
-        os.environ.get("APP2_SCANNETPP_IMAGES_ROOT", str(default_data_root))
+        os.environ.get("REMIND_SCANNETPP_IMAGES_ROOT", str(default_data_root))
     ).expanduser().resolve()
-    image_subdir = os.environ.get("APP2_IMAGE_SUBDIR", "dslr/resized_images").strip() or "dslr/resized_images"
-    mask_variant = os.environ.get("APP2_MASK_VARIANT", "benchmark").strip().lower() or "benchmark"
+    image_subdir = os.environ.get("REMIND_IMAGE_SUBDIR", "dslr/resized_images").strip() or "dslr/resized_images"
+    mask_variant = os.environ.get("REMIND_MASK_VARIANT", "benchmark").strip().lower() or "benchmark"
     if mask_variant == "benchmark":
         mask_variant = "benchmark_instance"
 
@@ -1121,8 +1121,8 @@ def main() -> None:
     scenes_root = batch_dir / "scenes"
     scenes_root.mkdir(parents=True, exist_ok=True)
 
-    max_scenes = _env_int("APP2_D4SM_BATCH_MAX_SCENES", None)
-    batch_size = _env_int("APP2_D4SM_BATCH_SIZE", max_scenes)
+    max_scenes = _env_int("REMIND_D4SM_BATCH_MAX_SCENES", None)
+    batch_size = _env_int("REMIND_D4SM_BATCH_SIZE", max_scenes)
     (
         scene_ids,
         registered_scene_ids,
@@ -1135,9 +1135,9 @@ def main() -> None:
         batch_size=batch_size,
     )
 
-    stable_min_frames = int(_env_int("APP2_D4SM_BATCH_STABLE_MIN_FRAMES", 3) or 3)
-    max_frames = _env_int("APP2_D4SM_BATCH_MAX_FRAMES", None)
-    model_size = os.environ.get("APP2_D4SM_MODEL_SIZE", "large").strip().lower() or "large"
+    stable_min_frames = int(_env_int("REMIND_D4SM_BATCH_STABLE_MIN_FRAMES", 3) or 3)
+    max_frames = _env_int("REMIND_D4SM_BATCH_MAX_FRAMES", None)
+    model_size = os.environ.get("REMIND_D4SM_MODEL_SIZE", "large").strip().lower() or "large"
 
     write_single_row_csv(
         batch_dir / "run_config.csv",

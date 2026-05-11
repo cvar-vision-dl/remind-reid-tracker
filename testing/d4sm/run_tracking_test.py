@@ -142,7 +142,7 @@ class TarSceneBundle:
         rel = str(rel_path or "").strip().strip("/")
         member_name = self.data_members_by_rel.get(rel, None)
         if member_name is None:
-            raise FileNotFoundError(f"No existe {rel} en {self.data_tar_path}")
+            raise FileNotFoundError(f"{rel} does not exist in {self.data_tar_path}")
         extracted = self._get_data_tar().extractfile(member_name)
         if extracted is None:
             raise FileNotFoundError(f"No se pudo abrir {rel} en {self.data_tar_path}")
@@ -152,7 +152,7 @@ class TarSceneBundle:
         rel = str(rel_path or "").strip().strip("/")
         member_name = self.annotation_members_by_rel.get(rel, None)
         if member_name is None:
-            raise FileNotFoundError(f"No existe {rel} en {self.annotations_tar_path}")
+            raise FileNotFoundError(f"{rel} does not exist in {self.annotations_tar_path}")
         extracted = self._get_annotations_tar().extractfile(member_name)
         if extracted is None:
             raise FileNotFoundError(f"No se pudo abrir {rel} en {self.annotations_tar_path}")
@@ -518,10 +518,10 @@ def _build_tar_input_source(
 def resolve_testing_input_source(project_dir: str) -> dict[str, str]:
     project_path = Path(project_dir).resolve()
 
-    explicit_frames_dir = os.environ.get("APP2_INPUT_FRAMES_DIR", "").strip()
-    explicit_meta_path = os.environ.get("APP2_DAVIS_META_PATH", "").strip()
-    explicit_annotations_dir = os.environ.get("APP2_DAVIS_ANNOTATIONS_DIR", "").strip()
-    explicit_sequence_name = os.environ.get("APP2_DAVIS_SEQUENCE_NAME", "").strip()
+    explicit_frames_dir = os.environ.get("REMIND_INPUT_FRAMES_DIR", "").strip()
+    explicit_meta_path = os.environ.get("REMIND_DAVIS_META_PATH", "").strip()
+    explicit_annotations_dir = os.environ.get("REMIND_DAVIS_ANNOTATIONS_DIR", "").strip()
+    explicit_sequence_name = os.environ.get("REMIND_DAVIS_SEQUENCE_NAME", "").strip()
 
     if explicit_frames_dir:
         frames_dir = Path(explicit_frames_dir).expanduser().resolve()
@@ -536,14 +536,14 @@ def resolve_testing_input_source(project_dir: str) -> dict[str, str]:
 
     local_scannetpp_root = SRC_DIR / "data" / "scannetpp_data"
     external_masks_root_base = Path(
-        os.environ.get("APP2_SCANNETPP_MASKS_ROOT", str(local_scannetpp_root))
+        os.environ.get("REMIND_SCANNETPP_MASKS_ROOT", str(local_scannetpp_root))
     ).expanduser().resolve()
     external_images_root_base = Path(
-        os.environ.get("APP2_SCANNETPP_IMAGES_ROOT", str(local_scannetpp_root))
+        os.environ.get("REMIND_SCANNETPP_IMAGES_ROOT", str(local_scannetpp_root))
     ).expanduser().resolve()
-    scene_id = os.environ.get("APP2_SCENE_ID", "00a231a370").strip() or "00a231a370"
-    mask_variant = os.environ.get("APP2_MASK_VARIANT", "benchmark").strip().lower() or "benchmark"
-    image_subdir = os.environ.get("APP2_IMAGE_SUBDIR", "dslr/resized_images").strip() or "dslr/resized_images"
+    scene_id = os.environ.get("REMIND_SCENE_ID", "00a231a370").strip() or "00a231a370"
+    mask_variant = os.environ.get("REMIND_MASK_VARIANT", "benchmark").strip().lower() or "benchmark"
+    image_subdir = os.environ.get("REMIND_IMAGE_SUBDIR", "dslr/resized_images").strip() or "dslr/resized_images"
     if mask_variant == "benchmark":
         mask_variant = "benchmark_instance"
 
@@ -552,7 +552,7 @@ def resolve_testing_input_source(project_dir: str) -> dict[str, str]:
     external_annotations_dir = (external_masks_root / "annotations" / mask_variant).resolve()
     external_frames_dir = (external_images_root_base / "data" / scene_id / image_subdir).resolve()
     external_ready = external_frames_dir.is_dir() and external_meta_path.is_file() and external_annotations_dir.is_dir()
-    prefer_external = str(os.environ.get("APP2_PREFER_EXTERNAL_SCENE", "1")).strip().lower() in {"1", "true", "yes", "on"}
+    prefer_external = str(os.environ.get("REMIND_PREFER_EXTERNAL_SCENE", "1")).strip().lower() in {"1", "true", "yes", "on"}
     if prefer_external and external_ready:
         return {
             "mode": "external_scannetpp",
@@ -573,9 +573,7 @@ def resolve_testing_input_source(project_dir: str) -> dict[str, str]:
         if tar_source is not None:
             return tar_source
 
-    app2_local_frames_dir = (project_path / "APP2" / "data" / "framesCOMPLETO1").resolve()
-    legacy_local_frames_dir = (project_path / "data" / "framesCOMPLETO1").resolve()
-    local_frames_dir = app2_local_frames_dir if app2_local_frames_dir.is_dir() else legacy_local_frames_dir
+    local_frames_dir = (SRC_DIR / "data" / "framesCOMPLETO1").resolve()
     return {
         "mode": "local_fallback",
         "frames_dir": str(local_frames_dir),
@@ -628,13 +626,13 @@ def _ensure_d4sm_import_path() -> Path:
 
 def resolve_d4sm_runtime_config() -> dict[str, Any]:
     d4sm_root = _ensure_d4sm_import_path()
-    model_size = os.environ.get("APP2_D4SM_MODEL_SIZE", "large").strip().lower() or "large"
-    checkpoint_dir = os.environ.get("APP2_D4SM_CHECKPOINT_DIR", "").strip()
+    model_size = os.environ.get("REMIND_D4SM_MODEL_SIZE", "large").strip().lower() or "large"
+    checkpoint_dir = os.environ.get("REMIND_D4SM_CHECKPOINT_DIR", "").strip()
     if checkpoint_dir:
         checkpoint_dir = str(Path(checkpoint_dir).expanduser().resolve())
     else:
         checkpoint_dir = str((d4sm_root / "checkpoints").resolve())
-    offload_state_to_cpu = str(os.environ.get("APP2_D4SM_OFFLOAD_STATE_TO_CPU", "")).strip().lower() in {
+    offload_state_to_cpu = str(os.environ.get("REMIND_D4SM_OFFLOAD_STATE_TO_CPU", "")).strip().lower() in {
         "1",
         "true",
         "yes",
@@ -921,7 +919,7 @@ def evaluate_scene(
                 current_tracker_pred_masks = [np.asarray(region["mask"]).astype(np.uint8, copy=False) for region in init_regions]
                 current_tracker_pred_ids = [int(x) for x in tracker.all_obj_ids]
                 if len(current_tracker_pred_ids) != len(init_gt_ids):
-                    raise RuntimeError("d4sm no devolvio el mismo numero de IDs internos tras la inicializacion.")
+                    raise RuntimeError("d4sm did not return the same number of internal IDs after initialization.")
                 for tracker_id, gt_id in zip(current_tracker_pred_ids, init_gt_ids):
                     dataset_gt_by_tracker_id[int(tracker_id)] = int(gt_id)
                     seen_gt_ids.add(int(gt_id))
@@ -947,7 +945,7 @@ def evaluate_scene(
                             tracker.add_objects(image, new_regions)
                     new_tracker_ids = [int(x) for x in tracker.all_obj_ids[prev_len:]]
                     if len(new_tracker_ids) != len(new_gt_ids):
-                        raise RuntimeError("d4sm no devolvio el mismo numero de IDs internos tras add_objects.")
+                        raise RuntimeError("d4sm did not return the same number of internal IDs after add_objects.")
                     appended_new_pred_ids.extend(new_tracker_ids)
                     for tracker_id, gt_id in zip(new_tracker_ids, new_gt_ids):
                         dataset_gt_by_tracker_id[int(tracker_id)] = int(gt_id)
@@ -1089,8 +1087,8 @@ def main() -> None:
     project_dir = PROJECT_DIR
     config_path = SRC_DIR / "config" / "default_config.yaml"
     input_source = resolve_testing_input_source(str(project_dir))
-    stable_min_frames = int(os.environ.get("APP2_D4SM_STABLE_MIN_FRAMES", "3").strip() or "3")
-    max_frames_raw = os.environ.get("APP2_D4SM_MAX_FRAMES", "").strip()
+    stable_min_frames = int(os.environ.get("REMIND_D4SM_STABLE_MIN_FRAMES", "3").strip() or "3")
+    max_frames_raw = os.environ.get("REMIND_D4SM_MAX_FRAMES", "").strip()
     max_frames = None if not max_frames_raw else int(max_frames_raw)
 
     results, report = evaluate_scene(

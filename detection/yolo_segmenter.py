@@ -55,11 +55,11 @@ class YoloSegmenter:
 
     def resolve_classes(self, classes_spec):
         """
-        classes_spec puede ser:
+        classes_spec can be:
           - None
           - list[int]
-          - list[str]  (nombres exactos de model.names)
-        Devuelve list[int] o None.
+          - list[str]  (exact names from model.names)
+        Returns list[int] or None.
         """
         if classes_spec is None:
             return None

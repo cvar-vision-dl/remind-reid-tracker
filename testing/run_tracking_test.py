@@ -5,7 +5,6 @@ import json
 import os
 import re
 import sys
-from datetime import datetime
 from pathlib import Path
 from time import perf_counter
 
@@ -217,7 +216,7 @@ def resolve_testing_input_source(
 
 def resolve_frame_files_for_testing(frames_dir: str, *, davis_meta_path: str = "") -> tuple[list[str], bool]:
     """
-    Resuelve la lista de frames y si el frame_id debe ser secuencial.
+    Resolve the frame list and whether frame_id should be sequential.
     """
     meta_path = Path(str(davis_meta_path).strip()).expanduser() if str(davis_meta_path).strip() else None
     frames_root = Path(frames_dir).expanduser().resolve()
@@ -282,8 +281,8 @@ def resolve_aligned_shape(perception_output) -> tuple[int, int]:
         return (int(aligned.shape[0]), int(aligned.shape[1]))
 
     raise RuntimeError(
-        "Testing runner esperaba aligned_shape en p_out.transforms, "
-        "o frame_shape en p_out.frame_features."
+        "Testing runner expected aligned_shape in p_out.transforms, "
+        "or frame_shape in p_out.frame_features."
     )
 
 
@@ -318,40 +317,6 @@ def choose_unique_dir(base_dir: Path) -> Path:
         if not candidate.exists():
             return candidate
         suffix += 1
-
-
-def format_testing_timestamp_from_paths(paths: list[Path]) -> str:
-    if not paths:
-        raise ValueError("At least one path is required to compute the run timestamp.")
-
-    latest_mtime = max(float(path.stat().st_mtime) for path in paths)
-    return datetime.fromtimestamp(latest_mtime).strftime("%Y%m%d_%H%M%S")
-
-
-def migrate_legacy_testing_outputs(testing_root: Path, scene_tag: str | None = None) -> Path | None:
-    legacy_files = [testing_root / name for name in build_testing_file_names() if (testing_root / name).exists()]
-    if not legacy_files:
-        return None
-
-    legacy_ts = format_testing_timestamp_from_paths(legacy_files)
-    legacy_prefix = "tracking_eval_legacy"
-    if scene_tag:
-        legacy_prefix = f"{legacy_prefix}_{sanitize_name_for_path(scene_tag)}"
-    legacy_dir = Path(
-        default_run_artifact_dir(
-            str(testing_root.parent),
-            group="testing",
-            prefix=legacy_prefix,
-            timestamp=legacy_ts,
-        )
-    )
-    legacy_dir = choose_unique_dir(legacy_dir)
-    legacy_dir.mkdir(parents=True, exist_ok=True)
-
-    for path in legacy_files:
-        path.rename(legacy_dir / path.name)
-
-    return legacy_dir
 
 
 def build_event_rows(*, run_id: str, scene_id: str, scene_name: str, results: dict) -> list[dict]:
@@ -511,7 +476,6 @@ def main():
     )
     testing_root = testing_output_root / "testing"
     testing_root.mkdir(parents=True, exist_ok=True)
-    migrated_legacy_dir = migrate_legacy_testing_outputs(testing_root, scene_tag=scene_tag)
     out_dir = Path(
         default_run_artifact_dir(
             str(testing_output_root),
@@ -696,8 +660,6 @@ def main():
     write_text(out_dir / "tracking_eval_report.txt", report + "\n")
     write_text(out_dir / "report.txt", report + "\n")
     print(report)
-    if migrated_legacy_dir is not None:
-        print(f"[TEST] Legacy testing outputs moved to {migrated_legacy_dir}")
     print(f"\n[TEST] Outputs written to {out_dir}")
 
 

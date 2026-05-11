@@ -453,9 +453,8 @@ def match_detections_to_gt(detections: list, gt_objects: dict[int, Any]) -> dict
     """
     Match det_id -> (gt_instance_id, iou) with 1-to-1 IoU-maximizing matching.
 
-    If class is available in detection and GT, matching is restricted
-    to compatible pairs. Keeps the previous semantics of considering
-    candidates only when IoU > 0.
+    If class is available in detection and GT, matching is restricted to
+    compatible pairs. Candidates are considered only when IoU > 0.
     """
     pairs: list[tuple[float, int, int]] = []
     gt_packs = []

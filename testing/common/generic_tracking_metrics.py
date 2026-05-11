@@ -33,11 +33,11 @@ class TrackingOnlyEvaluator:
     """
     Generic evaluator for trackers that only expose trajectories/masks.
 
-    Mantiene la misma filosofia de evaluacion global del pipeline propio:
+    Keeps the same global evaluation philosophy as the internal pipeline:
     - reference GT<->pred mapping by class with Hungarian;
-    - metricas de identidad globales;
+    - global identity metrics;
     - analysis by object, frame, class, and predicted track;
-    - eventos tipo swap/theft;
+    - swap/theft-like events;
     - without internal pipeline decision, uncertainty, or memory metrics.
     """
 

@@ -17,77 +17,77 @@ def safe_best_score_map(score_map: dict | None) -> float:
 
 
 def candidate_score_sim(candidate: dict) -> float:
-    """Extrae score_sim de candidate."""
+    """Extract score_sim from candidate."""
     if not isinstance(candidate, dict):
         return 0.0
     return safe_float(candidate.get("score_sim", 0.0), default=0.0)
 
 
 def candidate_score_sets(candidate: dict) -> float:
-    """Extrae score_sets de candidate."""
+    """Extract score_sets from candidate."""
     if not isinstance(candidate, dict):
         return 0.0
     return safe_float(candidate.get("score_sets", 0.0), default=0.0)
 
 
 def candidate_bonus_sets(candidate: dict) -> float:
-    """Extrae bonus_sets de candidate."""
+    """Extract bonus_sets from candidate."""
     if not isinstance(candidate, dict):
         return 0.0
     return safe_float(candidate.get("bonus_sets", 0.0), default=0.0)
 
 
 def candidate_penalty_sets(candidate: dict) -> float:
-    """Extrae penalty_sets de candidate."""
+    """Extract penalty_sets from candidate."""
     if not isinstance(candidate, dict):
         return 0.0
     return safe_float(candidate.get("penalty_sets", 0.0), default=0.0)
 
 
 def candidate_support_sets(candidate: dict) -> float:
-    """Extrae support_sets de candidate."""
+    """Extract support_sets from candidate."""
     if not isinstance(candidate, dict):
         return 0.0
     return safe_float(candidate.get("support_sets", 0.0), default=0.0)
 
 
 def candidate_support_local_sets(candidate: dict) -> float:
-    """Extrae support_local_sets de candidate."""
+    """Extract support_local_sets from candidate."""
     if not isinstance(candidate, dict):
         return 0.0
     return safe_float(candidate.get("support_local_sets", 0.0), default=0.0)
 
 
 def candidate_support_global_sets(candidate: dict) -> float:
-    """Extrae support_global_sets de candidate."""
+    """Extract support_global_sets from candidate."""
     if not isinstance(candidate, dict):
         return 0.0
     return safe_float(candidate.get("support_global_sets", 0.0), default=0.0)
 
 
 def candidate_quality_sets(candidate: dict) -> float:
-    """Extrae quality_sets de candidate."""
+    """Extract quality_sets from candidate."""
     if not isinstance(candidate, dict):
         return 0.0
     return safe_float(candidate.get("quality_sets", 0.0), default=0.0)
 
 
 def candidate_compat_rel(candidate: dict) -> float:
-    """Extrae compat_rel de candidate."""
+    """Extract compat_rel from candidate."""
     if not isinstance(candidate, dict):
         return 0.0
     return safe_float(candidate.get("compat_rel", 0.0), default=0.0)
 
 
 def candidate_kernel_rel(candidate: dict) -> float:
-    """Extrae kernel_rel de candidate."""
+    """Extract kernel_rel from candidate."""
     if not isinstance(candidate, dict):
         return 0.0
     return safe_float(candidate.get("kernel_rel", 0.0), default=0.0)
 
 
 def candidate_kernel_raw(candidate: dict) -> float:
-    """Extrae kernel_raw absoluto de candidate."""
+    """Extract absolute kernel_raw from candidate."""
     if not isinstance(candidate, dict):
         return 0.0
     return safe_float(candidate.get("kernel_raw", 0.0), default=0.0)
@@ -101,7 +101,7 @@ def candidate_kernel_hit_ratio(candidate: dict) -> float:
 
 
 def candidate_kernel_hit_count(candidate: dict) -> int:
-    """Extrae nº de hits del kernel sobre el candidato."""
+    """Extract the number of kernel hits for the candidate."""
     if not isinstance(candidate, dict):
         return 0
     try:
@@ -111,7 +111,7 @@ def candidate_kernel_hit_count(candidate: dict) -> int:
 
 
 def candidate_hyp_rel(candidate: dict) -> float:
-    """Extrae hyp_rel de candidate."""
+    """Extract hyp_rel from candidate."""
     if not isinstance(candidate, dict):
         return 0.0
     return safe_float(candidate.get("hyp_rel", 0.0), default=0.0)
@@ -127,74 +127,8 @@ def candidate_compat_band(candidate: dict) -> int:
         return 0
 
 
-def candidate_score_sim_base(candidate: dict) -> float:
-    if not isinstance(candidate, dict):
-        return 0.0
-    return safe_float(candidate.get("score_sim_base", 0.0), default=0.0)
-
-
-def candidate_quality_obj(candidate: dict) -> float:
-    if not isinstance(candidate, dict):
-        return 0.0
-    return safe_float(candidate.get("quality_obj", 0.0), default=0.0)
-
-
-def candidate_quality_bg(candidate: dict) -> float:
-    if not isinstance(candidate, dict):
-        return 0.0
-    return safe_float(candidate.get("quality_bg", 0.0), default=0.0)
-
-
-def candidate_quality_parts(candidate: dict) -> float:
-    if not isinstance(candidate, dict):
-        return 0.0
-    return safe_float(candidate.get("quality_parts", 0.0), default=0.0)
-
-
-def candidate_quality_eff_obj(candidate: dict) -> float:
-    if not isinstance(candidate, dict):
-        return 0.0
-    return safe_float(candidate.get("quality_eff_obj", 0.0), default=0.0)
-
-
-def candidate_quality_eff_bg(candidate: dict) -> float:
-    if not isinstance(candidate, dict):
-        return 0.0
-    return safe_float(candidate.get("quality_eff_bg", 0.0), default=0.0)
-
-
-def candidate_quality_eff_parts(candidate: dict) -> float:
-    if not isinstance(candidate, dict):
-        return 0.0
-    return safe_float(candidate.get("quality_eff_parts", 0.0), default=0.0)
-
-
-def candidate_weight_eff_obj(candidate: dict) -> float:
-    if not isinstance(candidate, dict):
-        return 0.0
-    return safe_float(candidate.get("weight_eff_obj", 0.0), default=0.0)
-
-
-def candidate_weight_eff_bg(candidate: dict) -> float:
-    if not isinstance(candidate, dict):
-        return 0.0
-    return safe_float(candidate.get("weight_eff_bg", 0.0), default=0.0)
-
-
-def candidate_weight_eff_bgp(candidate: dict) -> float:
-    if not isinstance(candidate, dict):
-        return 0.0
-    return safe_float(candidate.get("weight_eff_bgp", 0.0), default=0.0)
-
-
-def candidate_weight_eff_parts(candidate: dict) -> float:
-    if not isinstance(candidate, dict):
-        return 0.0
-    return safe_float(candidate.get("weight_eff_parts", 0.0), default=0.0)
-
-
 def candidate_score_final(candidate: dict) -> float:
-    """Extrae score_final; si no existe, cae a score_sim."""
+    """Extract score_final; fall back to score_sim when missing."""
     if not isinstance(candidate, dict):
         return 0.0
     if candidate.get("score_final", None) is not None:
@@ -229,19 +163,6 @@ def candidate_decision_keep(candidate: dict) -> int:
         return int(bool(v))
     except Exception:
         return 0
-
-
-def candidate_ctx_keep(candidate: dict) -> int:
-    """Return whether context gating allows the candidate (neighbor-sets shortlist) (1/0)."""
-    if not isinstance(candidate, dict):
-        return 1
-    v = candidate.get("ctx_keep", None)
-    if v is None:
-        return 1
-    try:
-        return int(bool(v))
-    except Exception:
-        return 1
 
 
 def candidate_policy_trace(candidate: dict) -> dict:

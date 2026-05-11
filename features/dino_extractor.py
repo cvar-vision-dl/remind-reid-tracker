@@ -39,11 +39,11 @@ class DinoExtractor:
     def resolve_model_id(self, config_dino: dict) -> str:
         label = config_dino.get("model_label", None)
         if label is None:
-            raise ValueError("En config['dino'] falta 'model_label' (S/B/L/7B).")
+            raise ValueError("config['dino'] is missing 'model_label' (S/B/L/7B).")
 
         models_map = config_dino.get("models", None)
         if not isinstance(models_map, dict) or not models_map:
-            raise ValueError("En config['dino'] falta 'models' (label -> hf_model_id).")
+            raise ValueError("config['dino'] is missing 'models' (label -> hf_model_id).")
 
         key = str(label).strip().upper()
         if key not in models_map:
@@ -88,7 +88,7 @@ class DinoExtractor:
     @torch.inference_mode()
     def extract_patches_and_attn(self, image_rgb: np.ndarray, head_ids=None):
         """
-        Devuelve:
+        Returns:
         - fmap: (Hp, Wp, D)
         - attn_mean: (N, N) average patch->patch attention
         - attn_heads: (Hsel, N, N) only if head_ids != None, otherwise None
@@ -156,7 +156,7 @@ class DinoExtractor:
     def mask_px_to_patch_coverage(self, mask_px: np.ndarray, hp: int, wp: int) -> np.ndarray:
         """Return (Hp, Wp) with the True-pixel fraction per patch."""
         if mask_px.ndim != 2:
-            raise ValueError("mask_px debe ser 2D (H, W)")
+            raise ValueError("mask_px must be 2D (H, W)")
 
         p = int(self.patch_size)
         h_eff = hp * p
@@ -181,7 +181,7 @@ class DinoExtractor:
     def patch_mask_from_coverage(self, cov: np.ndarray) -> np.ndarray:
         """Return a bool patch_mask according to self.patch_selection."""
         if cov.ndim != 2:
-            raise ValueError("cov debe ser 2D (Hp, Wp)")
+            raise ValueError("cov must be 2D (Hp, Wp)")
 
         if self.patch_selection == "threshold":
             return cov > float(self.patch_threshold)
@@ -246,7 +246,7 @@ class DinoExtractor:
         trimmed_min_patches: int | None = None,
     ) -> np.ndarray | None:
         if fmap.ndim != 3:
-            raise ValueError("fmap debe ser (Hp, Wp, D)")
+            raise ValueError("fmap must be (Hp, Wp, D)")
 
         hp, wp, dim = fmap.shape
         feats = fmap.reshape(-1, dim).astype(np.float32, copy=False)

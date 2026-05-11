@@ -311,7 +311,7 @@ def main() -> None:
     batch_dir = (PROJECT_DIR / "outputs" / "d4sm" / "testing_batch").resolve()
     scenes_root = (batch_dir / "scenes").resolve()
     if not scenes_root.is_dir():
-        raise FileNotFoundError(f"No existe scenes root: {scenes_root}")
+        raise FileNotFoundError(f"Scenes root does not exist: {scenes_root}")
 
     processed = 0
     for scene_dir in sorted(child for child in scenes_root.iterdir() if child.is_dir() and not child.name.startswith(".")):

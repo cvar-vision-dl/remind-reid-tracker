@@ -126,7 +126,7 @@ class TarSceneBundle:
         rel = str(rel_path or "").strip().strip("/")
         member_name = self.data_members_by_rel.get(rel, None)
         if member_name is None:
-            raise FileNotFoundError(f"No existe {rel} en {self.data_tar_path}")
+            raise FileNotFoundError(f"{rel} does not exist in {self.data_tar_path}")
         extracted = self._get_data_tar().extractfile(member_name)
         if extracted is None:
             raise FileNotFoundError(f"No se pudo abrir {rel} en {self.data_tar_path}")
@@ -136,7 +136,7 @@ class TarSceneBundle:
         rel = str(rel_path or "").strip().strip("/")
         member_name = self.annotation_members_by_rel.get(rel, None)
         if member_name is None:
-            raise FileNotFoundError(f"No existe {rel} en {self.annotations_tar_path}")
+            raise FileNotFoundError(f"{rel} does not exist in {self.annotations_tar_path}")
         extracted = self._get_annotations_tar().extractfile(member_name)
         if extracted is None:
             raise FileNotFoundError(f"No se pudo abrir {rel} en {self.annotations_tar_path}")
@@ -372,9 +372,9 @@ def _discover_tar_scene_ids(*, data_tar_root: Path, annotations_tar_root: Path) 
 
 
 def _resolve_tar_scene_ids(*, data_tar_root: Path, annotations_tar_root: Path) -> list[str]:
-    scenes_env = _env_str("APP2_BATCH_TAR_SCENES", "")
-    scenes_file = _env_str("APP2_BATCH_TAR_SCENES_FILE", "")
-    single_scene = _env_str("APP2_SCENE_ID", "")
+    scenes_env = _env_str("REMIND_BATCH_TAR_SCENES", "")
+    scenes_file = _env_str("REMIND_BATCH_TAR_SCENES_FILE", "")
+    single_scene = _env_str("REMIND_SCENE_ID", "")
 
     if scenes_file:
         return base_batch.read_scene_ids_from_file(scenes_file)
@@ -583,16 +583,16 @@ def main() -> None:
     config_path = src_dir / "config" / "default_config.yaml"
 
     dataset_root = Path(
-        _env_str("APP2_SCANNETPP_TAR_ROOT", str(project_dir / "data" / "scannetpp_data"))
+        _env_str("REMIND_SCANNETPP_TAR_ROOT", str(project_dir / "data" / "scannetpp_data"))
     ).expanduser().resolve()
     data_tar_root = Path(
-        _env_str("APP2_SCANNETPP_DATA_TAR_ROOT", str(dataset_root / "data"))
+        _env_str("REMIND_SCANNETPP_DATA_TAR_ROOT", str(dataset_root / "data"))
     ).expanduser().resolve()
     annotations_tar_root = Path(
-        _env_str("APP2_SCANNETPP_ANNOTATIONS_TAR_ROOT", str(dataset_root / "annotations"))
+        _env_str("REMIND_SCANNETPP_ANNOTATIONS_TAR_ROOT", str(dataset_root / "annotations"))
     ).expanduser().resolve()
-    image_subdir = _env_str("APP2_IMAGE_SUBDIR", "dslr/resized_images") or "dslr/resized_images"
-    mask_variant = _env_str("APP2_MASK_VARIANT", "benchmark") or "benchmark"
+    image_subdir = _env_str("REMIND_IMAGE_SUBDIR", "dslr/resized_images") or "dslr/resized_images"
+    mask_variant = _env_str("REMIND_MASK_VARIANT", "benchmark") or "benchmark"
     normalized_mask_variant = _normalize_mask_variant(mask_variant)
 
     scene_ids = _resolve_tar_scene_ids(
@@ -608,8 +608,8 @@ def main() -> None:
     scenes_root = batch_dir / "scenes"
     scenes_root.mkdir(parents=True, exist_ok=True)
 
-    max_scenes = base_batch._env_int("APP2_BATCH_TAR_MAX_SCENES", None)
-    batch_size = base_batch._env_int("APP2_BATCH_TAR_SIZE", max_scenes)
+    max_scenes = base_batch._env_int("REMIND_BATCH_TAR_MAX_SCENES", None)
+    batch_size = base_batch._env_int("REMIND_BATCH_TAR_SIZE", max_scenes)
     (
         scene_ids,
         registered_scene_ids,
@@ -622,9 +622,9 @@ def main() -> None:
         batch_size=batch_size,
     )
 
-    stable_min_frames = int(base_batch._env_int("APP2_BATCH_TAR_STABLE_MIN_FRAMES", 3) or 3)
-    max_frames = base_batch._env_int("APP2_BATCH_TAR_MAX_FRAMES", None)
-    force_detector_backend = _env_str("APP2_BATCH_TAR_DETECTOR_BACKEND", "davis") or "davis"
+    stable_min_frames = int(base_batch._env_int("REMIND_BATCH_TAR_STABLE_MIN_FRAMES", 3) or 3)
+    max_frames = base_batch._env_int("REMIND_BATCH_TAR_MAX_FRAMES", None)
+    force_detector_backend = _env_str("REMIND_BATCH_TAR_DETECTOR_BACKEND", "davis") or "davis"
 
     run_config_row = base_batch.build_run_config_row(
         run_id=run_id,

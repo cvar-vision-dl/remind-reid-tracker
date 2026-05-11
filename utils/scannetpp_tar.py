@@ -28,7 +28,7 @@ def resolve_scannetpp_data_parent(base_path: Path) -> Path | None:
 
 def resolve_scannetpp_tar_cache_root(project_dir: str | Path) -> Path:
     raw = str(Path(project_dir).resolve() / ".cache" / "scannetpp_tar")
-    override = str(os.environ.get("APP2_SCANNETPP_TAR_CACHE_ROOT", raw) or raw).strip()
+    override = str(os.environ.get("REMIND_SCANNETPP_TAR_CACHE_ROOT", raw) or raw).strip()
     return Path(override).expanduser().resolve()
 
 

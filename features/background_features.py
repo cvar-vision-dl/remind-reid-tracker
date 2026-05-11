@@ -60,7 +60,7 @@ class BackgroundFeatureExtractor:
         radius_patches=R => kernel (2R+1).
         """
         if mask_patch.ndim != 2:
-            raise ValueError("mask_patch debe ser 2D (Hp, Wp)")
+            raise ValueError("mask_patch must be 2D (Hp, Wp)")
 
         r = int(max(0, radius_patches))
         if r == 0:
@@ -181,11 +181,11 @@ class BackgroundFeatureExtractor:
           ring_mode: "disjoint" | "nested"
         """
         if fmap.ndim != 3:
-            raise ValueError("fmap debe ser (Hp, Wp, D)")
+            raise ValueError("fmap must be (Hp, Wp, D)")
         if obj_mask_px is None:
-            raise ValueError("obj_mask_px no puede ser None")
+            raise ValueError("obj_mask_px cannot be None")
         if not isinstance(bg_local_cfg, dict):
-            raise ValueError("bg_local_cfg debe ser dict")
+            raise ValueError("bg_local_cfg must be dict")
 
         hp, wp, _ = fmap.shape
 
@@ -357,11 +357,11 @@ class BackgroundFeatureExtractor:
         feats_are_normalized: bool = False,
     ) -> list[dict]:
         """
-        Devuelve stats por cluster:
+        Return stats per cluster:
           - idxs: point indexes
           - mass: sum of weights (or count)
-          - centroid: centro normalizado (cosine-friendly)
-          - cohesion: mean cosine(punto, centroid)
+          - centroid: normalized centroid (cosine-friendly)
+          - cohesion: mean cosine(point, centroid)
         """
         n = int(feats.shape[0])
         if n <= 0:
@@ -647,11 +647,11 @@ class BackgroundFeatureExtractor:
         frame_cache: dict | None = None,
     ) -> tuple[list[np.ndarray], list[float], dict]:
         """
-        Extrae prototipos estables de un anillo.
+        Extract stable prototypes from a ring.
 
         - fmap: (Hp,Wp,D)
         - ring_mask: (Hp,Wp) bool
-        - patch_weights: (Hp,Wp) float o None (recomendado: w_bg = 1 - cov_obj)
+        - patch_weights: (Hp,Wp) float or None (recommended: w_bg = 1 - cov_obj)
         """
         hp, wp, dim = fmap.shape
         if ring_mask.shape != (hp, wp):

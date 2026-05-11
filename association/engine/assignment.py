@@ -16,9 +16,9 @@ class HungarianAssigner:
     det->obj assignment using Hungarian with dummies, locks, and neighbor-sets influence.
 
     Score convention:
-      - score_sim   : similitud pura (gating + locks)
+      - score_sim   : pure similarity (gating + locks)
       - score_assign: stable score for Hungarian; does not include sets_rescue
-      - bonus_sets  : ajuste contextual firmado por neighbor-sets (si aplica)
+      - bonus_sets  : signed contextual adjustment from neighbor-sets, when applicable
       - score_final : score_sim + bonus_sets
     """
 

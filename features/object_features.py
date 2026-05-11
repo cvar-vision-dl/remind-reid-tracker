@@ -136,9 +136,9 @@ class ObjectFeatureExtractor:
         flat_feats_n: np.ndarray | None = None,
     ):
         """
-        Devuelve:
+        Returns:
           - patch_descs: (N,D) object patch embeddings
-          - patch_cov: (N,) cobertura por patch (o None si return_coverage=False)
+          - patch_cov: (N,) coverage per patch (or None if return_coverage=False)
 
         N = number of patches that pass the policy (any/threshold).
         """

@@ -339,12 +339,12 @@ class MemoryStore:
         return best
 
     # ------------------------------------------------------------------
-    # Acceso
+    # Access
     # ------------------------------------------------------------------
 
     def get(self, object_id: int):
         """
-        Devuelve el TrackedObject asociado al object_id,
+        Return the TrackedObject associated with object_id,
         or None if it does not exist.
         """
         return self.objects.get(object_id, None)

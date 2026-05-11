@@ -26,25 +26,6 @@ def parse_frame_id(path: str) -> int | None:
         return None
     return int(ints[-1])
 
-def iter_frames_from_folder(folder_path):
-    """
-    Iterate images from a folder in lexicographic order.
-    Devuelve (frame, frame_name).
-    """
-    exts = (".png", ".jpg", ".jpeg")
-    files = sorted(
-        f for f in os.listdir(folder_path)
-        if f.lower().endswith(exts)
-    )
-
-    for fname in files:
-        path = os.path.join(folder_path, fname)
-        frame = cv2.imread(path)
-        if frame is None:
-            continue
-        yield frame, fname
-
-
 def decode_action(key: int) -> str:
     if key is None:
         return "none"

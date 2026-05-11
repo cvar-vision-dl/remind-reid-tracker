@@ -24,7 +24,7 @@ from utils.io import decode_action, list_image_files, parse_frame_id, read_bgr
 from utils.visualization import overlay_mask_bgr
 
 
-WINDOW_NAME = "APP2 Scene Labeler"
+WINDOW_NAME = "REMIND Scene Labeler"
 DEFAULT_OUTPUT_CSV = Path(CURRENT_DIR) / "scene_labels.csv"
 DEFAULT_AUTOPLAY_FPS = 12.0
 DEFAULT_DISPLAY_MAX_W = 1600
@@ -124,32 +124,17 @@ def unique_preserve_order(values: list[str]) -> list[str]:
 
 
 def normalize_mask_errors(value: str | None) -> str:
-    text = str(value or "").strip().lower()
-    legacy_map = {
-        "rare": "some",
-        "occasional": "some",
-        "frequent": "many",
-    }
-    if text in legacy_map:
-        return legacy_map[text]
-    return text
+    return str(value or "").strip().lower()
 
 
 def normalize_camera_distance(value: str | None) -> str:
-    text = str(value or "").strip().lower()
-    legacy_map = {
-        "near+medium": "medium",
-        "near+medium+far": "far",
-    }
-    if text in legacy_map:
-        return legacy_map[text]
-    return text
+    return str(value or "").strip().lower()
 
 
 def read_scene_ids_from_file(path: str) -> list[str]:
     p = Path(path).expanduser().resolve()
     if not p.is_file():
-        raise FileNotFoundError(f"No existe APP2_BATCH_SCENES_FILE: {p}")
+        raise FileNotFoundError(f"REMIND_BATCH_SCENES_FILE does not exist: {p}")
     values: list[str] = []
     for raw in p.read_text(encoding="utf-8").splitlines():
         text = str(raw).strip()
@@ -212,9 +197,9 @@ def resolve_batch_scene_ids(
     mask_variant: str,
     image_subdir: str,
 ) -> list[str]:
-    scenes_env = os.environ.get("APP2_BATCH_SCENES", "").strip()
-    scenes_file = os.environ.get("APP2_BATCH_SCENES_FILE", "").strip()
-    single_scene = os.environ.get("APP2_SCENE_ID", "").strip()
+    scenes_env = os.environ.get("REMIND_BATCH_SCENES", "").strip()
+    scenes_file = os.environ.get("REMIND_BATCH_SCENES_FILE", "").strip()
+    single_scene = os.environ.get("REMIND_SCENE_ID", "").strip()
 
     if scenes_file:
         return read_scene_ids_from_file(scenes_file)
@@ -271,18 +256,18 @@ def build_scene_entries() -> list[SceneEntry]:
     default_scannetpp_root = str(Path(SRC_DIR) / "data" / "scannetpp_data")
     masks_root_base = Path(
         os.environ.get(
-            "APP2_SCANNETPP_MASKS_ROOT",
+            "REMIND_SCANNETPP_MASKS_ROOT",
             default_scannetpp_root,
         )
     ).expanduser().resolve()
     images_root_base = Path(
         os.environ.get(
-            "APP2_SCANNETPP_IMAGES_ROOT",
+            "REMIND_SCANNETPP_IMAGES_ROOT",
             default_scannetpp_root,
         )
     ).expanduser().resolve()
-    mask_variant = os.environ.get("APP2_MASK_VARIANT", "benchmark").strip().lower() or "benchmark"
-    image_subdir = os.environ.get("APP2_IMAGE_SUBDIR", "dslr/resized_images").strip() or "dslr/resized_images"
+    mask_variant = os.environ.get("REMIND_MASK_VARIANT", "benchmark").strip().lower() or "benchmark"
+    image_subdir = os.environ.get("REMIND_IMAGE_SUBDIR", "dslr/resized_images").strip() or "dslr/resized_images"
     if mask_variant == "benchmark":
         mask_variant = "benchmark_instance"
 
@@ -342,13 +327,10 @@ def load_existing_labels(path: Path) -> dict[str, dict[str, str]]:
             if not scene_id:
                 continue
             normalized_row = {str(k): str(v) for k, v in row.items()}
-            old_mask_errors = normalized_row.get("occlusion_mask_errors", "")
             if "mask_errors" in normalized_row:
                 normalized_row["mask_errors"] = normalize_mask_errors(
                     normalized_row.get("mask_errors", "")
                 )
-            elif str(old_mask_errors).strip():
-                normalized_row["mask_errors"] = normalize_mask_errors(old_mask_errors)
             if "camera_distance" in normalized_row:
                 normalized_row["camera_distance"] = normalize_camera_distance(
                     normalized_row.get("camera_distance", "")
@@ -694,8 +676,8 @@ def row_has_required_labels(row: dict[str, str] | None) -> bool:
 def print_startup_help(output_csv: Path, total_scenes: int, pending_scenes: int) -> None:
     print(f"Output CSV: {output_csv}")
     print(f"Scenes found: {total_scenes} | Pending: {pending_scenes}")
-    print("Controles:")
-    print("  Left/Right o A/D: mover frame")
+    print("Controls:")
+    print("  Left/Right or A/D: move frame")
     print("  Space: autoplay on/off")
     print("  G: show/hide DAVIS mask overlay")
     print("  T + H/O/I/M: scene_type = home/office/industrial/mixed")
@@ -706,9 +688,9 @@ def print_startup_help(output_csv: Path, total_scenes: int, pending_scenes: int)
     print("  P + N/M/F: camera_distance = near/medium/far")
     print("  Enter or S: save labels and move to the next scene")
     print("  B: go back to the previous scene")
-    print("  U: limpiar labels actuales")
-    print("  ?: mostrar/ocultar ayuda extendida")
-    print("  Q o Esc: salir")
+    print("  U: clear current labels")
+    print("  ?: show/hide extended help")
+    print("  Q or Esc: exit")
 
 
 def default_active_field(
@@ -734,10 +716,10 @@ def default_active_field(
 
 
 def main() -> int:
-    output_csv = Path(os.environ.get("APP2_SCENE_LABELS_CSV", str(DEFAULT_OUTPUT_CSV))).expanduser().resolve()
-    autoplay_fps = float(os.environ.get("APP2_SCENE_LABELS_FPS", str(DEFAULT_AUTOPLAY_FPS)))
-    max_w = int(os.environ.get("APP2_SCENE_LABELS_MAX_W", str(DEFAULT_DISPLAY_MAX_W)))
-    max_h = int(os.environ.get("APP2_SCENE_LABELS_MAX_H", str(DEFAULT_DISPLAY_MAX_H)))
+    output_csv = Path(os.environ.get("REMIND_SCENE_LABELS_CSV", str(DEFAULT_OUTPUT_CSV))).expanduser().resolve()
+    autoplay_fps = float(os.environ.get("REMIND_SCENE_LABELS_FPS", str(DEFAULT_AUTOPLAY_FPS)))
+    max_w = int(os.environ.get("REMIND_SCENE_LABELS_MAX_W", str(DEFAULT_DISPLAY_MAX_W)))
+    max_h = int(os.environ.get("REMIND_SCENE_LABELS_MAX_H", str(DEFAULT_DISPLAY_MAX_H)))
 
     scenes = build_scene_entries()
     if not scenes:
@@ -986,7 +968,7 @@ def main() -> int:
                         break
                 if next_index is None:
                     cv2.destroyAllWindows()
-                    print(f"Anotacion completada. CSV guardado en {output_csv}")
+                    print(f"Annotation completed. CSV saved at {output_csv}")
                     return 0
                 scene_index = int(next_index)
                 frame_index = 0

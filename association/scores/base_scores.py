@@ -139,7 +139,7 @@ class SimilarityCombiner:
     Combine similarity terms (obj/bg/parts) into one scalar.
 
     - If a term is None, it is ignored and weights are renormalized (optional).
-    - work/stable: colapsa dicts usando "max" si existe o max(work, stable).
+    - work/stable: collapse dicts using "max" when present or max(work, stable).
     """
 
     def __init__(self, config: dict):

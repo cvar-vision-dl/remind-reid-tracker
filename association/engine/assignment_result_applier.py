@@ -15,37 +15,32 @@ class AssignmentResultApplier:
         self.memory_store = memory_store
         config = config or {}
         identity_stability_cfg_key = "association.matching.hungarian.identity_stability"
-        legacy_identity_stability_cfg_key = "association.matching.identity_stability"
 
         self.identity_stability_enabled = cfg_bool(
             config,
             f"{identity_stability_cfg_key}.enabled",
-            cfg_bool(config, f"{legacy_identity_stability_cfg_key}.enabled", True),
+            True,
         )
         self.identity_stability_alt_margin = cfg_float(
             config,
             f"{identity_stability_cfg_key}.alt_margin",
-            cfg_float(config, f"{legacy_identity_stability_cfg_key}.alt_margin", 0.05),
+            0.05,
         )
         self.identity_stability_keep_margin = cfg_float(
             config,
             f"{identity_stability_cfg_key}.keep_margin",
-            cfg_float(config, f"{legacy_identity_stability_cfg_key}.keep_margin", 0.03),
+            0.03,
         )
         self.identity_stability_component_max_size = cfg_int(
             config,
             f"{identity_stability_cfg_key}.component_max_size",
-            cfg_int(config, f"{legacy_identity_stability_cfg_key}.component_max_size", 4),
+            4,
             min_value=1,
         )
         self.identity_stability_assignment_gap_max = cfg_float(
             config,
             f"{identity_stability_cfg_key}.assignment_gap_max",
-            cfg_float(
-                config,
-                f"{legacy_identity_stability_cfg_key}.assignment_gap_max",
-                self.identity_stability_alt_margin,
-            ),
+            self.identity_stability_alt_margin,
         )
         self.identity_stability_fragile_gate_reasons = {
             str(x).upper()
@@ -53,7 +48,7 @@ class AssignmentResultApplier:
                 cfg_get(
                     config,
                     f"{identity_stability_cfg_key}.fragile_gate_reasons",
-                    cfg_get(config, f"{legacy_identity_stability_cfg_key}.fragile_gate_reasons", ["SETS_RESCUE"]),
+                    ["SETS_RESCUE"],
                 )
                 or []
             )

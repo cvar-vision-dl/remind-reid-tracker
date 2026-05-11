@@ -33,7 +33,7 @@ class ImageHistory:
             self.cache.move_to_end(frame_id)
             return self.cache[frame_id]
 
-        # Disk fallback
+        # Disk cache
         p = self.path_for(frame_id)
         if not os.path.isfile(p):
             return None

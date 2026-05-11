@@ -128,8 +128,8 @@ class DavisSegmenter:
                 return str(name)
 
         raise ValueError(
-            "DavisSegmenter necesita una secuencia. "
-            "Usa config['davis']['sequence_name'] o config['input']['frames_dir']."
+            "DavisSegmenter needs a sequence. "
+            "Use config['davis']['sequence_name'] or config['input']['frames_dir']."
         )
 
     def resolve_variant(self) -> str:
@@ -154,16 +154,8 @@ class DavisSegmenter:
     def candidate_sequence_names(self) -> list[str]:
         base = self.resolve_base_sequence_name()
         variant = self.resolve_variant()
-
-        preferred = self.sequence_name_for_variant(base, variant)
-        fallback = self.sequence_name_for_variant(base, "raw")
-
-        out: list[str] = []
-        for seq in [preferred, fallback]:
-            seq = str(seq).strip()
-            if seq and seq not in out:
-                out.append(seq)
-        return out
+        seq = str(self.sequence_name_for_variant(base, variant)).strip()
+        return [seq] if seq else []
 
     def preferred_sequence_name(self) -> str:
         candidates = self.candidate_sequence_names()

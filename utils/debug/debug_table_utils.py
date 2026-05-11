@@ -27,7 +27,7 @@ def compact_columns(df: pd.DataFrame, limits: dict[str, int]) -> pd.DataFrame:
 
 
 def clamp_dataframe_rows(df: pd.DataFrame, max_rows: int) -> pd.DataFrame:
-    """Recorta df a max_rows si aplica."""
+    """Trim df to max_rows when needed."""
     mr = int(max_rows)
     if mr > 0 and df is not None and not df.empty and len(df) > mr:
         return df.head(mr)
@@ -42,17 +42,6 @@ def sort_dataframe_if_possible(df: pd.DataFrame, sort_by: list) -> pd.DataFrame:
     if not cols:
         return df
     return df.sort_values(by=cols, kind="stable")
-
-
-def print_dataframe(df: pd.DataFrame, cols: list[str], *, index: bool = False, col_space: int = 2) -> None:
-    """Print DataFrame with existing columns."""
-    if df is None:
-        return
-    cols = [c for c in (cols or []) if c in df.columns]
-    if not cols:
-        print(df.to_string(index=index))
-        return
-    print(df[cols].to_string(index=index, col_space=col_space))
 
 
 def _wrap_tokens(text: str, width: int, *, sep: str = ",") -> list[str]:

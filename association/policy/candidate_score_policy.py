@@ -6,7 +6,7 @@ from association.policy.known_plausible_keep_policy import KnownPlausibleKeepPol
 
 
 class CandidateScorePolicy:
-    """Construye tablas det->obj aplicando la policy actual de gating y scoring."""
+    """Build det->obj tables using the current gating and scoring policy."""
 
     def __init__(
         self,
