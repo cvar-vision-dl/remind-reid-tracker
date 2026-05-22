@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 import json
 import os
 import re
@@ -46,6 +47,10 @@ IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".bmp", ".tif", ".tiff", ".webp"}
 PROJECT_DIR = Path(SRC_DIR).resolve().parent
 
 
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
 def _normalize_tar_member_name(name: str) -> str:
     return str(name or "").strip().lstrip("./").rstrip("/")
 
@@ -87,6 +92,49 @@ def _build_tar_member_index(tar_path: Path) -> dict[str, str]:
             members_by_rel[rel_name] = str(member.name)
     return members_by_rel
 
+
+def _env_str(name: str, default: str = "") -> str:
+    raw = os.environ.get(name, None)
+    if raw is None:
+        return str(default)
+    return str(raw).strip()
+
+
+# ---------------------------------------------------------------------------
+# Exclude-scenes support
+# ---------------------------------------------------------------------------
+
+def _read_exclude_scene_ids(file_path: str | Path) -> set[str]:
+    """Read scene IDs to exclude from a text file.
+
+    Accepts one ID per line, comma-separated IDs, or any combination.
+    Lines starting with ``#`` are ignored.  Surrounding backticks,
+    quotes, whitespace and trailing commas are stripped, so all of these
+    work:
+
+        f97de2c3e9
+        `fb152519ad`, `fb5a96b1a2`
+        "fc123abc00", 'fd456def11'
+    """
+    path = Path(file_path).expanduser().resolve()
+    if not path.is_file():
+        raise FileNotFoundError(f"Exclude-scenes file not found: {path}")
+    ids: set[str] = set()
+    with open(path, "r") as fh:
+        for line in fh:
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            for token in re.split(r"[,;\s]+", line):
+                cleaned = token.strip().strip("`'\"").strip()
+                if cleaned:
+                    ids.add(cleaned)
+    return ids
+
+
+# ---------------------------------------------------------------------------
+# TarSceneBundle
+# ---------------------------------------------------------------------------
 
 @dataclass
 class TarSceneBundle:
@@ -242,6 +290,10 @@ def _build_scene_bundle(
     )
 
 
+# ---------------------------------------------------------------------------
+# Frame source
+# ---------------------------------------------------------------------------
+
 class TarFrameSource:
     def __init__(self, bundle: TarSceneBundle):
         self.bundle = bundle
@@ -253,6 +305,10 @@ class TarFrameSource:
             return None
         return cv2.imdecode(arr, cv2.IMREAD_COLOR)
 
+
+# ---------------------------------------------------------------------------
+# GT-based segmenter (unchanged)
+# ---------------------------------------------------------------------------
 
 class TarDavisSegmenter(DavisSegmenter):
     def resolve_tar_bundle(self) -> TarSceneBundle:
@@ -337,8 +393,180 @@ class TarDavisSegmenter(DavisSegmenter):
         return mask
 
 
+# ---------------------------------------------------------------------------
+# YOLO-based segmenter
+# ---------------------------------------------------------------------------
+
+class TarYoloSegmenter(TarDavisSegmenter):
+    """Drop-in replacement for ``TarDavisSegmenter`` that runs a YOLO
+    segmentation model (Ultralytics ``.pt``) instead of reading GT masks.
+
+    The GT metadata is still loaded (via ``super().load_model()``) so the
+    pipeline infrastructure (class mappings, etc.) remains consistent.  The
+    class/instance maps are then *overridden* with the YOLO model's own class
+    vocabulary so that predictions carry YOLO-native labels.
+
+    Env-var / config knobs
+    ~~~~~~~~~~~~~~~~~~~~~~
+    * ``yolo_model_path``   – path to the ``.pt`` weights  *(required)*
+    * ``yolo_conf``         – confidence threshold (default ``0.25``)
+    * ``yolo_iou``          – NMS IoU threshold   (default ``0.7``)
+    * ``yolo_imgsz``        – inference image size (default ``640``)
+    * ``yolo_device``       – device string, e.g. ``"cuda:0"`` or ``"cpu"``
+                              (default: auto)
+    """
+
+    # ---- lifecycle --------------------------------------------------------
+
+    def load_model(self) -> None:  # noqa: D401
+        # 1) Initialise GT-side metadata (needed so the evaluator can still
+        #    compare predictions against ground-truth annotations).
+        super().load_model()
+
+        # 2) Load the YOLO model.
+        try:
+            from ultralytics import YOLO  # type: ignore[import-untyped]
+        except ImportError as exc:
+            raise ImportError(
+                "YOLO segmentation mode requires the `ultralytics` package.  "
+                "Install it with:  pip install ultralytics"
+            ) from exc
+
+        model_path = self.davis_cfg.get("yolo_model_path", None)
+        if not model_path:
+            raise ValueError(
+                "TarYoloSegmenter requires davis.yolo_model_path to be set "
+                "(path to an Ultralytics YOLO segmentation .pt model)."
+            )
+        model_path = str(model_path)
+        if not Path(model_path).is_file():
+            raise FileNotFoundError(f"YOLO model not found: {model_path}")
+
+        self._yolo_model = YOLO(model_path)
+        self._yolo_conf: float = float(self.davis_cfg.get("yolo_conf", 0.25))
+        self._yolo_iou: float = float(self.davis_cfg.get("yolo_iou", 0.7))
+        self._yolo_imgsz: int = int(self.davis_cfg.get("yolo_imgsz", 640))
+        self._yolo_device: str | None = self.davis_cfg.get("yolo_device", None) or None
+
+        # 3) Override class vocabulary with YOLO's own names.
+        yolo_names: dict[int, str] = dict(self._yolo_model.names or {})
+        self.class_id_to_name = dict(yolo_names)
+        self.class_name_to_id = {name: idx for idx, name in yolo_names.items()}
+
+        # Instance-level maps will be rebuilt per-frame in
+        # ``read_annotation_mask``.
+        self.instance_id_to_label = {}
+        self.instance_id_to_class_id = {}
+        self.instance_id_to_original_label = {}
+        self.instance_id_to_original_class_name = {}
+
+        # Shared frame cache – the evaluation loop stores frames here
+        # *before* ``pipeline.process_frame()`` so that
+        # ``read_annotation_mask`` can run inference without re-reading
+        # the image from the tar.
+        self._yolo_frame_cache: dict[int, np.ndarray] = self.davis_cfg.setdefault(
+            "_yolo_frame_cache", {}
+        )
+
+        print(
+            f"[YOLO-SEG] Model loaded: {model_path}  |  "
+            f"conf={self._yolo_conf}  iou={self._yolo_iou}  "
+            f"imgsz={self._yolo_imgsz}  device={self._yolo_device or 'auto'}  |  "
+            f"classes={len(yolo_names)}"
+        )
+
+    # ---- mask generation --------------------------------------------------
+
+    def read_annotation_mask(self, frame_id: int) -> np.ndarray | None:
+        """Run YOLO segmentation on the cached frame and return an indexed
+        instance mask whose pixel values are 1-based instance IDs (0 =
+        background), matching the format produced by GT masks."""
+        frame = self._yolo_frame_cache.get(int(frame_id))
+        if frame is None:
+            # Fallback: try reading from the tar (slower but safe).
+            bundle = self.resolve_tar_bundle()
+            frame_names = bundle.frame_names
+            if int(frame_id) < 0 or int(frame_id) >= len(frame_names):
+                return None
+            frame_name = frame_names[int(frame_id)]
+            source = TarFrameSource(bundle)
+            frame = source.read_bgr(frame_name)
+            if frame is None:
+                return None
+
+        h, w = frame.shape[:2]
+        indexed_mask = np.zeros((h, w), dtype=np.uint16)
+
+        predict_kwargs: dict[str, Any] = {
+            "task": "segment",
+            "conf": self._yolo_conf,
+            "iou": self._yolo_iou,
+            "imgsz": self._yolo_imgsz,
+            "verbose": False,
+        }
+        if self._yolo_device is not None:
+            predict_kwargs["device"] = self._yolo_device
+
+        results = self._yolo_model(frame, **predict_kwargs)
+
+        if not results or len(results) == 0:
+            return indexed_mask
+
+        result = results[0]
+        if result.masks is None or result.masks.data is None:
+            return indexed_mask
+
+        masks_tensor = result.masks.data  # (N, mask_h, mask_w)
+        masks_np: np.ndarray = masks_tensor.cpu().numpy()
+        cls_ids: np.ndarray = result.boxes.cls.cpu().numpy().astype(int)
+
+        # Clear per-frame instance mappings (they accumulate across frames
+        # but old IDs from previous frames are no longer relevant).
+        self.instance_id_to_label = {}
+        self.instance_id_to_class_id = {}
+        self.instance_id_to_original_label = {}
+        self.instance_id_to_original_class_name = {}
+
+        for det_idx in range(len(masks_np)):
+            instance_id = det_idx + 1  # 1-based
+            det_mask = masks_np[det_idx]
+
+            # Resize YOLO's mask output to match the original frame size.
+            if det_mask.shape[0] != h or det_mask.shape[1] != w:
+                det_mask = cv2.resize(
+                    det_mask, (w, h), interpolation=cv2.INTER_NEAREST
+                )
+
+            indexed_mask[det_mask > 0.5] = instance_id
+
+            cls_id = int(cls_ids[det_idx])
+            cls_name = self.class_id_to_name.get(cls_id, f"class_{cls_id}")
+            label = f"{cls_name}_{instance_id}"
+
+            self.instance_id_to_label[instance_id] = label
+            self.instance_id_to_class_id[instance_id] = cls_id
+            self.instance_id_to_original_label[instance_id] = label
+            self.instance_id_to_original_class_name[instance_id] = cls_name
+
+        return indexed_mask
+
+    def set_current_frame(self, frame_id: int, frame: np.ndarray) -> None:
+        """Cache *frame* so ``read_annotation_mask`` can use it."""
+        self._yolo_frame_cache[int(frame_id)] = frame
+
+    def evict_frame(self, frame_id: int) -> None:
+        """Remove a frame from the cache to free memory."""
+        self._yolo_frame_cache.pop(int(frame_id), None)
+
+
+# ---------------------------------------------------------------------------
+# Monkey-patching context managers
+# ---------------------------------------------------------------------------
+
 @contextmanager
 def _patched_tar_davis_segmenter():
+    """Patch both the detector and GT modules to use ``TarDavisSegmenter``
+    (pure GT mode – original behaviour)."""
     original_detector_cls = davis_segmenter_module.DavisSegmenter
     original_gt_cls = davis_gt_module.DavisSegmenter
     davis_segmenter_module.DavisSegmenter = TarDavisSegmenter
@@ -350,12 +578,25 @@ def _patched_tar_davis_segmenter():
         davis_gt_module.DavisSegmenter = original_gt_cls
 
 
-def _env_str(name: str, default: str = "") -> str:
-    raw = os.environ.get(name, None)
-    if raw is None:
-        return str(default)
-    return str(raw).strip()
+@contextmanager
+def _patched_tar_yolo_segmenter():
+    """Patch the *detector* module to use ``TarYoloSegmenter`` (YOLO
+    predictions) while keeping ``TarDavisSegmenter`` for the GT loader
+    so that evaluation still reads ground-truth masks from the tar."""
+    original_detector_cls = davis_segmenter_module.DavisSegmenter
+    original_gt_cls = davis_gt_module.DavisSegmenter
+    davis_segmenter_module.DavisSegmenter = TarYoloSegmenter
+    davis_gt_module.DavisSegmenter = TarDavisSegmenter
+    try:
+        yield
+    finally:
+        davis_segmenter_module.DavisSegmenter = original_detector_cls
+        davis_gt_module.DavisSegmenter = original_gt_cls
 
+
+# ---------------------------------------------------------------------------
+# Scene discovery / scheduling
+# ---------------------------------------------------------------------------
 
 def _discover_tar_scene_ids(*, data_tar_root: Path, annotations_tar_root: Path) -> list[str]:
     data_ids = {
@@ -371,23 +612,41 @@ def _discover_tar_scene_ids(*, data_tar_root: Path, annotations_tar_root: Path) 
     return sorted(data_ids & annotation_ids)
 
 
-def _resolve_tar_scene_ids(*, data_tar_root: Path, annotations_tar_root: Path) -> list[str]:
-    scenes_env = _env_str("REMIND_BATCH_TAR_SCENES", "")
-    scenes_file = _env_str("REMIND_BATCH_TAR_SCENES_FILE", "")
-    single_scene = _env_str("REMIND_SCENE_ID", "")
-
+def _resolve_tar_scene_ids(
+    *,
+    data_tar_root: Path,
+    annotations_tar_root: Path,
+    exclude_scenes: set[str] | None = None,
+    scenes_file: str = "",
+    scenes_list: str = "",
+    single_scene: str = "",
+) -> list[str]:
     if scenes_file:
-        return base_batch.read_scene_ids_from_file(scenes_file)
-    if scenes_env:
-        parts = re.split(r"[\s,;]+", scenes_env)
-        return base_batch.unique_preserve_order(parts)
-    if single_scene:
-        return [single_scene]
-    return _discover_tar_scene_ids(
-        data_tar_root=data_tar_root,
-        annotations_tar_root=annotations_tar_root,
-    )
+        scene_ids = base_batch.read_scene_ids_from_file(scenes_file)
+    elif scenes_list:
+        parts = re.split(r"[\s,;]+", scenes_list)
+        scene_ids = base_batch.unique_preserve_order(parts)
+    elif single_scene:
+        scene_ids = [single_scene]
+    else:
+        scene_ids = _discover_tar_scene_ids(
+            data_tar_root=data_tar_root,
+            annotations_tar_root=annotations_tar_root,
+        )
 
+    # ---- apply exclusions -------------------------------------------------
+    if exclude_scenes:
+        before = len(scene_ids)
+        scene_ids = [sid for sid in scene_ids if sid not in exclude_scenes]
+        n_excluded = before - len(scene_ids)
+        if n_excluded:
+            print(f"[BATCH-TAR] Excluded {n_excluded} scene(s) via exclude list.")
+    return scene_ids
+
+
+# ---------------------------------------------------------------------------
+# Evaluation entry-point (single scene)
+# ---------------------------------------------------------------------------
 
 def _evaluate_scene_tar(
     *,
@@ -397,7 +656,14 @@ def _evaluate_scene_tar(
     stable_min_frames: int,
     max_frames: int | None,
     force_detector_backend: str,
+    yolo_model_path: str | None = None,
+    yolo_conf: float = 0.25,
+    yolo_iou: float = 0.7,
+    yolo_imgsz: int = 640,
+    yolo_device: str | None = None,
 ) -> tuple[dict[str, Any], str]:
+    use_yolo = bool(yolo_model_path)
+
     config = Config(default_config_path=config_path).to_dict()
     config.setdefault("detector", {})["backend"] = str(force_detector_backend)
     davis_cfg = config.setdefault("davis", {})
@@ -410,6 +676,16 @@ def _evaluate_scene_tar(
     timing_cfg["table"] = False
     timing_cfg["detail_keys"] = []
 
+    # YOLO-specific config entries (only read by TarYoloSegmenter).
+    if use_yolo:
+        davis_cfg["yolo_model_path"] = str(yolo_model_path)
+        davis_cfg["yolo_conf"] = float(yolo_conf)
+        davis_cfg["yolo_iou"] = float(yolo_iou)
+        davis_cfg["yolo_imgsz"] = int(yolo_imgsz)
+        if yolo_device:
+            davis_cfg["yolo_device"] = str(yolo_device)
+        davis_cfg["_yolo_frame_cache"] = {}
+
     frame_names = list(scene_bundle.frame_names)
     if max_frames is not None:
         frame_names = frame_names[: max(0, int(max_frames))]
@@ -420,8 +696,10 @@ def _evaluate_scene_tar(
     process = make_process_handle()
     progress_every = 20
 
+    patch_ctx = _patched_tar_yolo_segmenter if use_yolo else _patched_tar_davis_segmenter
+
     try:
-        with _patched_tar_davis_segmenter():
+        with patch_ctx():
             ctx = initialize_system(config)
             pipeline = ReIDPipeline(ctx)
             gt_loader = DavisGroundTruthLoader(config)
@@ -429,6 +707,15 @@ def _evaluate_scene_tar(
                 stable_min_frames=stable_min_frames,
                 config=config,
             )
+
+            # Resolve a reference to the YOLO segmenter instance (if
+            # applicable) so we can feed it frames before pipeline
+            # processing.
+            yolo_segmenter: TarYoloSegmenter | None = None
+            if use_yolo:
+                detector = getattr(ctx, "detector", None) or getattr(ctx, "segmenter", None)
+                if isinstance(detector, TarYoloSegmenter):
+                    yolo_segmenter = detector
 
             total_read_ms = 0.0
             total_pipeline_ms = 0.0
@@ -440,9 +727,10 @@ def _evaluate_scene_tar(
             per_frame_runtime_memory_by_frame_id: dict[int, dict[str, int | None]] = {}
             total_frames = int(len(frame_names))
 
+            mode_label = "YOLO" if use_yolo else "GT"
             print(
                 f"[BATCH-TAR][scene={scene_bundle.scene_id}] "
-                f"start | frames={total_frames} | "
+                f"start | mode={mode_label} | frames={total_frames} | "
                 f"image_subdir={scene_bundle.image_subdir} | "
                 f"mask_variant={scene_bundle.mask_variant}"
             )
@@ -460,6 +748,14 @@ def _evaluate_scene_tar(
                     )
                 rss_after_read = read_process_rss_bytes(process)
 
+                # Feed the frame to the YOLO segmenter *before* the
+                # pipeline runs so ``read_annotation_mask`` can use it.
+                if yolo_segmenter is not None:
+                    yolo_segmenter.set_current_frame(frame_id, frame)
+                elif use_yolo:
+                    # Fallback: store in the shared cache dict.
+                    davis_cfg.get("_yolo_frame_cache", {})[frame_id] = frame
+
                 timestamp = float(frame_id)
                 reset_cuda_peak_memory_stats()
                 t0 = perf_counter()
@@ -471,6 +767,12 @@ def _evaluate_scene_tar(
                 pipeline_ms = (perf_counter() - t0) * 1000.0
                 rss_after_pipeline = read_process_rss_bytes(process)
                 gpu_after_pipeline = capture_cuda_memory_stats()
+
+                # Evict cached frame to keep memory bounded.
+                if yolo_segmenter is not None:
+                    yolo_segmenter.evict_frame(frame_id)
+                elif use_yolo:
+                    davis_cfg.get("_yolo_frame_cache", {}).pop(frame_id, None)
 
                 gt_t0 = perf_counter()
                 aligned_shape = resolve_aligned_shape(p_out)
@@ -554,6 +856,11 @@ def _evaluate_scene_tar(
                 "total_runtime_seconds": float(total_loop_ms / 1000.0),
                 "avg_runtime_seconds": float((total_loop_ms / avg_divisor) / 1000.0),
             }
+            if use_yolo:
+                timing_summary["detector_mode"] = "yolo"
+                timing_summary["yolo_model_path"] = str(yolo_model_path)
+            else:
+                timing_summary["detector_mode"] = "gt"
             results["timing_summary"] = timing_summary
             summary = results.setdefault("summary", {})
             summary.update(timing_summary)
@@ -576,40 +883,288 @@ def _evaluate_scene_tar(
         scene_bundle.close()
 
 
-def main() -> None:
+# ---------------------------------------------------------------------------
+# CLI argument resolution helpers
+# ---------------------------------------------------------------------------
+
+def _resolve(cli_val: str | int | float | None, env_name: str, default: str) -> str:
+    """CLI arg > env var > hardcoded default.  Returns a string."""
+    if cli_val is not None and str(cli_val).strip():
+        return str(cli_val).strip()
+    return _env_str(env_name, default) or default
+
+
+def _resolve_optional(cli_val: str | None, env_name: str) -> str | None:
+    """Like ``_resolve`` but returns ``None`` when nothing is set."""
+    if cli_val is not None and str(cli_val).strip():
+        return str(cli_val).strip()
+    v = _env_str(env_name, "")
+    return v if v else None
+
+
+def _resolve_int(cli_val: int | None, env_name: str, default: int | None) -> int | None:
+    if cli_val is not None:
+        return int(cli_val)
+    raw = _env_str(env_name, "")
+    if raw:
+        return int(raw)
+    return default
+
+
+def _build_parser() -> argparse.ArgumentParser:
+    p = argparse.ArgumentParser(
+        description=(
+            "Run the tracking evaluation batch over ScanNet++ scenes stored "
+            "as .tar archives.  Every argument falls back to the corresponding "
+            "REMIND_* environment variable (shown in help text) and then to a "
+            "built-in default, so existing env-var-based workflows keep working."
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+
+    # ---- data paths -------------------------------------------------------
+    paths = p.add_argument_group("data paths")
+    paths.add_argument(
+        "--dataset-root",
+        metavar="DIR",
+        help="Top-level dataset directory.  [env: REMIND_SCANNETPP_TAR_ROOT]",
+    )
+    paths.add_argument(
+        "--data-tar-root",
+        metavar="DIR",
+        help="Directory containing per-scene data .tar files.  "
+             "[env: REMIND_SCANNETPP_DATA_TAR_ROOT, default: <dataset-root>/data]",
+    )
+    paths.add_argument(
+        "--annotations-tar-root",
+        metavar="DIR",
+        help="Directory containing per-scene annotation .tar files.  "
+             "[env: REMIND_SCANNETPP_ANNOTATIONS_TAR_ROOT, default: <dataset-root>/annotations]",
+    )
+    paths.add_argument(
+        "--config-path",
+        metavar="FILE",
+        help="Path to the YAML config file (default: src/config/default_config.yaml).",
+    )
+    paths.add_argument(
+        "--image-subdir",
+        metavar="PATH",
+        help="Relative image sub-directory inside each data tar.  "
+             "[env: REMIND_IMAGE_SUBDIR, default: dslr/resized_images]",
+    )
+    paths.add_argument(
+        "--mask-variant",
+        metavar="NAME",
+        help="Mask variant name (e.g. benchmark, raw).  "
+             "[env: REMIND_MASK_VARIANT, default: benchmark]",
+    )
+
+    # ---- scene selection ---------------------------------------------------
+    scenes = p.add_argument_group("scene selection")
+    scenes.add_argument(
+        "--scenes", "--scene-ids",
+        metavar="ID",
+        nargs="+",
+        help="Explicit list of scene IDs to evaluate.  "
+             "[env: REMIND_BATCH_TAR_SCENES (comma/space separated)]",
+    )
+    scenes.add_argument(
+        "--scenes-file",
+        metavar="FILE",
+        help="Text file listing scene IDs to include (one per line).  "
+             "[env: REMIND_BATCH_TAR_SCENES_FILE]",
+    )
+    scenes.add_argument(
+        "--scene-id",
+        metavar="ID",
+        help="Evaluate a single scene.  [env: REMIND_SCENE_ID]",
+    )
+    scenes.add_argument(
+        "--exclude-scenes-file",
+        metavar="FILE",
+        help="Text file listing scene IDs to *exclude*.  "
+             "Supports one-per-line, comma-separated, backtick-quoted.  "
+             "[env: REMIND_BATCH_TAR_EXCLUDE_SCENES_FILE]",
+    )
+
+    # ---- batch control -----------------------------------------------------
+    batch = p.add_argument_group("batch control")
+    batch.add_argument(
+        "--output-dir",
+        metavar="DIR",
+        help="Root directory for batch results.  "
+             "[env: REMIND_BATCH_TAR_OUTPUT_DIR, "
+             "default: <project>/outputs/tfm/testing_batch_tar]",
+    )
+    batch.add_argument(
+        "--run-id",
+        metavar="NAME",
+        help="Identifier for this run (used in output filenames).  "
+             "[env: REMIND_BATCH_TAR_RUN_ID, default: our_pipeline_tar]",
+    )
+    batch.add_argument(
+        "--max-scenes",
+        type=int,
+        metavar="N",
+        help="Maximum number of scenes to process.  "
+             "[env: REMIND_BATCH_TAR_MAX_SCENES]",
+    )
+    batch.add_argument(
+        "--batch-size",
+        type=int,
+        metavar="N",
+        help="Batch size (defaults to --max-scenes).  "
+             "[env: REMIND_BATCH_TAR_SIZE]",
+    )
+    batch.add_argument(
+        "--stable-min-frames",
+        type=int,
+        metavar="N",
+        help="Minimum frames for an object to be considered stable.  "
+             "[env: REMIND_BATCH_TAR_STABLE_MIN_FRAMES, default: 3]",
+    )
+    batch.add_argument(
+        "--max-frames",
+        type=int,
+        metavar="N",
+        help="Maximum frames per scene (default: all).  "
+             "[env: REMIND_BATCH_TAR_MAX_FRAMES]",
+    )
+    batch.add_argument(
+        "--detector-backend",
+        metavar="NAME",
+        help="Force detector backend name.  "
+             "[env: REMIND_BATCH_TAR_DETECTOR_BACKEND, default: davis]",
+    )
+
+    # ---- YOLO segmentation -------------------------------------------------
+    yolo = p.add_argument_group("YOLO segmentation (optional)")
+    yolo.add_argument(
+        "--yolo-model",
+        metavar="FILE",
+        help="Path to an Ultralytics YOLO segmentation .pt model.  "
+             "When set, YOLO predictions replace GT masks as the detector.  "
+             "[env: REMIND_YOLO_MODEL_PATH]",
+    )
+    yolo.add_argument(
+        "--yolo-conf",
+        type=float,
+        metavar="F",
+        help="YOLO confidence threshold.  [env: REMIND_YOLO_CONF, default: 0.25]",
+    )
+    yolo.add_argument(
+        "--yolo-iou",
+        type=float,
+        metavar="F",
+        help="YOLO NMS IoU threshold.  [env: REMIND_YOLO_IOU, default: 0.7]",
+    )
+    yolo.add_argument(
+        "--yolo-imgsz",
+        type=int,
+        metavar="PX",
+        help="YOLO inference image size.  [env: REMIND_YOLO_IMGSZ, default: 640]",
+    )
+    yolo.add_argument(
+        "--yolo-device",
+        metavar="DEV",
+        help="Device for YOLO inference (e.g. cuda:0, cpu).  "
+             "[env: REMIND_YOLO_DEVICE, default: auto]",
+    )
+    return p
+
+
+# ---------------------------------------------------------------------------
+# main
+# ---------------------------------------------------------------------------
+
+def main(argv: list[str] | None = None) -> None:
+    parser = _build_parser()
+    args = parser.parse_args(argv)
+
     base_dir = Path(__file__).resolve().parent
     src_dir = base_dir.parent
     project_dir = src_dir.parent.parent
-    config_path = src_dir / "config" / "default_config.yaml"
 
+    # ---- config path ------------------------------------------------------
+    if args.config_path:
+        config_path = Path(args.config_path).expanduser().resolve()
+    else:
+        config_path = src_dir / "config" / "default_config.yaml"
+
+    # ---- data paths (CLI > env > default) ---------------------------------
     dataset_root = Path(
-        _env_str("REMIND_SCANNETPP_TAR_ROOT", str(project_dir / "data" / "scannetpp_data"))
+        _resolve(args.dataset_root, "REMIND_SCANNETPP_TAR_ROOT",
+                 str(project_dir / "data" / "scannetpp_data"))
     ).expanduser().resolve()
     data_tar_root = Path(
-        _env_str("REMIND_SCANNETPP_DATA_TAR_ROOT", str(dataset_root / "data"))
+        _resolve(args.data_tar_root, "REMIND_SCANNETPP_DATA_TAR_ROOT",
+                 str(dataset_root / "data"))
     ).expanduser().resolve()
     annotations_tar_root = Path(
-        _env_str("REMIND_SCANNETPP_ANNOTATIONS_TAR_ROOT", str(dataset_root / "annotations"))
+        _resolve(args.annotations_tar_root, "REMIND_SCANNETPP_ANNOTATIONS_TAR_ROOT",
+                 str(dataset_root / "annotations"))
     ).expanduser().resolve()
-    image_subdir = _env_str("REMIND_IMAGE_SUBDIR", "dslr/resized_images") or "dslr/resized_images"
-    mask_variant = _env_str("REMIND_MASK_VARIANT", "benchmark") or "benchmark"
+    image_subdir = _resolve(args.image_subdir, "REMIND_IMAGE_SUBDIR",
+                            "dslr/resized_images")
+    mask_variant = _resolve(args.mask_variant, "REMIND_MASK_VARIANT", "benchmark")
     normalized_mask_variant = _normalize_mask_variant(mask_variant)
+
+    # ---- exclude scenes ---------------------------------------------------
+    exclude_scenes_file = _resolve_optional(args.exclude_scenes_file,
+                                            "REMIND_BATCH_TAR_EXCLUDE_SCENES_FILE")
+    exclude_scenes: set[str] = set()
+    if exclude_scenes_file:
+        exclude_scenes = _read_exclude_scene_ids(exclude_scenes_file)
+        if exclude_scenes:
+            print(f"[BATCH-TAR] Loaded {len(exclude_scenes)} scene(s) to exclude "
+                  f"from {exclude_scenes_file}")
+
+    # ---- scene selection (CLI > env > auto-discover) ----------------------
+    scenes_file = _resolve_optional(args.scenes_file, "REMIND_BATCH_TAR_SCENES_FILE") or ""
+    single_scene = _resolve_optional(args.scene_id, "REMIND_SCENE_ID") or ""
+    # --scenes on the CLI is a list; the env var is a comma/space string.
+    if args.scenes:
+        scenes_list = ",".join(args.scenes)
+    else:
+        scenes_list = _env_str("REMIND_BATCH_TAR_SCENES", "")
 
     scene_ids = _resolve_tar_scene_ids(
         data_tar_root=data_tar_root,
         annotations_tar_root=annotations_tar_root,
+        exclude_scenes=exclude_scenes or None,
+        scenes_file=scenes_file,
+        scenes_list=scenes_list,
+        single_scene=single_scene,
     )
     if not scene_ids:
         raise RuntimeError("No .tar scenes were resolved for the batch.")
 
-    run_id = "our_pipeline_tar"
-    output_root = (project_dir / "outputs" / "tfm" / "testing_batch_tar").resolve()
+    # ---- YOLO configuration -----------------------------------------------
+    yolo_model_path = _resolve_optional(args.yolo_model, "REMIND_YOLO_MODEL_PATH")
+    yolo_conf = float(_resolve(args.yolo_conf, "REMIND_YOLO_CONF", "0.25"))
+    yolo_iou = float(_resolve(args.yolo_iou, "REMIND_YOLO_IOU", "0.7"))
+    yolo_imgsz = int(_resolve(args.yolo_imgsz, "REMIND_YOLO_IMGSZ", "640"))
+    yolo_device = _resolve_optional(args.yolo_device, "REMIND_YOLO_DEVICE")
+
+    if yolo_model_path:
+        print(f"[BATCH-TAR] YOLO segmentation mode enabled: {yolo_model_path}")
+        print(f"[BATCH-TAR]   conf={yolo_conf}  iou={yolo_iou}  "
+              f"imgsz={yolo_imgsz}  device={yolo_device or 'auto'}")
+
+    # ---- batch scheduling -------------------------------------------------
+    run_id = _resolve(args.run_id, "REMIND_BATCH_TAR_RUN_ID", "our_pipeline_tar")
+    default_output_dir = str(
+        (project_dir / "outputs" / "tfm" / "testing_batch_tar").resolve()
+    )
+    output_root = Path(
+        _resolve(args.output_dir, "REMIND_BATCH_TAR_OUTPUT_DIR", default_output_dir)
+    ).expanduser().resolve()
     batch_dir = output_root
     scenes_root = batch_dir / "scenes"
     scenes_root.mkdir(parents=True, exist_ok=True)
 
-    max_scenes = base_batch._env_int("REMIND_BATCH_TAR_MAX_SCENES", None)
-    batch_size = base_batch._env_int("REMIND_BATCH_TAR_SIZE", max_scenes)
+    max_scenes = _resolve_int(args.max_scenes, "REMIND_BATCH_TAR_MAX_SCENES", None)
+    batch_size = _resolve_int(args.batch_size, "REMIND_BATCH_TAR_SIZE", max_scenes)
     (
         scene_ids,
         registered_scene_ids,
@@ -617,14 +1172,20 @@ def main() -> None:
         existing_manifest_rows,
         existing_per_scene_rows,
     ) = base_batch.resolve_scene_schedule(
-        candidate_scene_ids=base_batch.unique_preserve_order([str(scene_id) for scene_id in scene_ids]),
+        candidate_scene_ids=base_batch.unique_preserve_order(
+            [str(scene_id) for scene_id in scene_ids]
+        ),
         batch_dir=batch_dir,
         batch_size=batch_size,
     )
 
-    stable_min_frames = int(base_batch._env_int("REMIND_BATCH_TAR_STABLE_MIN_FRAMES", 3) or 3)
-    max_frames = base_batch._env_int("REMIND_BATCH_TAR_MAX_FRAMES", None)
-    force_detector_backend = _env_str("REMIND_BATCH_TAR_DETECTOR_BACKEND", "davis") or "davis"
+    stable_min_frames = _resolve_int(
+        args.stable_min_frames, "REMIND_BATCH_TAR_STABLE_MIN_FRAMES", 3
+    ) or 3
+    max_frames = _resolve_int(args.max_frames, "REMIND_BATCH_TAR_MAX_FRAMES", None)
+    force_detector_backend = _resolve(
+        args.detector_backend, "REMIND_BATCH_TAR_DETECTOR_BACKEND", "davis"
+    )
 
     run_config_row = base_batch.build_run_config_row(
         run_id=run_id,
@@ -696,7 +1257,8 @@ def main() -> None:
                 mask_variant=normalized_mask_variant,
                 image_subdir=image_subdir,
             )
-            print(f"[BATCH-TAR] Scene start -> {scene_id}")
+            mode_label = "YOLO" if yolo_model_path else "GT"
+            print(f"[BATCH-TAR] Scene start ({mode_label}) -> {scene_id}")
             print(f"[BATCH-TAR] Data tar -> {scene_bundle.data_tar_path}")
             print(f"[BATCH-TAR] Annotations tar -> {scene_bundle.annotations_tar_path}")
             results, scene_report = _evaluate_scene_tar(
@@ -706,6 +1268,11 @@ def main() -> None:
                 stable_min_frames=stable_min_frames,
                 max_frames=max_frames,
                 force_detector_backend=force_detector_backend,
+                yolo_model_path=yolo_model_path,
+                yolo_conf=yolo_conf,
+                yolo_iou=yolo_iou,
+                yolo_imgsz=yolo_imgsz,
+                yolo_device=yolo_device,
             )
             scene_name = str(scene_bundle.scene_id)
             scene_name_by_id[str(scene_id)] = str(scene_name)
@@ -728,7 +1295,8 @@ def main() -> None:
             )
             if final_scene_dir.exists():
                 raise RuntimeError(
-                    f"Final output already exists for {scene_id}: {final_scene_dir}. It is not overwritten automatically."
+                    f"Final output already exists for {scene_id}: {final_scene_dir}. "
+                    f"It is not overwritten automatically."
                 )
             temp_scene_dir.rename(final_scene_dir)
             base_batch.rebuild_batch_outputs(
@@ -739,7 +1307,8 @@ def main() -> None:
                 scene_name_by_id=scene_name_by_id,
                 failed_scene_errors=failed_scene_errors,
             )
-            print(f"[BATCH-TAR] Scene completed -> {scene_id} ({scene_started_at} -> {base_batch._now_iso()})")
+            print(f"[BATCH-TAR] Scene completed -> {scene_id} "
+                  f"({scene_started_at} -> {base_batch._now_iso()})")
         except Exception as exc:
             failed_scene_errors[str(scene_id)] = str(exc)
             if temp_scene_dir.exists():
