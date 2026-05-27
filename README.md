@@ -52,15 +52,13 @@ pip install torch torchvision transformers scikit-learn scipy numpy opencv-pytho
 
 Models are loaded automatically at runtime:
 - **DINOv3** — fetched from HuggingFace on first use (configurable via `dino.model_label` in `config/default_config.yaml`)
-- **YOLO** — place segmentation weights under `yolo_models/` and update the paths in `config/default_config.yaml` under `yolo.models` (only needed with `--detector-backend yolo`)
+- **YOLO** — place segmentation weights under `yolo/` and pass the model file name to `main.py`
 
 ---
 
-## Quick Usage
+## Running On Your Own Data
 
-All scripts are run from the repository root:
-
-### User video or frame scene
+This mode is for trying REMIND on your own videos or frame folders. It does not require ground-truth annotations. You only need input images/video and a YOLO segmentation model.
 
 Place your inputs under `testData/videos/` or `testData/frames/`, one folder per scene. Put local YOLO weights under `yolo/`:
 
@@ -112,7 +110,20 @@ Scene lookup defaults to `--input-kind auto`, which prefers `testData/frames/<sc
 
 You can still bypass the scene layout with `--source /path/to/video.mp4`.
 
-The script writes `frames.csv`, `detections.jsonl`, and `summary.json` under `outputs/video_runs/`. With `--save-output-video`, it also writes the rendered `tracking.mp4`.
+Results are saved under `outputs/video_runs/`. Use `--save-output-video` to save the rendered video with masks and IDs.
+
+---
+
+## Evaluation With Ground Truth
+
+The scripts under `testing/` are intended for quantitative evaluation and internal experiment reproduction. They require ground-truth annotations, such as DAVIS-style instance masks and metadata, or prepared ScanNet++-style folders/tars depending on the script.
+
+These annotation files and datasets are not included in this repository. To run the evaluation scripts, you must provide your own data in the expected layout, including:
+
+- image frames
+- annotation masks in DAVIS-compatible format
+- metadata files mapping frames, object IDs, classes, and sequence names
+- dataset roots matching the arguments passed to each script
 
 ### Single sequence
 
@@ -141,6 +152,10 @@ python testing/run_tracking_batch.py \
 ```
 
 Outputs include `per_case.csv`, `per_object.csv`, `per_scene.csv`, `summary_global.csv`, and internal module telemetry — ready for offline analysis or direct inclusion in research tables.
+
+Use these evaluation scripts when you want metrics against GT. Use `main.py` when you only want to run REMIND on a video or frame sequence and visually inspect the tracking output.
+
+---
 
 ### Config overrides
 
