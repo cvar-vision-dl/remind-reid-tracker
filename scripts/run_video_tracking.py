@@ -401,8 +401,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--output-video", type=Path, default=None, help="Output .mp4 path. Defaults inside --output-dir.")
 
     io_group = parser.add_argument_group("input/output")
-    io_group.add_argument("--show", action="store_true", help="Show an OpenCV preview while processing.")
-    io_group.add_argument("--save-video", action=argparse.BooleanOptionalAction, default=None, help="Save rendered MP4.")
+    io_group.add_argument("--show-viewer", action="store_true", help="Show a live OpenCV viewer while processing.")
+    io_group.add_argument("--save-output-video", action="store_true", help="Save the rendered tracking MP4.")
     io_group.add_argument("--save-frames", action="store_true", help="Save rendered PNG frames.")
     io_group.add_argument("--max-frames", type=int, default=None, help="Maximum number of processed frames for both videos and frame folders.")
     io_group.add_argument("--start-frame", type=int, default=0, help="First frame index to process.")
@@ -452,9 +452,6 @@ def main(argv: list[str] | None = None) -> None:
 
     if not source.exists():
         raise SystemExit(f"error: Source not found: {source}")
-
-    if args.save_video is None:
-        args.save_video = True
 
     output_dir = (
         args.output_dir.expanduser().resolve()
@@ -528,7 +525,7 @@ def main(argv: list[str] | None = None) -> None:
         )
         csv_writer.writeheader()
 
-        if args.show:
+        if args.show_viewer:
             cv2.namedWindow("REMIND tracking", cv2.WINDOW_NORMAL)
 
         try:
@@ -557,7 +554,7 @@ def main(argv: list[str] | None = None) -> None:
                     alpha=float(args.mask_alpha),
                 )
 
-                if args.save_video:
+                if args.save_output_video:
                     if writer is None:
                         writer = _open_writer(output_video, rendered.shape, save_fps)
                     writer.write(rendered)
@@ -594,7 +591,7 @@ def main(argv: list[str] | None = None) -> None:
                     + "\n"
                 )
 
-                if args.show:
+                if args.show_viewer:
                     preview = rendered
                     if float(args.display_scale) != 1.0:
                         scale = max(0.05, float(args.display_scale))
@@ -607,7 +604,7 @@ def main(argv: list[str] | None = None) -> None:
         finally:
             if writer is not None:
                 writer.release()
-            if args.show:
+            if args.show_viewer:
                 cv2.destroyAllWindows()
 
     total_seconds = perf_counter() - t_run
@@ -615,7 +612,7 @@ def main(argv: list[str] | None = None) -> None:
         "source": str(source),
         "scene": str(scene_name),
         "output_dir": str(output_dir),
-        "output_video": str(output_video) if args.save_video else None,
+        "output_video": str(output_video) if args.save_output_video else None,
         "frames_csv": str(frames_csv),
         "detections_jsonl": str(detections_jsonl),
         "processed_frames": int(processed),
@@ -632,7 +629,7 @@ def main(argv: list[str] | None = None) -> None:
     summary_json.write_text(json.dumps(summary_payload, indent=2, ensure_ascii=True), encoding="utf-8")
 
     print("[REMIND-VIDEO] Done.")
-    if args.save_video:
+    if args.save_output_video:
         print(f"[REMIND-VIDEO] Video: {output_video}")
     print(f"[REMIND-VIDEO] CSV: {frames_csv}")
     print(f"[REMIND-VIDEO] Detections: {detections_jsonl}")

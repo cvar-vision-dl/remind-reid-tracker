@@ -83,7 +83,7 @@ Run REMIND by scene name using a YOLO segmentation model:
 python main.py my_scene custom-seg.pt \
   --input-video-fps 5 \
   --output-fps 25 \
-  --save-video
+  --save-output-video
 ```
 
 The second argument is the YOLO model file name, and the file must exist under `yolo/`.
@@ -102,8 +102,8 @@ For a frame scene and live preview:
 ```bash
 python main.py my_frame_scene custom-seg.pt \
   --input-kind frames \
-  --show \
-  --save-video \
+  --show-viewer \
+  --save-output-video \
   --output-fps 30 \
   --max-frames 300
 ```
@@ -112,7 +112,7 @@ Scene lookup defaults to `--input-kind auto`, which prefers `testData/frames/<sc
 
 You can still bypass the scene layout with `--source /path/to/video.mp4`.
 
-The script writes a rendered `tracking.mp4`, `frames.csv`, `detections.jsonl`, and `summary.json` under `outputs/video_runs/`.
+The script writes `frames.csv`, `detections.jsonl`, and `summary.json` under `outputs/video_runs/`. With `--save-output-video`, it also writes the rendered `tracking.mp4`.
 
 ### Single sequence
 
