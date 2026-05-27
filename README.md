@@ -60,6 +60,30 @@ Models are loaded automatically at runtime:
 
 All scripts are run from the repository root:
 
+### User video or frame folder
+
+Run REMIND on any video or directory of frames using a YOLO segmentation model:
+
+```bash
+python scripts/run_video_tracking.py \
+  --source /path/to/video.mp4 \
+  --yolo-model yolo11n-seg.pt \
+  --save-video
+```
+
+For a frame directory and live preview:
+
+```bash
+python scripts/run_video_tracking.py \
+  --source /path/to/frames/ \
+  --yolo-model /path/to/custom-seg.pt \
+  --show \
+  --save-video \
+  --max-frames 300
+```
+
+The script writes a rendered `tracking.mp4`, `frames.csv`, `detections.jsonl`, and `summary.json` under `outputs/video_runs/`.
+
 ### Single sequence
 
 ```bash
