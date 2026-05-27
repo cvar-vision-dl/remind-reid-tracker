@@ -1,3 +1,5 @@
+
+
 # REMIND — Re-identification with Memory and INstance Descriptors
 
 > A multi-object re-identification tracker that maintains consistent identities across long sequences using semantic part descriptors, relational context, and adaptive memory.
@@ -16,6 +18,8 @@ REMIND addresses a core challenge in visual tracking: re-identifying objects tha
 The association pipeline runs a per-frame sequence of visual evidence building, context activation, global Hungarian assignment, and post-assignment guards, producing explicit uncertainty signals (ambiguous, provisional) alongside confident identity decisions.
 
 Evaluation outputs span case, object, frame, class, scene, and batch levels, with full internal telemetry for diagnostic analysis.
+
+https://github.com/user-attachments/assets/1cbf5700-19ba-4303-a871-4fdfb1ce9a80
 
 ---
 
