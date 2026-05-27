@@ -143,9 +143,51 @@ def _parse_classes(raw: str | None) -> list[int | str] | None:
     return out or None
 
 
-def _default_output_dir(source: Path) -> Path:
+def resolve_scene_source(scene: str, *, test_root: Path, input_kind: str = "auto") -> Path:
+    scene_name = str(scene or "").strip()
+    if not scene_name:
+        raise ValueError("A scene name is required when --source is not provided.")
+
+    root = test_root.expanduser().resolve()
+    kinds = [str(input_kind).strip().lower()]
+    if kinds[0] == "auto":
+        kinds = ["frames", "video"]
+
+    candidates: list[Path] = []
+    if "frames" in kinds:
+        frames_dir = root / "frames" / scene_name
+        if frames_dir.is_dir() and list_image_files(str(frames_dir)):
+            candidates.append(frames_dir)
+
+    if "video" in kinds:
+        video_dir = root / "videos" / scene_name
+        if video_dir.is_dir():
+            videos = sorted(
+                p for p in video_dir.iterdir()
+                if p.is_file() and p.suffix.lower() in VIDEO_EXTS
+            )
+            candidates.extend(videos)
+        direct_videos = sorted(
+            p for p in (root / "videos").glob(f"{scene_name}.*")
+            if p.is_file() and p.suffix.lower() in VIDEO_EXTS
+        )
+        candidates.extend(direct_videos)
+
+    if candidates:
+        return candidates[0].resolve()
+
+    raise FileNotFoundError(
+        "Scene not found. Expected one of:\n"
+        f"  {root / 'frames' / scene_name}/<images>\n"
+        f"  {root / 'videos' / scene_name}/<video-file>\n"
+        f"  {root / 'videos'}/{scene_name}.mp4"
+    )
+
+
+def _default_output_dir(source: Path, scene: str | None = None) -> Path:
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    return (REPO_ROOT / "outputs" / "video_runs" / f"{source.stem}_{stamp}").resolve()
+    label = str(scene or "").strip() or source.stem
+    return (REPO_ROOT / "outputs" / "video_runs" / f"{label}_{stamp}").resolve()
 
 
 def _configure(args: argparse.Namespace, output_dir: Path) -> dict:
@@ -287,10 +329,16 @@ def _open_writer(path: Path, frame_shape: tuple[int, int, int], fps: float) -> c
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Run REMIND tracking on a user video, image, or frame directory using YOLO segmentation.",
+        description=(
+            "Run REMIND tracking on a test scene using YOLO segmentation. "
+            "By default scenes are resolved from test/videos/<scene>/ or test/frames/<scene>/."
+        ),
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    parser.add_argument("--source", required=True, type=Path, help="Input video file, image file, or directory of frames.")
+    parser.add_argument("scene", nargs="?", help="Scene name under test/videos/ or test/frames/.")
+    parser.add_argument("--source", type=Path, help="Direct input video, image, or frame directory. Overrides scene lookup.")
+    parser.add_argument("--test-root", type=Path, default=REPO_ROOT / "test", help="Root containing videos/ and frames/ scene folders.")
+    parser.add_argument("--input-kind", choices=["auto", "video", "frames"], default="auto", help="Scene lookup mode when --source is not set.")
     parser.add_argument(
         "--yolo-model",
         default="yolo11n-seg.pt",
@@ -330,14 +378,29 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> None:
     args = build_parser().parse_args(argv)
-    source = args.source.expanduser().resolve()
+    if args.source is not None:
+        source = args.source.expanduser().resolve()
+        scene_name = str(args.scene or source.stem)
+    else:
+        if not args.scene:
+            raise SystemExit("error: provide a scene name or --source")
+        scene_name = str(args.scene).strip()
+        try:
+            source = resolve_scene_source(scene_name, test_root=args.test_root, input_kind=args.input_kind)
+        except FileNotFoundError as exc:
+            raise SystemExit(f"error: {exc}") from None
+
     if not source.exists():
-        raise FileNotFoundError(f"Source not found: {source}")
+        raise SystemExit(f"error: Source not found: {source}")
 
     if args.save_video is None:
         args.save_video = True
 
-    output_dir = (args.output_dir.expanduser().resolve() if args.output_dir else _default_output_dir(source))
+    output_dir = (
+        args.output_dir.expanduser().resolve()
+        if args.output_dir
+        else _default_output_dir(source, scene=scene_name)
+    )
     output_dir.mkdir(parents=True, exist_ok=True)
     rendered_frames_dir = output_dir / "frames"
     if args.save_frames:
@@ -358,6 +421,7 @@ def main(argv: list[str] | None = None) -> None:
     config = _configure(args, output_dir)
     ctx = initialize_system(config)
     pipeline = ReIDPipeline(ctx)
+    print(f"[REMIND-VIDEO] Scene: {scene_name}")
     print(f"[REMIND-VIDEO] Source: {source}")
     print(f"[REMIND-VIDEO] Output: {output_dir}")
     print(f"[REMIND-VIDEO] YOLO model: {args.yolo_model}")
@@ -473,6 +537,7 @@ def main(argv: list[str] | None = None) -> None:
     total_seconds = perf_counter() - t_run
     summary_payload = {
         "source": str(source),
+        "scene": str(scene_name),
         "output_dir": str(output_dir),
         "output_video": str(output_video) if args.save_video else None,
         "frames_csv": str(frames_csv),
