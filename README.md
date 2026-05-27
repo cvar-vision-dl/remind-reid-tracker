@@ -62,7 +62,7 @@ All scripts are run from the repository root:
 
 ### User video or frame scene
 
-Place your inputs under `testData/videos/` or `testData/frames/`, one folder per scene. Put local YOLO weights under `yoloModels/`:
+Place your inputs under `testData/videos/` or `testData/frames/`, one folder per scene. Put local YOLO weights under `yolo/`:
 
 ```text
 testData/
@@ -73,21 +73,20 @@ testData/
     my_frame_scene/
       frame_000001.jpg
       frame_000002.jpg
-yoloModels/
+yolo/
   custom-seg.pt
 ```
 
 Run REMIND by scene name using a YOLO segmentation model:
 
 ```bash
-python main.py my_scene \
-  --yolo-model yolo11n-seg.pt \
+python main.py my_scene custom-seg.pt \
   --input-video-fps 5 \
   --output-fps 25 \
   --save-video
 ```
 
-`--yolo-model` first looks inside `yoloModels/`; if the file is not there, Ultralytics can resolve names such as `yolo11n-seg.pt`.
+The second argument is the YOLO model file name, and the file must exist under `yolo/`.
 
 For video input, frame selection is controlled in this order:
 
@@ -101,9 +100,8 @@ For example, `--input-video-fps 10 --stride 2 --max-frames 100 --output-fps 25` 
 For a frame scene and live preview:
 
 ```bash
-python main.py my_frame_scene \
+python main.py my_frame_scene custom-seg.pt \
   --input-kind frames \
-  --yolo-model custom-seg.pt \
   --show \
   --save-video \
   --output-fps 30 \

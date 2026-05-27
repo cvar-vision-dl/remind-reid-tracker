@@ -250,17 +250,20 @@ def _configure(args: argparse.Namespace, output_dir: Path) -> dict:
 def resolve_yolo_model(model_arg: str, *, models_dir: Path) -> str:
     raw = str(model_arg or "").strip()
     if not raw:
-        raise ValueError("--yolo-model cannot be empty.")
+        raise ValueError("YOLO model name cannot be empty.")
+    if Path(raw).is_absolute() or "/" in raw or "\\" in raw:
+        raise ValueError(
+            "Pass only the YOLO model file name, not a path. "
+            f"Expected it inside: {models_dir.expanduser().resolve()}"
+        )
 
-    candidate = Path(raw).expanduser()
-    if candidate.is_file():
-        return str(candidate.resolve())
-
-    local_candidate = models_dir.expanduser().resolve() / raw
-    if local_candidate.is_file():
-        return str(local_candidate)
-
-    return raw
+    model_path = models_dir.expanduser().resolve() / raw
+    if not model_path.is_file():
+        raise FileNotFoundError(
+            f"YOLO model not found: {model_path}\n"
+            f"Put the model file in {models_dir.expanduser().resolve()} and pass its file name."
+        )
+    return str(model_path)
 
 
 def _color_for_id(identity: int) -> tuple[int, int, int]:
@@ -381,8 +384,9 @@ def build_parser() -> argparse.ArgumentParser:
         ),
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    parser.add_argument("scene", nargs="?", help="Scene name under testData/videos/ or testData/frames/.")
-    parser.add_argument("--source", type=Path, help="Direct input video, image, or frame directory. Overrides scene lookup.")
+    parser.add_argument("scene", help="Scene name under testData/videos/ or testData/frames/.")
+    parser.add_argument("yolo_model", help="YOLO segmentation model file name located inside the yolo/ folder.")
+    parser.add_argument("--source", type=Path, help="Direct input video, image, or frame directory. Overrides scene lookup but still uses the scene name for outputs.")
     parser.add_argument("--test-root", type=Path, default=REPO_ROOT / "testData", help="Root containing videos/ and frames/ scene folders.")
     parser.add_argument(
         "--input-kind",
@@ -390,12 +394,7 @@ def build_parser() -> argparse.ArgumentParser:
         default="auto",
         help="Scene lookup mode when --source is not set. Use video or frames to force one input type.",
     )
-    parser.add_argument("--yolo-models-dir", type=Path, default=REPO_ROOT / "yoloModels", help="Directory searched before using a YOLO model name/path directly.")
-    parser.add_argument(
-        "--yolo-model",
-        default="yolo11n-seg.pt",
-        help="Ultralytics segmentation model file/name. Relative names are looked up in --yolo-models-dir first.",
-    )
+    parser.add_argument("--yolo-dir", type=Path, default=REPO_ROOT / "yolo", help="Directory containing YOLO model files.")
     parser.add_argument("--config", type=Path, default=REPO_ROOT / "config" / "default_config.yaml", help="Base REMIND config.")
     parser.add_argument("--override-config", type=Path, default=None, help="Optional YAML config override.")
     parser.add_argument("--output-dir", type=Path, default=None, help="Output directory for rendered video and reports.")
@@ -443,10 +442,8 @@ def main(argv: list[str] | None = None) -> None:
     args = build_parser().parse_args(argv)
     if args.source is not None:
         source = args.source.expanduser().resolve()
-        scene_name = str(args.scene or source.stem)
+        scene_name = str(args.scene).strip()
     else:
-        if not args.scene:
-            raise SystemExit("error: provide a scene name or --source")
         scene_name = str(args.scene).strip()
         try:
             source = resolve_scene_source(scene_name, test_root=args.test_root, input_kind=args.input_kind)
@@ -482,7 +479,10 @@ def main(argv: list[str] | None = None) -> None:
         frames_timestamp_fps=args.output_fps,
     )
     save_fps = max(0.1, float(args.output_fps))
-    args.yolo_model = resolve_yolo_model(args.yolo_model, models_dir=args.yolo_models_dir)
+    try:
+        args.yolo_model = resolve_yolo_model(args.yolo_model, models_dir=args.yolo_dir)
+    except (FileNotFoundError, ValueError) as exc:
+        raise SystemExit(f"error: {exc}") from None
 
     print("[REMIND-VIDEO] Initializing models...")
     from pipeline.initialization import initialize_system
