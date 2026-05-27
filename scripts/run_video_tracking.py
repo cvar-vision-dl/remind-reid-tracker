@@ -54,7 +54,6 @@ class FrameSource:
         self.native_fps = self.frames_timestamp_fps
         self.input_sample_fps = self.frames_timestamp_fps
         self.processed_fps = max(0.1, self.input_sample_fps / float(self.stride))
-        self.default_output_fps = self.processed_fps
         self.total_frames: int | None = None
         self._image_files: list[str] = []
 
@@ -81,7 +80,6 @@ class FrameSource:
                 self.input_sample_fps = float(self.native_fps)
             cap.release()
         self.processed_fps = max(0.1, float(self.input_sample_fps) / float(self.stride))
-        self.default_output_fps = self.processed_fps
 
     @staticmethod
     def _resolve_kind(source: Path) -> str:
@@ -411,8 +409,6 @@ def build_parser() -> argparse.ArgumentParser:
     io_group.add_argument("--start-frame", type=int, default=0, help="First frame index to process.")
     io_group.add_argument(
         "--input-video-fps",
-        "--video-fps",
-        dest="input_video_fps",
         type=float,
         default=None,
         help="FPS used to split/sample an input video into frames. No effect for frame folders.",
@@ -420,11 +416,9 @@ def build_parser() -> argparse.ArgumentParser:
     io_group.add_argument("--stride", type=int, default=1, help="Process one every N available/sampled frames for both videos and frame folders.")
     io_group.add_argument(
         "--output-fps",
-        "--fps",
-        dest="output_fps",
         type=float,
-        default=None,
-        help="FPS of the rendered output video. If omitted, uses the processed FPS for videos and 30 FPS for frame folders.",
+        default=30.0,
+        help="FPS of the rendered output video for both videos and frame folders.",
     )
     io_group.add_argument("--display-scale", type=float, default=1.0, help="Scale factor for preview window only.")
 
@@ -485,9 +479,9 @@ def main(argv: list[str] | None = None) -> None:
         start_frame=args.start_frame,
         stride=args.stride,
         input_video_fps=args.input_video_fps,
-        frames_timestamp_fps=args.output_fps or 30.0,
+        frames_timestamp_fps=args.output_fps,
     )
-    save_fps = float(args.output_fps) if args.output_fps and args.output_fps > 0 else float(frame_source.default_output_fps)
+    save_fps = max(0.1, float(args.output_fps))
     args.yolo_model = resolve_yolo_model(args.yolo_model, models_dir=args.yolo_models_dir)
 
     print("[REMIND-VIDEO] Initializing models...")
