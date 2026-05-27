@@ -21,6 +21,19 @@ Evaluation outputs span case, object, frame, class, scene, and batch levels, wit
 
 https://github.com/user-attachments/assets/1cbf5700-19ba-4303-a871-4fdfb1ce9a80
 
+### Tracking behavior demonstration
+
+The video demonstrates REMIND operating under challenging long-term tracking conditions, including:
+
+- illumination and exposure changes
+- viewpoint and pose variation
+- temporary disappearances and later re-identification
+- disambiguation between visually similar objects
+
+Consistent colors and identity labels across frames indicate successful identity preservation over time, even after occlusions or reappearances.
+
+Detections rendered in **white** correspond to internally flagged ambiguous states, where the model intentionally avoids committing to a potentially incorrect identity assignment until sufficient visual evidence becomes available.
+
 ---
 
 ## Installation
