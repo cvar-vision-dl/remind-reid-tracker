@@ -62,10 +62,10 @@ All scripts are run from the repository root:
 
 ### User video or frame scene
 
-Place your inputs under `test/videos/` or `test/frames/`, one folder per scene:
+Place your inputs under `testData/videos/` or `testData/frames/`, one folder per scene. Put local YOLO weights under `yoloModels/`:
 
 ```text
-test/
+testData/
   videos/
     my_scene/
       video.mp4
@@ -73,6 +73,8 @@ test/
     my_frame_scene/
       frame_000001.jpg
       frame_000002.jpg
+yoloModels/
+  custom-seg.pt
 ```
 
 Run REMIND by scene name using a YOLO segmentation model:
@@ -83,15 +85,20 @@ python main.py my_scene \
   --save-video
 ```
 
+`--yolo-model` first looks inside `yoloModels/`; if the file is not there, Ultralytics can resolve names such as `yolo11n-seg.pt`.
+
 For a frame scene and live preview:
 
 ```bash
 python main.py my_frame_scene \
-  --yolo-model /path/to/custom-seg.pt \
+  --input-kind frames \
+  --yolo-model custom-seg.pt \
   --show \
   --save-video \
   --max-frames 300
 ```
+
+Scene lookup defaults to `--input-kind auto`, which prefers `testData/frames/<scene>/` when it exists and otherwise uses `testData/videos/<scene>/` or `testData/videos/<scene>.mp4`. Pass `--input-kind video` or `--input-kind frames` to force one layout.
 
 You can still bypass the scene layout with `--source /path/to/video.mp4`.
 

@@ -217,6 +217,22 @@ def _configure(args: argparse.Namespace, output_dir: Path) -> dict:
     return cfg
 
 
+def resolve_yolo_model(model_arg: str, *, models_dir: Path) -> str:
+    raw = str(model_arg or "").strip()
+    if not raw:
+        raise ValueError("--yolo-model cannot be empty.")
+
+    candidate = Path(raw).expanduser()
+    if candidate.is_file():
+        return str(candidate.resolve())
+
+    local_candidate = models_dir.expanduser().resolve() / raw
+    if local_candidate.is_file():
+        return str(local_candidate)
+
+    return raw
+
+
 def _color_for_id(identity: int) -> tuple[int, int, int]:
     value = int(identity) * 37 % 180
     hsv = np.uint8([[[value, 210, 255]]])
@@ -331,18 +347,24 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
             "Run REMIND tracking on a test scene using YOLO segmentation. "
-            "By default scenes are resolved from test/videos/<scene>/ or test/frames/<scene>/."
+            "By default scenes are resolved from testData/videos/<scene>/ or testData/frames/<scene>/."
         ),
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    parser.add_argument("scene", nargs="?", help="Scene name under test/videos/ or test/frames/.")
+    parser.add_argument("scene", nargs="?", help="Scene name under testData/videos/ or testData/frames/.")
     parser.add_argument("--source", type=Path, help="Direct input video, image, or frame directory. Overrides scene lookup.")
-    parser.add_argument("--test-root", type=Path, default=REPO_ROOT / "test", help="Root containing videos/ and frames/ scene folders.")
-    parser.add_argument("--input-kind", choices=["auto", "video", "frames"], default="auto", help="Scene lookup mode when --source is not set.")
+    parser.add_argument("--test-root", type=Path, default=REPO_ROOT / "testData", help="Root containing videos/ and frames/ scene folders.")
+    parser.add_argument(
+        "--input-kind",
+        choices=["auto", "video", "frames"],
+        default="auto",
+        help="Scene lookup mode when --source is not set. Use video or frames to force one input type.",
+    )
+    parser.add_argument("--yolo-models-dir", type=Path, default=REPO_ROOT / "yoloModels", help="Directory searched before using a YOLO model name/path directly.")
     parser.add_argument(
         "--yolo-model",
         default="yolo11n-seg.pt",
-        help="Ultralytics segmentation model path/name. Names such as yolo11n-seg.pt are downloaded by Ultralytics if needed.",
+        help="Ultralytics segmentation model file/name. Relative names are looked up in --yolo-models-dir first.",
     )
     parser.add_argument("--config", type=Path, default=REPO_ROOT / "config" / "default_config.yaml", help="Base REMIND config.")
     parser.add_argument("--override-config", type=Path, default=None, help="Optional YAML config override.")
@@ -413,6 +435,7 @@ def main(argv: list[str] | None = None) -> None:
 
     frame_source = FrameSource(source, start_frame=args.start_frame, stride=args.stride, fps_hint=args.fps)
     save_fps = max(1.0, frame_source.fps / max(1, int(args.stride)))
+    args.yolo_model = resolve_yolo_model(args.yolo_model, models_dir=args.yolo_models_dir)
 
     print("[REMIND-VIDEO] Initializing models...")
     from pipeline.initialization import initialize_system
