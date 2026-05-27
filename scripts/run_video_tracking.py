@@ -354,8 +354,7 @@ def render_frame(frame: np.ndarray, detections: list, update_output, header: str
 
         bbox = getattr(det, "bbox", None)
         if bbox is not None:
-            x1, y1, x2, y2 = [int(round(float(x))) for x in bbox[:4]]
-            cv2.rectangle(out, (x1, y1), (x2, y2), color, 2)
+            x1, y1 = [int(round(float(x))) for x in bbox[:2]]
             class_name = getattr(det, "class_name", None) or f"class_{int(getattr(det, 'class_id', -1))}"
             conf = float(getattr(det, "confidence", 0.0) or 0.0)
             text = f"{entry['label']} {class_name} {conf:.2f}"
