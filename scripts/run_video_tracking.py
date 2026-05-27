@@ -42,44 +42,46 @@ class FrameSource:
         *,
         start_frame: int = 0,
         stride: int = 1,
-        fps_hint: float = 30.0,
-        video_fps: float | None = None,
+        input_video_fps: float | None = None,
+        frames_timestamp_fps: float = 30.0,
     ):
         self.source = source
         self.start_frame = max(0, int(start_frame))
         self.stride = max(1, int(stride))
-        self.fps_hint = float(fps_hint) if float(fps_hint) > 0 else 30.0
-        self.requested_video_fps = None if video_fps is None else float(video_fps)
+        self.frames_timestamp_fps = float(frames_timestamp_fps) if float(frames_timestamp_fps) > 0 else 30.0
+        self.requested_input_video_fps = None if input_video_fps is None else float(input_video_fps)
         self.kind = self._resolve_kind(source)
-        self.fps = self.fps_hint
-        self.sample_fps = self.fps_hint
-        self.effective_fps = max(0.1, self.sample_fps / float(self.stride))
+        self.native_fps = self.frames_timestamp_fps
+        self.input_sample_fps = self.frames_timestamp_fps
+        self.processed_fps = max(0.1, self.input_sample_fps / float(self.stride))
+        self.default_output_fps = self.processed_fps
         self.total_frames: int | None = None
         self._image_files: list[str] = []
 
         if self.kind == "frames":
             self._image_files = list_image_files(str(source))
             self.total_frames = len(self._image_files)
-            self.fps = self.fps_hint
-            self.sample_fps = self.fps_hint
+            self.native_fps = self.frames_timestamp_fps
+            self.input_sample_fps = self.frames_timestamp_fps
         elif self.kind == "single_image":
             self.total_frames = 1
-            self.fps = self.fps_hint
-            self.sample_fps = self.fps_hint
+            self.native_fps = self.frames_timestamp_fps
+            self.input_sample_fps = self.frames_timestamp_fps
         else:
             cap = cv2.VideoCapture(str(source))
             if not cap.isOpened():
                 raise FileNotFoundError(f"Could not open video: {source}")
             raw_fps = float(cap.get(cv2.CAP_PROP_FPS) or 0.0)
             raw_total = int(cap.get(cv2.CAP_PROP_FRAME_COUNT) or 0)
-            self.fps = raw_fps if raw_fps > 0 else self.fps_hint
+            self.native_fps = raw_fps if raw_fps > 0 else self.frames_timestamp_fps
             self.total_frames = raw_total if raw_total > 0 else None
-            if self.requested_video_fps is not None and self.requested_video_fps > 0:
-                self.sample_fps = min(float(self.requested_video_fps), float(self.fps))
+            if self.requested_input_video_fps is not None and self.requested_input_video_fps > 0:
+                self.input_sample_fps = min(float(self.requested_input_video_fps), float(self.native_fps))
             else:
-                self.sample_fps = float(self.fps)
+                self.input_sample_fps = float(self.native_fps)
             cap.release()
-        self.effective_fps = max(0.1, float(self.sample_fps) / float(self.stride))
+        self.processed_fps = max(0.1, float(self.input_sample_fps) / float(self.stride))
+        self.default_output_fps = self.processed_fps
 
     @staticmethod
     def _resolve_kind(source: Path) -> str:
@@ -114,7 +116,7 @@ class FrameSource:
                     frame=frame,
                     frame_idx=int(view_idx),
                     frame_id=frame_id,
-                    timestamp=float(view_idx) / float(self.fps),
+                    timestamp=float(view_idx) / float(self.frames_timestamp_fps),
                     name=Path(frame_path).name,
                 )
             return
@@ -127,7 +129,7 @@ class FrameSource:
                 cap.set(cv2.CAP_PROP_POS_FRAMES, float(self.start_frame))
             raw_idx = self.start_frame
             selected_idx = 0
-            sample_step = max(1.0, float(self.fps) / max(0.001, float(self.sample_fps)))
+            sample_step = max(1.0, float(self.native_fps) / max(0.001, float(self.input_sample_fps)))
             next_sample_raw_idx = int(round(float(self.start_frame)))
             while True:
                 ok, frame = cap.read()
@@ -150,7 +152,7 @@ class FrameSource:
                         frame=frame,
                         frame_idx=int(raw_idx),
                         frame_id=int(raw_idx),
-                        timestamp=float(raw_idx) / float(self.fps),
+                        timestamp=float(raw_idx) / float(self.native_fps),
                         name=f"frame_{raw_idx:06d}",
                     )
                 raw_idx += 1
@@ -405,11 +407,25 @@ def build_parser() -> argparse.ArgumentParser:
     io_group.add_argument("--show", action="store_true", help="Show an OpenCV preview while processing.")
     io_group.add_argument("--save-video", action=argparse.BooleanOptionalAction, default=None, help="Save rendered MP4.")
     io_group.add_argument("--save-frames", action="store_true", help="Save rendered PNG frames.")
-    io_group.add_argument("--max-frames", type=int, default=None, help="Maximum number of processed frames.")
+    io_group.add_argument("--max-frames", type=int, default=None, help="Maximum number of processed frames for both videos and frame folders.")
     io_group.add_argument("--start-frame", type=int, default=0, help="First frame index to process.")
-    io_group.add_argument("--video-fps", type=float, default=None, help="Target FPS used to extract/sample frames from videos before --stride and --max-frames.")
-    io_group.add_argument("--stride", type=int, default=1, help="Process one every N sampled frames.")
-    io_group.add_argument("--fps", type=float, default=30.0, help="FPS used for image directories or videos without FPS metadata.")
+    io_group.add_argument(
+        "--input-video-fps",
+        "--video-fps",
+        dest="input_video_fps",
+        type=float,
+        default=None,
+        help="FPS used to split/sample an input video into frames. No effect for frame folders.",
+    )
+    io_group.add_argument("--stride", type=int, default=1, help="Process one every N available/sampled frames for both videos and frame folders.")
+    io_group.add_argument(
+        "--output-fps",
+        "--fps",
+        dest="output_fps",
+        type=float,
+        default=None,
+        help="FPS of the rendered output video. If omitted, uses the processed FPS for videos and 30 FPS for frame folders.",
+    )
     io_group.add_argument("--display-scale", type=float, default=1.0, help="Scale factor for preview window only.")
 
     yolo = parser.add_argument_group("YOLO")
@@ -468,10 +484,10 @@ def main(argv: list[str] | None = None) -> None:
         source,
         start_frame=args.start_frame,
         stride=args.stride,
-        fps_hint=args.fps,
-        video_fps=args.video_fps,
+        input_video_fps=args.input_video_fps,
+        frames_timestamp_fps=args.output_fps or 30.0,
     )
-    save_fps = frame_source.effective_fps
+    save_fps = float(args.output_fps) if args.output_fps and args.output_fps > 0 else float(frame_source.default_output_fps)
     args.yolo_model = resolve_yolo_model(args.yolo_model, models_dir=args.yolo_models_dir)
 
     print("[REMIND-VIDEO] Initializing models...")
@@ -487,8 +503,9 @@ def main(argv: list[str] | None = None) -> None:
     print(f"[REMIND-VIDEO] YOLO model: {args.yolo_model}")
     print(f"[REMIND-VIDEO] Device: {ctx.device}")
     print(
-        f"[REMIND-VIDEO] Input FPS: native={frame_source.fps:.3f} "
-        f"sample={frame_source.sample_fps:.3f} stride={int(args.stride)} "
+        f"[REMIND-VIDEO] FPS: native_input={frame_source.native_fps:.3f} "
+        f"input_video_sample={frame_source.input_sample_fps:.3f} "
+        f"stride={int(args.stride)} processed={frame_source.processed_fps:.3f} "
         f"output={save_fps:.3f}"
     )
 
@@ -612,8 +629,9 @@ def main(argv: list[str] | None = None) -> None:
         "avg_fps": float(processed / total_seconds) if total_seconds > 0 else 0.0,
         "yolo_model": str(args.yolo_model),
         "device": str(ctx.device),
-        "native_fps": float(frame_source.fps),
-        "sample_fps": float(frame_source.sample_fps),
+        "native_input_fps": float(frame_source.native_fps),
+        "input_video_sample_fps": float(frame_source.input_sample_fps),
+        "processed_fps": float(frame_source.processed_fps),
         "stride": int(args.stride),
         "output_fps": float(save_fps),
     }

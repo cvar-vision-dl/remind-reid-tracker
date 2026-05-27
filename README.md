@@ -82,7 +82,8 @@ Run REMIND by scene name using a YOLO segmentation model:
 ```bash
 python main.py my_scene \
   --yolo-model yolo11n-seg.pt \
-  --video-fps 5 \
+  --input-video-fps 5 \
+  --output-fps 25 \
   --save-video
 ```
 
@@ -90,11 +91,12 @@ python main.py my_scene \
 
 For video input, frame selection is controlled in this order:
 
-- `--video-fps`: extract/sample the source video at this target FPS
-- `--stride`: process one every N sampled frames
-- `--max-frames`: stop after this many processed frames
+- `--input-video-fps`: split/sample the source video into frames at this FPS; it has no effect for frame folders
+- `--stride`: process one every N available/sampled frames; common to videos and frame folders
+- `--max-frames`: stop after this many processed frames; common to videos and frame folders
+- `--output-fps`: FPS of the rendered `tracking.mp4`; common to videos and frame folders
 
-For example, `--video-fps 10 --stride 2 --max-frames 100` samples the video at 10 FPS, processes every second sampled frame, and stops after 100 processed frames. For frame folders, use `--fps` to set the playback/output FPS because the frames are already extracted.
+For example, `--input-video-fps 10 --stride 2 --max-frames 100 --output-fps 25` samples the input video at 10 FPS, processes every second sampled frame, stops after 100 processed frames, and writes the rendered output video at 25 FPS. For frame folders, `--input-video-fps` is ignored because the frames are already extracted.
 
 For a frame scene and live preview:
 
@@ -104,6 +106,7 @@ python main.py my_frame_scene \
   --yolo-model custom-seg.pt \
   --show \
   --save-video \
+  --output-fps 30 \
   --max-frames 300
 ```
 
