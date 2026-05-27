@@ -36,13 +36,24 @@ class FrameItem:
 
 
 class FrameSource:
-    def __init__(self, source: Path, *, start_frame: int = 0, stride: int = 1, fps_hint: float = 30.0):
+    def __init__(
+        self,
+        source: Path,
+        *,
+        start_frame: int = 0,
+        stride: int = 1,
+        fps_hint: float = 30.0,
+        video_fps: float | None = None,
+    ):
         self.source = source
         self.start_frame = max(0, int(start_frame))
         self.stride = max(1, int(stride))
         self.fps_hint = float(fps_hint) if float(fps_hint) > 0 else 30.0
+        self.requested_video_fps = None if video_fps is None else float(video_fps)
         self.kind = self._resolve_kind(source)
         self.fps = self.fps_hint
+        self.sample_fps = self.fps_hint
+        self.effective_fps = max(0.1, self.sample_fps / float(self.stride))
         self.total_frames: int | None = None
         self._image_files: list[str] = []
 
@@ -50,9 +61,11 @@ class FrameSource:
             self._image_files = list_image_files(str(source))
             self.total_frames = len(self._image_files)
             self.fps = self.fps_hint
+            self.sample_fps = self.fps_hint
         elif self.kind == "single_image":
             self.total_frames = 1
             self.fps = self.fps_hint
+            self.sample_fps = self.fps_hint
         else:
             cap = cv2.VideoCapture(str(source))
             if not cap.isOpened():
@@ -61,7 +74,12 @@ class FrameSource:
             raw_total = int(cap.get(cv2.CAP_PROP_FRAME_COUNT) or 0)
             self.fps = raw_fps if raw_fps > 0 else self.fps_hint
             self.total_frames = raw_total if raw_total > 0 else None
+            if self.requested_video_fps is not None and self.requested_video_fps > 0:
+                self.sample_fps = min(float(self.requested_video_fps), float(self.fps))
+            else:
+                self.sample_fps = float(self.fps)
             cap.release()
+        self.effective_fps = max(0.1, float(self.sample_fps) / float(self.stride))
 
     @staticmethod
     def _resolve_kind(source: Path) -> str:
@@ -108,11 +126,23 @@ class FrameSource:
             if self.start_frame > 0:
                 cap.set(cv2.CAP_PROP_POS_FRAMES, float(self.start_frame))
             raw_idx = self.start_frame
+            selected_idx = 0
+            sample_step = max(1.0, float(self.fps) / max(0.001, float(self.sample_fps)))
+            next_sample_raw_idx = int(round(float(self.start_frame)))
             while True:
                 ok, frame = cap.read()
                 if not ok:
                     break
-                if (raw_idx - self.start_frame) % self.stride == 0:
+                if raw_idx >= next_sample_raw_idx:
+                    keep_by_stride = (selected_idx % self.stride) == 0
+                    selected_idx += 1
+                    next_sample_raw_idx = int(round(float(self.start_frame) + float(selected_idx) * sample_step))
+                    if next_sample_raw_idx <= raw_idx:
+                        next_sample_raw_idx = raw_idx + 1
+                else:
+                    keep_by_stride = False
+
+                if keep_by_stride:
                     if max_frames is not None and yielded >= int(max_frames):
                         break
                     yielded += 1
@@ -377,7 +407,8 @@ def build_parser() -> argparse.ArgumentParser:
     io_group.add_argument("--save-frames", action="store_true", help="Save rendered PNG frames.")
     io_group.add_argument("--max-frames", type=int, default=None, help="Maximum number of processed frames.")
     io_group.add_argument("--start-frame", type=int, default=0, help="First frame index to process.")
-    io_group.add_argument("--stride", type=int, default=1, help="Process one frame every N frames.")
+    io_group.add_argument("--video-fps", type=float, default=None, help="Target FPS used to extract/sample frames from videos before --stride and --max-frames.")
+    io_group.add_argument("--stride", type=int, default=1, help="Process one every N sampled frames.")
     io_group.add_argument("--fps", type=float, default=30.0, help="FPS used for image directories or videos without FPS metadata.")
     io_group.add_argument("--display-scale", type=float, default=1.0, help="Scale factor for preview window only.")
 
@@ -433,8 +464,14 @@ def main(argv: list[str] | None = None) -> None:
     detections_jsonl = output_dir / "detections.jsonl"
     summary_json = output_dir / "summary.json"
 
-    frame_source = FrameSource(source, start_frame=args.start_frame, stride=args.stride, fps_hint=args.fps)
-    save_fps = max(1.0, frame_source.fps / max(1, int(args.stride)))
+    frame_source = FrameSource(
+        source,
+        start_frame=args.start_frame,
+        stride=args.stride,
+        fps_hint=args.fps,
+        video_fps=args.video_fps,
+    )
+    save_fps = frame_source.effective_fps
     args.yolo_model = resolve_yolo_model(args.yolo_model, models_dir=args.yolo_models_dir)
 
     print("[REMIND-VIDEO] Initializing models...")
@@ -449,6 +486,11 @@ def main(argv: list[str] | None = None) -> None:
     print(f"[REMIND-VIDEO] Output: {output_dir}")
     print(f"[REMIND-VIDEO] YOLO model: {args.yolo_model}")
     print(f"[REMIND-VIDEO] Device: {ctx.device}")
+    print(
+        f"[REMIND-VIDEO] Input FPS: native={frame_source.fps:.3f} "
+        f"sample={frame_source.sample_fps:.3f} stride={int(args.stride)} "
+        f"output={save_fps:.3f}"
+    )
 
     writer: cv2.VideoWriter | None = None
     processed = 0
@@ -570,6 +612,10 @@ def main(argv: list[str] | None = None) -> None:
         "avg_fps": float(processed / total_seconds) if total_seconds > 0 else 0.0,
         "yolo_model": str(args.yolo_model),
         "device": str(ctx.device),
+        "native_fps": float(frame_source.fps),
+        "sample_fps": float(frame_source.sample_fps),
+        "stride": int(args.stride),
+        "output_fps": float(save_fps),
     }
     summary_json.write_text(json.dumps(summary_payload, indent=2, ensure_ascii=True), encoding="utf-8")
 

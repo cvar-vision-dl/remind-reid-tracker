@@ -82,10 +82,19 @@ Run REMIND by scene name using a YOLO segmentation model:
 ```bash
 python main.py my_scene \
   --yolo-model yolo11n-seg.pt \
+  --video-fps 5 \
   --save-video
 ```
 
 `--yolo-model` first looks inside `yoloModels/`; if the file is not there, Ultralytics can resolve names such as `yolo11n-seg.pt`.
+
+For video input, frame selection is controlled in this order:
+
+- `--video-fps`: extract/sample the source video at this target FPS
+- `--stride`: process one every N sampled frames
+- `--max-frames`: stop after this many processed frames
+
+For example, `--video-fps 10 --stride 2 --max-frames 100` samples the video at 10 FPS, processes every second sampled frame, and stops after 100 processed frames. For frame folders, use `--fps` to set the playback/output FPS because the frames are already extracted.
 
 For a frame scene and live preview:
 
