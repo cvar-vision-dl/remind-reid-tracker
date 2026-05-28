@@ -267,13 +267,12 @@
     <p class="authors">Alejandro Rodriguez Ramos, Pablo Diaz Pereda</p>
     <p class="affiliation">
       Universidad Politecnica de Madrid · Escuela Tecnica Superior de Ingenieros Industriales ·
-      Centro de Automatica y Robotica · CVAR, Computer Vision and Aerial Robotics
+      Centro de Automatica y Robotica · CVAR, Computer Vision and Aerial Robotics Research Group
     </p>
 
     <div class="buttons">
-      <a class="button" href="https://github.com/cvar-vision-dl/remind-reid-tracker">Code</a>
+      <a class="button" href="#">Paper</a>
       <a class="button secondary" href="https://github.com/cvar-vision-dl/remind-reid-tracker/blob/main/REMIND_METHOD.md">Method</a>
-      <a class="button secondary" href="#videos">Videos</a>
       <a class="button secondary" href="#results">Results</a>
     </div>
 
@@ -297,7 +296,7 @@
     </p>
     <p>
       Instead of relying only on frame-to-frame position, REMIND builds persistent object memory and uses it to
-      reconnect objects after occlusions, viewpoint changes, and re-appearances.
+      reconnect objects after occlusions, viewpoint changes, illumination changes, and re-appearances.
     </p>
   </section>
 
@@ -344,6 +343,22 @@
       <div class="method-step">
         <strong>4. Update</strong>
         Update object memory only when evidence is reliable, while keeping ambiguous and provisional states explicit.
+      </div>
+    </div>
+  </section>
+
+  <section id="dataset">
+    <h2>Dataset</h2>
+    <div class="method-grid">
+      <div class="method-step">
+        <strong>Custom Dataset</strong>
+        Sequences captured for controlled long-term re-identification experiments, including viewpoint changes,
+        occlusions, object reappearances, and illumination changes.
+      </div>
+      <div class="method-step">
+        <strong>ScanNet++</strong>
+        Indoor scenes converted to a DAVIS-style tracking format, used to evaluate identity consistency across
+        longer and more complex real-world sequences.
       </div>
     </div>
   </section>
