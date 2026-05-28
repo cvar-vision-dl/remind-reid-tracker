@@ -47,15 +47,20 @@
     }
 
     header {
-      padding-top: 56px;
+      padding-top: 62px;
       text-align: center;
     }
 
     h1 {
       margin: 0;
-      font-size: 44px;
+      font-size: 46px;
       line-height: 1.15;
       font-weight: 700;
+    }
+
+    .title-tail {
+      font-style: italic;
+      font-weight: 400;
     }
 
     h2 {
@@ -77,17 +82,26 @@
       margin: 0 0 14px;
     }
 
+    section > p {
+      max-width: 820px;
+      margin-left: auto;
+      margin-right: auto;
+      text-align: justify;
+      text-align-last: left;
+    }
+
     .subtitle {
       margin: 14px auto 8px;
-      max-width: 760px;
+      max-width: 820px;
       color: var(--muted);
-      font-size: 20px;
+      font-size: 22px;
     }
 
     .venue,
     .authors,
     .affiliation {
       margin: 8px 0;
+      font-size: 18px;
       color: var(--muted);
     }
 
@@ -190,13 +204,15 @@
       border: 1px solid var(--line);
       border-radius: 6px;
       background: var(--soft);
-      text-align: center;
+      text-align: justify;
+      text-align-last: left;
     }
 
     .method-step strong {
       display: block;
       margin-bottom: 6px;
       color: var(--accent-dark);
+      text-align: center;
     }
 
     .dataset-examples {
@@ -321,7 +337,7 @@
 
 <body>
   <header>
-    <h1>REMIND</h1>
+    <h1>REMIND: <span class="title-tail">RE-identification with Memory for INDoor Navigation</span></h1>
     <p class="subtitle">
       Re-identification with Memory and Instance Descriptors for long-term multi-object tracking
     </p>
@@ -390,7 +406,7 @@
   </section>
 
   <section id="dataset">
-    <h2>Dataset</h2>
+    <h2>Datasets</h2>
     <div class="dataset-list">
       <div class="method-step">
         <strong>Custom Dataset</strong>
@@ -400,17 +416,22 @@
           <div class="placeholder">Custom example 1</div>
           <div class="placeholder">Custom example 2</div>
           <div class="placeholder">Custom example 3</div>
+          <div class="placeholder">Custom example 4</div>
+          <div class="placeholder">Custom example 5</div>
+          <div class="placeholder">Custom example 6</div>
         </div>
       </div>
       <div class="method-step">
         <strong>ScanNet++</strong>
-        High-fidelity indoor scene dataset with laser scans, DSLR/iPhone captures, 3D meshes, semantic annotations,
-        and official train/validation/test splits. We convert selected scenes to a DAVIS-style tracking format to
-        evaluate identity consistency in more complex real-world indoor environments.
+        Indoor scenes with object instances, semantic labels, and segmentation masks. We convert selected scenes to a
+        DAVIS-style tracking format to evaluate identity consistency across complex real-world indoor environments.
         <div class="dataset-examples">
           <div class="placeholder">ScanNet++ example 1</div>
           <div class="placeholder">ScanNet++ example 2</div>
           <div class="placeholder">ScanNet++ example 3</div>
+          <div class="placeholder">ScanNet++ example 4</div>
+          <div class="placeholder">ScanNet++ example 5</div>
+          <div class="placeholder">ScanNet++ example 6</div>
         </div>
         <div class="dataset-links">
           <a class="small-button" href="https://scannetpp.mlsg.cit.tum.de/scannetpp/">ScanNet++ page</a>
