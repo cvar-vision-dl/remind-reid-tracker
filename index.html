@@ -90,7 +90,8 @@
     }
 
     .authors {
-      color: var(--text);
+      color: var(--accent-dark);
+      font-weight: 700;
     }
 
     .buttons {
@@ -193,6 +194,42 @@
       color: var(--accent-dark);
     }
 
+    .dataset-examples {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .dataset-examples img,
+    .dataset-examples .placeholder {
+      min-height: 95px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: #ffffff;
+      object-fit: cover;
+    }
+
+    .small-button {
+      display: inline-flex;
+      margin-top: 12px;
+      min-height: 32px;
+      align-items: center;
+      padding: 6px 11px;
+      border: 1px solid var(--accent);
+      border-radius: 5px;
+      color: #ffffff;
+      background: var(--accent);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .small-button:hover {
+      color: #ffffff;
+      background: var(--accent-dark);
+      text-decoration: none;
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
@@ -273,7 +310,6 @@
     <div class="buttons">
       <a class="button" href="#">Paper</a>
       <a class="button secondary" href="https://github.com/cvar-vision-dl/remind-reid-tracker/blob/main/REMIND_METHOD.md">Method</a>
-      <a class="button secondary" href="#results">Results</a>
     </div>
 
     <div class="hero-video">
@@ -307,42 +343,24 @@
         <video controls muted playsinline poster="./assets/images/example-1.jpg">
           <source src="./assets/videos/example-1.mp4" type="video/mp4" />
         </video>
-        <div class="panel-body">
-          <h3>Long-term re-identification</h3>
-          <p>Objects disappear and reappear while keeping stable identity labels.</p>
-        </div>
       </div>
 
       <div class="panel">
         <video controls muted playsinline poster="./assets/images/example-2.jpg">
           <source src="./assets/videos/example-2.mp4" type="video/mp4" />
         </video>
-        <div class="panel-body">
-          <h3>Similar objects</h3>
-          <p>Memory and relational context help avoid identity swaps between visually similar instances.</p>
-        </div>
       </div>
-    </div>
-  </section>
 
-  <section id="method">
-    <h2>Method Overview</h2>
-    <div class="method-grid">
-      <div class="method-step">
-        <strong>1. Perception</strong>
-        Segment current objects and extract DINO global, part-level, and background descriptors.
+      <div class="panel">
+        <video controls muted playsinline poster="./assets/images/example-3.jpg">
+          <source src="./assets/videos/example-3.mp4" type="video/mp4" />
+        </video>
       </div>
-      <div class="method-step">
-        <strong>2. Association</strong>
-        Compare current detections against tracked identities and solve global assignment with Hungarian matching.
-      </div>
-      <div class="method-step">
-        <strong>3. Context</strong>
-        Use reliable anchors, neighbor sets, and distance memory to disambiguate difficult cases.
-      </div>
-      <div class="method-step">
-        <strong>4. Update</strong>
-        Update object memory only when evidence is reliable, while keeping ambiguous and provisional states explicit.
+
+      <div class="panel">
+        <video controls muted playsinline poster="./assets/images/example-4.jpg">
+          <source src="./assets/videos/example-4.mp4" type="video/mp4" />
+        </video>
       </div>
     </div>
   </section>
@@ -352,13 +370,27 @@
     <div class="method-grid">
       <div class="method-step">
         <strong>Custom Dataset</strong>
-        Sequences captured for controlled long-term re-identification experiments, including viewpoint changes,
-        occlusions, object reappearances, and illumination changes.
+        Single video recorded in a living room under controlled conditions. The sequence contains medium-low object
+        density and a medium level of repeated object classes, with controlled viewpoint and illumination variation.
+        <div class="dataset-examples">
+          <div class="placeholder">Custom example 1</div>
+          <div class="placeholder">Custom example 2</div>
+          <div class="placeholder">Custom example 3</div>
+        </div>
       </div>
       <div class="method-step">
         <strong>ScanNet++</strong>
-        Indoor scenes converted to a DAVIS-style tracking format, used to evaluate identity consistency across
-        longer and more complex real-world sequences.
+        High-fidelity indoor scene dataset with laser scans, DSLR/iPhone captures, 3D meshes, semantic annotations,
+        and official train/validation/test splits. We convert selected scenes to a DAVIS-style tracking format to
+        evaluate identity consistency in more complex real-world indoor environments.
+        <div class="dataset-examples">
+          <div class="placeholder">ScanNet++ example 1</div>
+          <div class="placeholder">ScanNet++ example 2</div>
+          <div class="placeholder">ScanNet++ example 3</div>
+        </div>
+        <a class="small-button" href="https://scannetpp.mlsg.cit.tum.de/scannetpp/">ScanNet++ page</a>
+        <a class="small-button" href="https://github.com/scannetpp/scannetpp">Code</a>
+        <a class="small-button" href="https://openaccess.thecvf.com/content/ICCV2023/html/Yeshwanth_ScanNet_A_High-Fidelity_Dataset_of_3D_Indoor_Scenes_ICCV_2023_paper.html">Paper</a>
       </div>
     </div>
   </section>
@@ -366,40 +398,64 @@
   <section id="results">
     <h2>Main Results</h2>
     <p>
-      Add the most important quantitative results here once the final experiment table is selected.
-      Keep this section short: one compact table is enough for the project page.
+      REMIND explicitly models ambiguous and uncertain cases. For quantitative evaluation, ambiguous/provisional
+      labels are collapsed into a final identity decision so standard tracking metrics can be computed. This collapsed
+      output is used only for reporting: internally, the method does not always force an immediate identity label.
     </p>
+    <h3>Evaluation with ground-truth masks</h3>
     <table>
       <thead>
         <tr>
-          <th>Setting</th>
-          <th>Metric</th>
-          <th>REMIND</th>
+          <th>Dataset</th>
+          <th>IDF1</th>
+          <th>Recovery</th>
           <th>Baseline</th>
           <th>Note</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td>ScanNet++ / DAVIS-style masks</td>
-          <td>IDF1</td>
+          <td>Custom Dataset</td>
           <td>TBD</td>
           <td>TBD</td>
-          <td>Identity consistency over complete sequences.</td>
+          <td>TBD</td>
+          <td>GT masks isolate the identity-association behavior from detector errors.</td>
         </tr>
         <tr>
-          <td>Occlusion / reappearance cases</td>
-          <td>ID switches</td>
+          <td>ScanNet++</td>
           <td>TBD</td>
           <td>TBD</td>
-          <td>Lower is better.</td>
+          <td>TBD</td>
+          <td>DAVIS-style masks exported from selected indoor scenes.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Evaluation with YOLO detections</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Dataset</th>
+          <th>IDF1</th>
+          <th>Recovery</th>
+          <th>Baseline</th>
+          <th>Note</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Custom Dataset</td>
+          <td>TBD</td>
+          <td>TBD</td>
+          <td>TBD</td>
+          <td>End-to-end tracking with detector noise and missed detections.</td>
         </tr>
         <tr>
-          <td>Full pipeline</td>
-          <td>Avg. runtime</td>
+          <td>ScanNet++</td>
           <td>TBD</td>
-          <td>-</td>
-          <td>Measured per processed frame.</td>
+          <td>TBD</td>
+          <td>TBD</td>
+          <td>YOLO masks are used as the perception input before REMIND association.</td>
         </tr>
       </tbody>
     </table>
