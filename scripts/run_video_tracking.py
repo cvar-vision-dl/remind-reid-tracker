@@ -329,6 +329,14 @@ def _detection_json(det, entry: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _mask_for_frame(mask: np.ndarray, frame_shape: tuple[int, int, int]) -> np.ndarray:
+    h, w = frame_shape[:2]
+    if mask.shape[:2] == (h, w):
+        return mask.astype(bool, copy=False)
+    resized = cv2.resize(mask.astype(np.uint8), (w, h), interpolation=cv2.INTER_NEAREST)
+    return resized.astype(bool, copy=False)
+
+
 def render_frame(frame: np.ndarray, detections: list, update_output, header: str, alpha: float) -> tuple[np.ndarray, list[dict[str, Any]]]:
     out = frame.copy()
     entries = _entries_by_det_id(update_output)
@@ -348,6 +356,7 @@ def render_frame(frame: np.ndarray, detections: list, update_output, header: str
 
         mask = getattr(det, "mask", None)
         if mask is not None:
+            mask = _mask_for_frame(mask, out.shape)
             out = overlay_mask_bgr(out, mask, color, alpha)
             contours, _ = cv2.findContours(mask.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             cv2.drawContours(out, contours, -1, color, 2)
@@ -540,13 +549,16 @@ def main(argv: list[str] | None = None) -> None:
                 fps_now = 1.0 / elapsed if elapsed > 0 else 0.0
 
                 summary = getattr(u_out, "summary", {}) or {}
+                render_base = ((getattr(p_out, "debug", {}) or {}).get("frame_aligned_bgr", None))
+                if render_base is None:
+                    render_base = item.frame
                 header = (
                     f"{item.name} | frame={item.frame_id} | det={len(p_out.detections or [])} | "
                     f"visible={summary.get('n_visible', 0)} | new={summary.get('n_created', 0)} | "
                     f"amb={summary.get('n_ambiguous', 0)} | {fps_now:.2f} FPS"
                 )
                 rendered, det_details = render_frame(
-                    item.frame,
+                    render_base,
                     p_out.detections or [],
                     u_out,
                     header=header,
