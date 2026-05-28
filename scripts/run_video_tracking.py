@@ -273,19 +273,27 @@ def _color_for_id(identity: int) -> tuple[int, int, int]:
     return int(bgr[0]), int(bgr[1]), int(bgr[2])
 
 
-def _draw_text_box(img: np.ndarray, text: str, org: tuple[int, int], color: tuple[int, int, int]) -> None:
+def _label_box_size(text: str) -> tuple[int, int, int, int, int, int]:
     font = cv2.FONT_HERSHEY_SIMPLEX
     scale = 0.68
     thickness = 2
     pad_x = 4
     pad_y = 4
-    x, y = int(org[0]), int(org[1])
     (tw, th), baseline = cv2.getTextSize(text, font, scale, thickness)
-    h, w = img.shape[:2]
     box_w = int(tw + 2 * pad_x)
     box_h = int(th + baseline + 2 * pad_y)
-    x0 = int(max(0, min(max(0, w - box_w - 1), x)))
-    y0 = int(max(0, min(max(0, h - box_h - 1), y)))
+    return box_w, box_h, th, baseline, pad_x, pad_y
+
+
+def _draw_text_box_at(img: np.ndarray, text: str, xy: tuple[int, int], color: tuple[int, int, int]) -> None:
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    scale = 0.68
+    thickness = 2
+    x0, y0 = int(xy[0]), int(xy[1])
+    box_w, box_h, th, _baseline, pad_x, pad_y = _label_box_size(text)
+    h, w = img.shape[:2]
+    x0 = int(max(0, min(max(0, w - box_w - 1), x0)))
+    y0 = int(max(0, min(max(0, h - box_h - 1), y0)))
     x1 = int(min(w - 1, x0 + box_w))
     y1 = int(min(h - 1, y0 + box_h))
     cv2.rectangle(img, (x0, y0), (x1, y1), (0, 0, 0), -1)
@@ -300,6 +308,108 @@ def _draw_text_box(img: np.ndarray, text: str, org: tuple[int, int], color: tupl
         thickness,
         cv2.LINE_AA,
     )
+
+
+def _rect_sum(integral: np.ndarray | None, rect: tuple[int, int, int, int], frame_shape: tuple[int, int]) -> int:
+    if integral is None:
+        return 0
+    h, w = frame_shape
+    x0, y0, x1, y1 = rect
+    x0 = int(max(0, min(w, x0)))
+    x1 = int(max(0, min(w, x1)))
+    y0 = int(max(0, min(h, y0)))
+    y1 = int(max(0, min(h, y1)))
+    if x1 <= x0 or y1 <= y0:
+        return 0
+    value = integral[y1, x1] - integral[y0, x1] - integral[y1, x0] + integral[y0, x0]
+    return int(value)
+
+
+def _overlap_area(a: tuple[int, int, int, int], b: tuple[int, int, int, int]) -> int:
+    ax0, ay0, ax1, ay1 = a
+    bx0, by0, bx1, by1 = b
+    ix0 = max(ax0, bx0)
+    iy0 = max(ay0, by0)
+    ix1 = min(ax1, bx1)
+    iy1 = min(ay1, by1)
+    if ix1 <= ix0 or iy1 <= iy0:
+        return 0
+    return int((ix1 - ix0) * (iy1 - iy0))
+
+
+def _anchor_point(det, mask: np.ndarray | None, frame_shape: tuple[int, int, int]) -> tuple[int, int]:
+    h, w = frame_shape[:2]
+    if mask is not None and np.any(mask):
+        ys, xs = np.nonzero(mask)
+        return int(np.mean(xs)), int(np.mean(ys))
+    bbox = getattr(det, "bbox", None)
+    if bbox is not None and len(bbox) >= 4:
+        x1, y1, x2, _y2 = bbox[:4]
+        return (
+            int(max(0, min(w - 1, 0.5 * (float(x1) + float(x2))))),
+            int(max(0, min(h - 1, float(y1)))),
+        )
+    return 10, 20
+
+
+def _pick_label_position(
+    *,
+    anchor: tuple[int, int],
+    box_wh: tuple[int, int],
+    occupied: list[tuple[int, int, int, int]],
+    union_integral: np.ndarray | None,
+    self_integral: np.ndarray | None,
+    frame_shape: tuple[int, int],
+    allow_self_mask: bool,
+) -> tuple[int, int]:
+    h, w = frame_shape
+    ax, ay = int(anchor[0]), int(anchor[1])
+    bw, bh = int(box_wh[0]), int(box_wh[1])
+    bw = max(1, min(w, bw))
+    bh = max(1, min(h, bh))
+    margin = 6
+
+    candidates: list[tuple[int, int]] = []
+    for scale in (1, 2, 3, 4):
+        for dy in (-bh - margin, 0, bh + margin):
+            for dx in (0, -bw // 2, bw // 2, -bw - margin, bw + margin):
+                candidates.append((int(ax + scale * dx), int(ay + scale * dy)))
+
+    seen = set()
+    deduped = []
+    for x, y in candidates:
+        key = (int(x), int(y))
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(key)
+
+    best: tuple[int, int] | None = None
+    best_score: tuple[int, int, int, int] | None = None
+    for x, y in deduped:
+        x0 = int(max(0, min(max(0, w - bw), x)))
+        y0 = int(max(0, min(max(0, h - bh), y)))
+        rect = (x0, y0, x0 + bw, y0 + bh)
+
+        label_overlap = sum(_overlap_area(rect, used) for used in occupied)
+        all_mask_overlap = _rect_sum(union_integral, rect, (h, w))
+        self_mask_overlap = _rect_sum(self_integral, rect, (h, w))
+        other_mask_overlap = int(max(0, all_mask_overlap - self_mask_overlap))
+        if allow_self_mask:
+            self_penalty = 0
+        else:
+            self_penalty = int(self_mask_overlap)
+
+        dx = x0 - ax
+        dy = y0 - ay
+        score = (int(label_overlap), int(other_mask_overlap), int(self_penalty), int(dx * dx + dy * dy))
+        if best_score is None or score < best_score:
+            best_score = score
+            best = (x0, y0)
+
+    if best is None:
+        return int(max(0, min(max(0, w - bw), ax))), int(max(0, min(max(0, h - bh), ay)))
+    return best
 
 
 def _entries_by_det_id(update_output) -> dict[int, dict[str, Any]]:
@@ -359,6 +469,9 @@ def render_frame(frame: np.ndarray, detections: list, update_output, header: str
     out = frame.copy()
     entries = _entries_by_det_id(update_output)
     details: list[dict[str, Any]] = []
+    label_items: list[dict[str, Any]] = []
+    h, w = out.shape[:2]
+    union_mask = np.zeros((h, w), dtype=np.uint8)
 
     for det in detections or []:
         det_id = int(getattr(det, "detection_id", -1))
@@ -375,18 +488,99 @@ def render_frame(frame: np.ndarray, detections: list, update_output, header: str
         mask = getattr(det, "mask", None)
         if mask is not None:
             mask = _mask_for_frame(mask, out.shape)
+            union_mask[mask] = 1
             out = overlay_mask_bgr(out, mask, color, alpha)
             contours, _ = cv2.findContours(mask.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             cv2.drawContours(out, contours, -1, color, 2)
+        else:
+            mask = None
 
-        bbox = getattr(det, "bbox", None)
-        if bbox is not None:
-            x1, y1 = [int(round(float(x))) for x in bbox[:2]]
-            class_name = getattr(det, "class_name", None) or f"class_{int(getattr(det, 'class_id', -1))}"
-            text = f"{entry['label']} {class_name}"
-            _draw_text_box(out, text, (x1, max(0, y1 - 4)), color)
+        class_name = getattr(det, "class_name", None) or f"class_{int(getattr(det, 'class_id', -1))}"
+        text = f"{entry['label']} {class_name}"
+        label_items.append(
+            {
+                "det": det,
+                "det_id": int(det_id),
+                "text": text,
+                "color": color,
+                "mask": mask,
+                "mask_area": int(mask.sum()) if mask is not None else 0,
+                "object_id": entry.get("object_id", None),
+            }
+        )
 
         details.append(_detection_json(det, entry))
+
+    union_integral = cv2.integral(union_mask) if int(union_mask.sum()) > 0 else None
+    occupied: list[tuple[int, int, int, int]] = []
+    last_boxes = getattr(render_frame, "_last_label_boxes", None)
+    if not isinstance(last_boxes, dict):
+        last_boxes = {}
+        setattr(render_frame, "_last_label_boxes", last_boxes)
+
+    # Small masks first: they have less free area and need label placement more.
+    label_items.sort(key=lambda item: int(item.get("mask_area", 0)))
+    for item in label_items:
+        det = item["det"]
+        mask = item.get("mask", None)
+        text = str(item["text"])
+        color = item["color"]
+        mask_area = int(item.get("mask_area", 0))
+        object_id = item.get("object_id", None)
+        anchor = _anchor_point(det, mask, out.shape)
+        box_w, box_h, _th, _baseline, _pad_x, _pad_y = _label_box_size(text)
+
+        self_integral = None
+        if mask is not None and int(mask_area) > 0:
+            self_integral = cv2.integral(mask.astype(np.uint8))
+        allow_self_mask = bool(mask_area >= int(0.08 * h * w))
+
+        sticky_key = int(object_id) if object_id is not None else int(-1000000 - int(item["det_id"]))
+        previous = last_boxes.get(sticky_key)
+        if isinstance(previous, (tuple, list)) and len(previous) == 4:
+            px0, py0, px1, py1 = [int(v) for v in previous]
+            px0 = int(max(0, min(max(0, w - box_w), px0)))
+            py0 = int(max(0, min(max(0, h - box_h), py0)))
+            previous_rect = (px0, py0, px0 + box_w, py0 + box_h)
+            label_overlap = sum(_overlap_area(previous_rect, used) for used in occupied)
+            all_overlap = _rect_sum(union_integral, previous_rect, (h, w))
+            self_overlap = _rect_sum(self_integral, previous_rect, (h, w))
+            other_overlap = int(max(0, all_overlap - self_overlap))
+            if label_overlap == 0 and other_overlap == 0 and (allow_self_mask or self_overlap == 0):
+                x0, y0 = px0, py0
+            else:
+                x0, y0 = _pick_label_position(
+                    anchor=anchor,
+                    box_wh=(box_w, box_h),
+                    occupied=occupied,
+                    union_integral=union_integral,
+                    self_integral=self_integral,
+                    frame_shape=(h, w),
+                    allow_self_mask=allow_self_mask,
+                )
+        else:
+            x0, y0 = _pick_label_position(
+                anchor=anchor,
+                box_wh=(box_w, box_h),
+                occupied=occupied,
+                union_integral=union_integral,
+                self_integral=self_integral,
+                frame_shape=(h, w),
+                allow_self_mask=allow_self_mask,
+            )
+
+        rect = (int(x0), int(y0), int(x0 + box_w), int(y0 + box_h))
+        occupied.append(rect)
+        last_boxes[sticky_key] = rect
+
+        closest_x = int(max(rect[0], min(rect[2], anchor[0])))
+        closest_y = int(max(rect[1], min(rect[3], anchor[1])))
+        dx = closest_x - int(anchor[0])
+        dy = closest_y - int(anchor[1])
+        if dx * dx + dy * dy >= 28 * 28:
+            cv2.line(out, (int(anchor[0]), int(anchor[1])), (closest_x, closest_y), color, 1, cv2.LINE_AA)
+
+        _draw_text_box_at(out, text, (x0, y0), color)
 
     return overlay_header(out, header), details
 
