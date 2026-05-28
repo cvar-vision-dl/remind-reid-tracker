@@ -2,222 +2,438 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>REMIND</title>
+  <style>
+    :root {
+      --text: #1f2933;
+      --muted: #5f6f82;
+      --line: #d8e0ea;
+      --soft: #f5f7fa;
+      --accent: #0f766e;
+      --accent-dark: #115e59;
+      --link: #2563eb;
+      --max: 980px;
+    }
 
-  <title>CVAR Vision</title>
+    * {
+      box-sizing: border-box;
+    }
 
-  <link rel="stylesheet" href="style.css" />
+    body {
+      margin: 0;
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      background: #ffffff;
+    }
+
+    a {
+      color: var(--link);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    header,
+    section,
+    footer {
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 34px 22px;
+    }
+
+    header {
+      padding-top: 56px;
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 44px;
+      line-height: 1.15;
+      font-weight: 700;
+    }
+
+    h2 {
+      margin: 0 0 16px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--line);
+      font-size: 25px;
+      font-weight: 700;
+    }
+
+    h3 {
+      margin: 0 0 8px;
+      font-size: 18px;
+    }
+
+    p {
+      margin: 0 0 14px;
+    }
+
+    .subtitle {
+      margin: 14px auto 8px;
+      max-width: 760px;
+      color: var(--muted);
+      font-size: 20px;
+    }
+
+    .venue,
+    .authors,
+    .affiliation {
+      margin: 8px 0;
+      color: var(--muted);
+    }
+
+    .authors {
+      color: var(--text);
+    }
+
+    .buttons {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 22px;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      min-height: 38px;
+      padding: 8px 15px;
+      border: 1px solid var(--accent);
+      border-radius: 5px;
+      color: #ffffff;
+      background: var(--accent);
+      font-weight: 700;
+    }
+
+    .button.secondary {
+      color: var(--accent-dark);
+      background: #ffffff;
+    }
+
+    .button:hover {
+      background: var(--accent-dark);
+      color: #ffffff;
+      text-decoration: none;
+    }
+
+    .hero-video,
+    .video-grid,
+    .result-grid,
+    .method-grid {
+      margin-top: 20px;
+    }
+
+    .hero-video {
+      border: 1px solid var(--line);
+      background: var(--soft);
+    }
+
+    video,
+    img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .caption {
+      margin: 9px 12px 12px;
+      color: var(--muted);
+      font-size: 14px;
+      text-align: center;
+    }
+
+    .video-grid,
+    .result-grid,
+    .method-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #ffffff;
+      overflow: hidden;
+    }
+
+    .panel-body {
+      padding: 14px;
+    }
+
+    .placeholder {
+      display: flex;
+      min-height: 190px;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      color: var(--muted);
+      text-align: center;
+      background: var(--soft);
+    }
+
+    .method-step {
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--soft);
+    }
+
+    .method-step strong {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--accent-dark);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 15px;
+    }
+
+    th,
+    td {
+      padding: 10px;
+      border: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: var(--soft);
+    }
+
+    code,
+    pre {
+      font-family: Consolas, Monaco, "Courier New", monospace;
+    }
+
+    pre {
+      overflow-x: auto;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--soft);
+      font-size: 14px;
+    }
+
+    footer {
+      margin-top: 20px;
+      padding-bottom: 48px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    @media (max-width: 720px) {
+      header,
+      section,
+      footer {
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+
+      h1 {
+        font-size: 34px;
+      }
+
+      .subtitle {
+        font-size: 18px;
+      }
+
+      .video-grid,
+      .result-grid,
+      .method-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
 
 <body>
+  <header>
+    <h1>REMIND</h1>
+    <p class="subtitle">
+      Re-identification with Memory and Instance Descriptors for long-term multi-object tracking
+    </p>
+    <p class="venue">Project page</p>
+    <p class="authors">Author names / lab / institution</p>
+    <p class="affiliation">CVAR Vision · Universidad / group details</p>
 
-  <!-- NAVBAR -->
-  <nav class="navbar">
-
-    <div class="logo">
-      CVAR Vision
+    <div class="buttons">
+      <a class="button" href="https://github.com/cvar-vision-dl/remind-reid-tracker">Code</a>
+      <a class="button secondary" href="./REMIND_METHOD.md">Method</a>
+      <a class="button secondary" href="#videos">Videos</a>
+      <a class="button secondary" href="#results">Results</a>
     </div>
 
-    <ul class="nav-links">
-      <li><a href="#about">About</a></li>
-      <li><a href="#features">Features</a></li>
-      <li><a href="#results">Results</a></li>
-      <li><a href="#demo">Demo</a></li>
-      <li><a href="#contact">GitHub</a></li>
-    </ul>
-
-  </nav>
-
-
-  <!-- HERO -->
-  <header class="hero">
-
-    <div class="hero-content">
-
-      <p class="hero-subtitle">
-        Computer Vision · AI · Research
+    <div class="hero-video">
+      <video controls muted playsinline poster="./assets/images/remind-demo-poster.jpg">
+        <source src="./assets/videos/remind-demo.mp4" type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
+      <p class="caption">
+        Main REMIND tracking demo. Replace <code>assets/videos/remind-demo.mp4</code> with the final project video.
       </p>
-
-      <h1>
-        CVAR Vision
-      </h1>
-
-      <p class="hero-description">
-        Experimental computer vision project focused on image understanding,
-        object tracking and visual intelligence systems.
-      </p>
-
-      <div class="hero-buttons">
-        <a href="#" class="btn-primary">
-          View Demo
-        </a>
-
-        <a href="#" class="btn-secondary">
-          GitHub Repo
-        </a>
-      </div>
-
     </div>
-
   </header>
 
-
-  <!-- ABOUT -->
-  <section id="about" class="section">
-
-    <div class="container">
-
-      <h2>About the Project</h2>
-
-      <p>
-        This project explores modern computer vision pipelines combining
-        deep learning, visual tracking and real-time inference systems.
-      </p>
-
-      <p>
-        The objective is to build scalable and interpretable visual AI tools
-        for research and experimentation.
-      </p>
-
-    </div>
-
-  </section>
-
-
-  <!-- FEATURES -->
-  <section id="features" class="section dark-section">
-
-    <div class="container">
-
-      <h2>Core Features</h2>
-
-      <div class="cards">
-
-        <div class="card">
-          <h3>Real-Time Detection</h3>
-          <p>
-            Fast inference pipeline for object detection tasks.
-          </p>
-        </div>
-
-        <div class="card">
-          <h3>Visual Tracking</h3>
-          <p>
-            Multi-object tracking and motion analysis.
-          </p>
-        </div>
-
-        <div class="card">
-          <h3>Deep Learning</h3>
-          <p>
-            Neural network experimentation and training workflows.
-          </p>
-        </div>
-
-      </div>
-
-    </div>
-
-  </section>
-
-
-  <!-- RESULTS -->
-  <section id="results" class="section">
-
-    <div class="container">
-
-      <h2>Results & Visualizations</h2>
-
-      <div class="image-grid">
-
-        <div class="image-box">
-          <img src="./images/demo1.jpg" alt="Result 1">
-        </div>
-
-        <div class="image-box">
-          <img src="./images/demo2.jpg" alt="Result 2">
-        </div>
-
-        <div class="image-box">
-          <img src="./images/demo3.jpg" alt="Result 3">
-        </div>
-
-      </div>
-
-    </div>
-
-  </section>
-
-
-  <!-- DEMO -->
-  <section id="demo" class="section dark-section">
-
-    <div class="container">
-
-      <h2>Interactive Demo</h2>
-
-      <p>
-        Future section for live demos, videos or inference previews.
-      </p>
-
-      <div class="demo-placeholder">
-        Demo Coming Soon
-      </div>
-
-    </div>
-
-  </section>
-
-
-  <!-- TECH STACK -->
-  <section class="section">
-
-    <div class="container">
-
-      <h2>Tech Stack</h2>
-
-      <div class="stack-list">
-
-        <span>Python</span>
-        <span>OpenCV</span>
-        <span>PyTorch</span>
-        <span>YOLO</span>
-        <span>NumPy</span>
-        <span>CUDA</span>
-
-      </div>
-
-    </div>
-
-  </section>
-
-
-  <!-- FOOTER -->
-  <footer id="contact" class="footer">
-
-    <h2>Project Links</h2>
-
-    <div class="footer-links">
-
-      <a href="#">
-        GitHub
-      </a>
-
-      <a href="#">
-        Documentation
-      </a>
-
-      <a href="#">
-        Contact
-      </a>
-
-    </div>
-
-    <p class="footer-copy">
-      © 2025 CVAR Vision
+  <section id="abstract">
+    <h2>Abstract</h2>
+    <p>
+      REMIND is an online multi-object re-identification tracker designed to keep object identities consistent across
+      long indoor sequences. The method combines DINO-based appearance descriptors, semantic part descriptors, local
+      background context, relational neighbor memory, and cautious memory updates.
     </p>
+    <p>
+      Instead of relying only on frame-to-frame position, REMIND builds persistent object memory and uses it to
+      reconnect objects after occlusions, viewpoint changes, and re-appearances.
+    </p>
+  </section>
 
+  <section id="videos">
+    <h2>Tracking Examples</h2>
+    <div class="video-grid">
+      <div class="panel">
+        <video controls muted playsinline poster="./assets/images/example-1.jpg">
+          <source src="./assets/videos/example-1.mp4" type="video/mp4" />
+        </video>
+        <div class="panel-body">
+          <h3>Long-term re-identification</h3>
+          <p>Objects disappear and reappear while keeping stable identity labels.</p>
+        </div>
+      </div>
+
+      <div class="panel">
+        <video controls muted playsinline poster="./assets/images/example-2.jpg">
+          <source src="./assets/videos/example-2.mp4" type="video/mp4" />
+        </video>
+        <div class="panel-body">
+          <h3>Similar objects</h3>
+          <p>Memory and relational context help avoid identity swaps between visually similar instances.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="method">
+    <h2>Method Overview</h2>
+    <div class="method-grid">
+      <div class="method-step">
+        <strong>1. Perception</strong>
+        Segment current objects and extract DINO global, part-level, and background descriptors.
+      </div>
+      <div class="method-step">
+        <strong>2. Association</strong>
+        Compare current detections against tracked identities and solve global assignment with Hungarian matching.
+      </div>
+      <div class="method-step">
+        <strong>3. Context</strong>
+        Use reliable anchors, neighbor sets, and distance memory to disambiguate difficult cases.
+      </div>
+      <div class="method-step">
+        <strong>4. Update</strong>
+        Update object memory only when evidence is reliable, while keeping ambiguous and provisional states explicit.
+      </div>
+    </div>
+  </section>
+
+  <section id="results">
+    <h2>Main Results</h2>
+    <p>
+      Add the most important quantitative results here once the final experiment table is selected.
+      Keep this section short: one compact table is enough for the project page.
+    </p>
+    <table>
+      <thead>
+        <tr>
+          <th>Setting</th>
+          <th>Metric</th>
+          <th>REMIND</th>
+          <th>Baseline</th>
+          <th>Note</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>ScanNet++ / DAVIS-style masks</td>
+          <td>IDF1</td>
+          <td>TBD</td>
+          <td>TBD</td>
+          <td>Identity consistency over complete sequences.</td>
+        </tr>
+        <tr>
+          <td>Occlusion / reappearance cases</td>
+          <td>ID switches</td>
+          <td>TBD</td>
+          <td>TBD</td>
+          <td>Lower is better.</td>
+        </tr>
+        <tr>
+          <td>Full pipeline</td>
+          <td>Avg. runtime</td>
+          <td>TBD</td>
+          <td>-</td>
+          <td>Measured per processed frame.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="qualitative">
+    <h2>Qualitative Results</h2>
+    <div class="result-grid">
+      <div class="panel">
+        <div class="placeholder">Add comparison image or GIF</div>
+        <div class="panel-body">
+          <h3>Stable IDs</h3>
+          <p>Consistent colors and labels across viewpoint changes.</p>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="placeholder">Add failure / ambiguity visualization</div>
+        <div class="panel-body">
+          <h3>Explicit uncertainty</h3>
+          <p>Ambiguous detections are marked instead of forcing unreliable assignments.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="run">
+    <h2>Running REMIND</h2>
+    <pre><code>python main.py my_scene custom-seg.pt \
+  --input-video-fps 5 \
+  --output-fps 25 \
+  --save-output-video</code></pre>
+    <p>
+      Inputs can be videos or extracted frame folders. YOLO segmentation weights are expected under <code>yolo/</code>.
+    </p>
+  </section>
+
+  <section id="citation">
+    <h2>Citation</h2>
+    <p>Replace this placeholder with the final BibTeX entry.</p>
+    <pre><code>@misc{remind2026,
+  title  = {REMIND: Re-identification with Memory and Instance Descriptors},
+  author = {Author Names},
+  year   = {2026}
+}</code></pre>
+  </section>
+
+  <footer>
+    <p>
+      REMIND project page. Code:
+      <a href="https://github.com/cvar-vision-dl/remind-reid-tracker">github.com/cvar-vision-dl/remind-reid-tracker</a>
+    </p>
   </footer>
-
 </body>
 </html>
