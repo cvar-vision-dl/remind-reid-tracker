@@ -6,13 +6,13 @@
   <title>REMIND</title>
   <style>
     :root {
-      --text: #1f2933;
+      --text: #111111;
       --muted: #5f6f82;
       --line: #d8e0ea;
       --soft: #f5f7fa;
       --accent: #0f766e;
       --accent-dark: #115e59;
-      --link: #2563eb;
+      --link: #1687e8;
       --max: 980px;
     }
 
@@ -64,11 +64,13 @@
       border-bottom: 1px solid var(--line);
       font-size: 25px;
       font-weight: 700;
+      text-align: center;
     }
 
     h3 {
       margin: 0 0 8px;
       font-size: 18px;
+      text-align: center;
     }
 
     p {
@@ -90,7 +92,7 @@
     }
 
     .authors {
-      color: var(--accent-dark);
+      color: var(--link);
       font-weight: 700;
     }
 
@@ -104,23 +106,25 @@
 
     .button {
       display: inline-flex;
+      justify-content: center;
       align-items: center;
+      min-width: 96px;
       min-height: 38px;
       padding: 8px 15px;
-      border: 1px solid var(--accent);
+      border: 1px solid #111111;
       border-radius: 5px;
       color: #ffffff;
-      background: var(--accent);
+      background: #111111;
       font-weight: 700;
     }
 
     .button.secondary {
-      color: var(--accent-dark);
-      background: #ffffff;
+      color: #ffffff;
+      background: #111111;
     }
 
     .button:hover {
-      background: var(--accent-dark);
+      background: #333333;
       color: #ffffff;
       text-decoration: none;
     }
@@ -186,6 +190,7 @@
       border: 1px solid var(--line);
       border-radius: 6px;
       background: var(--soft);
+      text-align: center;
     }
 
     .method-step strong {
@@ -197,36 +202,51 @@
     .dataset-examples {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 8px;
-      margin-top: 14px;
+      gap: 14px;
+      margin-top: 18px;
     }
 
     .dataset-examples img,
     .dataset-examples .placeholder {
-      min-height: 95px;
+      min-height: 150px;
       border: 1px solid var(--line);
       border-radius: 4px;
       background: #ffffff;
       object-fit: cover;
     }
 
+    .dataset-list {
+      display: grid;
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .dataset-links {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
     .small-button {
       display: inline-flex;
-      margin-top: 12px;
+      justify-content: center;
       min-height: 32px;
+      min-width: 128px;
       align-items: center;
       padding: 6px 11px;
-      border: 1px solid var(--accent);
+      border: 1px solid #111111;
       border-radius: 5px;
       color: #ffffff;
-      background: var(--accent);
+      background: #111111;
       font-size: 14px;
       font-weight: 700;
     }
 
     .small-button:hover {
       color: #ffffff;
-      background: var(--accent-dark);
+      background: #333333;
       text-decoration: none;
     }
 
@@ -291,6 +311,10 @@
       .method-grid {
         grid-template-columns: 1fr;
       }
+
+      .dataset-examples {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
@@ -304,7 +328,7 @@
     <p class="authors">Alejandro Rodriguez Ramos, Pablo Diaz Pereda</p>
     <p class="affiliation">
       Universidad Politecnica de Madrid · Escuela Tecnica Superior de Ingenieros Industriales ·
-      Centro de Automatica y Robotica · CVAR, Computer Vision and Aerial Robotics Research Group
+      Centre for Automation and Robotics · Computer Vision and Aerial Robotics Research Group (CVAR)
     </p>
 
     <div class="buttons">
@@ -367,7 +391,7 @@
 
   <section id="dataset">
     <h2>Dataset</h2>
-    <div class="method-grid">
+    <div class="dataset-list">
       <div class="method-step">
         <strong>Custom Dataset</strong>
         Single video recorded in a living room under controlled conditions. The sequence contains medium-low object
@@ -388,9 +412,10 @@
           <div class="placeholder">ScanNet++ example 2</div>
           <div class="placeholder">ScanNet++ example 3</div>
         </div>
-        <a class="small-button" href="https://scannetpp.mlsg.cit.tum.de/scannetpp/">ScanNet++ page</a>
-        <a class="small-button" href="https://github.com/scannetpp/scannetpp">Code</a>
-        <a class="small-button" href="https://openaccess.thecvf.com/content/ICCV2023/html/Yeshwanth_ScanNet_A_High-Fidelity_Dataset_of_3D_Indoor_Scenes_ICCV_2023_paper.html">Paper</a>
+        <div class="dataset-links">
+          <a class="small-button" href="https://scannetpp.mlsg.cit.tum.de/scannetpp/">ScanNet++ page</a>
+          <a class="small-button" href="https://github.com/scannetpp/scannetpp">Code</a>
+        </div>
       </div>
     </div>
   </section>
