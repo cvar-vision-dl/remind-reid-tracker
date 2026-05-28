@@ -338,9 +338,6 @@
 <body>
   <header>
     <h1>REMIND: <span class="title-tail">RE-identification with Memory for INDoor Navigation</span></h1>
-    <p class="subtitle">
-      Re-identification with Memory and Instance Descriptors for long-term multi-object tracking
-    </p>
     <p class="authors">Alejandro Rodriguez Ramos, Pablo Diaz Pereda</p>
     <p class="affiliation">
       Universidad Politecnica de Madrid · Escuela Tecnica Superior de Ingenieros Industriales ·
@@ -453,25 +450,44 @@
       <thead>
         <tr>
           <th>Dataset</th>
+          <th>Method</th>
+          <th>Detector</th>
           <th>IDF1</th>
           <th>Recovery</th>
-          <th>Baseline</th>
           <th>Note</th>
         </tr>
       </thead>
       <tbody>
         <tr>
           <td>Custom Dataset</td>
-          <td>TBD</td>
-          <td>TBD</td>
-          <td>TBD</td>
+          <td>D4SM</td>
+          <td>GT masks init</td>
+          <td>70.53%</td>
+          <td>69.15%</td>
+          <td>GT masks isolate the identity-association behavior from detector errors.</td>
+        </tr>
+        <tr>
+          <td>Custom Dataset</td>
+          <td>REMIND</td>
+          <td>GT masks</td>
+          <td>90.35%</td>
+          <td>85.46%</td>
           <td>GT masks isolate the identity-association behavior from detector errors.</td>
         </tr>
         <tr>
           <td>ScanNet++</td>
-          <td>TBD</td>
-          <td>TBD</td>
-          <td>TBD</td>
+          <td>D4SM</td>
+          <td>GT masks init</td>
+          <td>60.71%</td>
+          <td>41.65%</td>
+          <td>DAVIS-style masks exported from selected indoor scenes.</td>
+        </tr>
+        <tr>
+          <td>ScanNet++</td>
+          <td>REMIND</td>
+          <td>GT masks</td>
+          <td>66.67%</td>
+          <td>58.36%</td>
           <td>DAVIS-style masks exported from selected indoor scenes.</td>
         </tr>
       </tbody>
@@ -482,26 +498,45 @@
       <thead>
         <tr>
           <th>Dataset</th>
+          <th>Method</th>
+          <th>Detector</th>
           <th>IDF1</th>
           <th>Recovery</th>
-          <th>Baseline</th>
           <th>Note</th>
         </tr>
       </thead>
       <tbody>
         <tr>
           <td>Custom Dataset</td>
-          <td>TBD</td>
-          <td>TBD</td>
-          <td>TBD</td>
+          <td>D4SM</td>
+          <td>YOLO init</td>
+          <td>64.54%</td>
+          <td>65.96%</td>
           <td>End-to-end tracking with detector noise and missed detections.</td>
         </tr>
         <tr>
-          <td>ScanNet++</td>
-          <td>TBD</td>
-          <td>TBD</td>
-          <td>TBD</td>
+          <td>Custom Dataset</td>
+          <td>REMIND</td>
+          <td>YOLO</td>
+          <td>75.45%</td>
+          <td>79.08%</td>
           <td>YOLO masks are used as the perception input before REMIND association.</td>
+        </tr>
+        <tr>
+          <td>ScanNet++</td>
+          <td>D4SM</td>
+          <td>YOLO init</td>
+          <td>-</td>
+          <td>-</td>
+          <td>YOLO results are not reported for this setting.</td>
+        </tr>
+        <tr>
+          <td>ScanNet++</td>
+          <td>REMIND</td>
+          <td>YOLO</td>
+          <td>-</td>
+          <td>-</td>
+          <td>YOLO results are not reported for this setting.</td>
         </tr>
       </tbody>
     </table>
@@ -525,17 +560,6 @@
         </div>
       </div>
     </div>
-  </section>
-
-  <section id="run">
-    <h2>Running REMIND</h2>
-    <pre><code>python main.py my_scene custom-seg.pt \
-  --input-video-fps 5 \
-  --output-fps 25 \
-  --save-output-video</code></pre>
-    <p>
-      Inputs can be videos or extracted frame folders. YOLO segmentation weights are expected under <code>yolo/</code>.
-    </p>
   </section>
 
   <section id="citation">
