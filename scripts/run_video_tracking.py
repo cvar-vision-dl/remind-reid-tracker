@@ -275,13 +275,31 @@ def _color_for_id(identity: int) -> tuple[int, int, int]:
 
 def _draw_text_box(img: np.ndarray, text: str, org: tuple[int, int], color: tuple[int, int, int]) -> None:
     font = cv2.FONT_HERSHEY_SIMPLEX
-    scale = 0.5
-    thickness = 1
+    scale = 0.68
+    thickness = 2
+    pad_x = 4
+    pad_y = 4
     x, y = int(org[0]), int(org[1])
     (tw, th), baseline = cv2.getTextSize(text, font, scale, thickness)
-    y = max(th + 8, y)
-    cv2.rectangle(img, (x, y - th - baseline - 6), (x + tw + 8, y + baseline + 2), color, -1)
-    cv2.putText(img, text, (x + 4, y - 4), font, scale, (0, 0, 0), thickness, cv2.LINE_AA)
+    h, w = img.shape[:2]
+    box_w = int(tw + 2 * pad_x)
+    box_h = int(th + baseline + 2 * pad_y)
+    x0 = int(max(0, min(max(0, w - box_w - 1), x)))
+    y0 = int(max(0, min(max(0, h - box_h - 1), y)))
+    x1 = int(min(w - 1, x0 + box_w))
+    y1 = int(min(h - 1, y0 + box_h))
+    cv2.rectangle(img, (x0, y0), (x1, y1), (0, 0, 0), -1)
+    cv2.rectangle(img, (x0, y0), (x1, y1), color, 2)
+    cv2.putText(
+        img,
+        text,
+        (int(x0 + pad_x), int(y0 + pad_y + th)),
+        font,
+        scale,
+        (255, 255, 255),
+        thickness,
+        cv2.LINE_AA,
+    )
 
 
 def _entries_by_det_id(update_output) -> dict[int, dict[str, Any]]:
@@ -365,8 +383,7 @@ def render_frame(frame: np.ndarray, detections: list, update_output, header: str
         if bbox is not None:
             x1, y1 = [int(round(float(x))) for x in bbox[:2]]
             class_name = getattr(det, "class_name", None) or f"class_{int(getattr(det, 'class_id', -1))}"
-            conf = float(getattr(det, "confidence", 0.0) or 0.0)
-            text = f"{entry['label']} {class_name} {conf:.2f}"
+            text = f"{entry['label']} {class_name}"
             _draw_text_box(out, text, (x1, max(0, y1 - 4)), color)
 
         details.append(_detection_json(det, entry))
