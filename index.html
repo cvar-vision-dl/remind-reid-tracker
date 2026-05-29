@@ -183,6 +183,21 @@
       gap: 16px;
     }
 
+    #videos {
+      max-width: 1280px;
+    }
+
+    #videos .video-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 20px;
+    }
+
+    #videos video {
+      aspect-ratio: 16 / 9;
+      background: #000000;
+      object-fit: contain;
+    }
+
     .panel {
       border: 1px solid var(--line);
       border-radius: 6px;
@@ -334,6 +349,10 @@
         grid-template-columns: 1fr;
       }
 
+      #videos .video-grid {
+        grid-template-columns: 1fr;
+      }
+
       .dataset-examples {
         grid-template-columns: 1fr;
       }
@@ -381,6 +400,9 @@
 
   <section id="videos">
     <h2>Tracking Examples</h2>
+    <p>
+      These examples show REMIND tracking on selected ScanNet++ indoor scenes converted to DAVIS-style sequences.
+    </p>
     <div class="video-grid">
       <div class="panel">
         <video controls muted playsinline preload="metadata">
@@ -616,11 +638,19 @@
 
   <section id="citation">
     <h2>Citation</h2>
-    <p>Replace this placeholder with the final BibTeX entry.</p>
+    <p>Please cite REMIND and the ScanNet++ dataset when using this project page, code, or data-derived results.</p>
+    <h3>REMIND</h3>
     <pre><code>@misc{remind2026,
   title  = {REMIND: Re-identification with Memory and Instance Descriptors},
   author = {Author Names},
   year   = {2026}
+}</code></pre>
+    <h3>ScanNet++</h3>
+    <pre><code>@inproceedings{yeshwanthliu2023scannetpp,
+  title={ScanNet++: A High-Fidelity Dataset of 3D Indoor Scenes},
+  author={Yeshwanth, Chandan and Liu, Yueh-Cheng and Nie{\ss}ner, Matthias and Dai, Angela},
+  booktitle = {Proceedings of the International Conference on Computer Vision ({ICCV})},
+  year={2023}
 }</code></pre>
   </section>
 
