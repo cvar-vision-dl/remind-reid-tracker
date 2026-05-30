@@ -220,6 +220,39 @@
       background: var(--soft);
     }
 
+    .qualitative-feature {
+      grid-column: 1 / -1;
+    }
+
+    .qualitative-placeholder {
+      aspect-ratio: 16 / 9;
+      min-height: 260px;
+    }
+
+    .comparison-labels {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      background: #111111;
+      color: #ffffff;
+      font-size: 15px;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .comparison-labels span {
+      padding: 10px 12px;
+    }
+
+    .comparison-labels span + span {
+      border-left: 1px solid #555555;
+    }
+
+    .qualitative-video {
+      aspect-ratio: 32 / 9;
+      background: #000000;
+      object-fit: contain;
+    }
+
     .method-step {
       padding: 16px;
       border: 1px solid var(--line);
@@ -630,19 +663,57 @@
 
   <section id="qualitative">
     <h2>Qualitative Results</h2>
+    <p>
+      Qualitative comparisons focus on the effect of the detection source in the custom video and on the comparison
+      between REMIND and D4SM in selected ScanNet++ benchmark scenes.
+    </p>
     <div class="result-grid">
-      <div class="panel">
-        <div class="placeholder">Add comparison image or GIF</div>
+      <div class="panel qualitative-feature">
+        <div class="comparison-labels">
+          <span>Detector: GT masks</span>
+          <span>Detector: YOLO</span>
+        </div>
+        <video class="qualitative-video" controls muted playsinline preload="metadata">
+          <source src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/remind_custom_gt_vs_yolo.mp4#t=0.1" type="video/mp4" />
+        </video>
         <div class="panel-body">
-          <h3>Stable IDs</h3>
-          <p>Consistent colors and labels across viewpoint changes.</p>
+          <h3>Custom video: GT masks vs YOLO detections</h3>
+          <p>
+            Side-by-side REMIND comparison on the custom video, contrasting tracking from ground-truth masks with
+            tracking from YOLO detections.
+          </p>
         </div>
       </div>
+
       <div class="panel">
-        <div class="placeholder">Add failure / ambiguity visualization</div>
+        <div class="placeholder qualitative-placeholder">Add ScanNet++ REMIND vs D4SM video 1</div>
         <div class="panel-body">
-          <h3>Explicit uncertainty</h3>
-          <p>Ambiguous detections are marked instead of forcing unreliable assignments.</p>
+          <h3>REMIND vs D4SM: ScanNet++ scene 1</h3>
+          <p>Qualitative comparison on an official ScanNet++ benchmark scene converted to DAVIS-style tracking.</p>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="placeholder qualitative-placeholder">Add ScanNet++ REMIND vs D4SM video 2</div>
+        <div class="panel-body">
+          <h3>REMIND vs D4SM: ScanNet++ scene 2</h3>
+          <p>Qualitative comparison on an official ScanNet++ benchmark scene converted to DAVIS-style tracking.</p>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="placeholder qualitative-placeholder">Add ScanNet++ REMIND vs D4SM video 3</div>
+        <div class="panel-body">
+          <h3>REMIND vs D4SM: ScanNet++ scene 3</h3>
+          <p>Qualitative comparison on an official ScanNet++ benchmark scene converted to DAVIS-style tracking.</p>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="placeholder qualitative-placeholder">Add ScanNet++ REMIND vs D4SM video 4</div>
+        <div class="panel-body">
+          <h3>REMIND vs D4SM: ScanNet++ scene 4</h3>
+          <p>Qualitative comparison on an official ScanNet++ benchmark scene converted to DAVIS-style tracking.</p>
         </div>
       </div>
     </div>
