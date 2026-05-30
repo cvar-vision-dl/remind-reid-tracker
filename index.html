@@ -238,18 +238,29 @@
 
     .dataset-examples {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 14px;
-      margin-top: 18px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      margin-top: 20px;
     }
 
     .dataset-examples img,
     .dataset-examples .placeholder {
-      min-height: 150px;
+      aspect-ratio: 16 / 9;
+      min-height: 260px;
       border: 1px solid var(--line);
       border-radius: 4px;
       background: #ffffff;
       object-fit: cover;
+    }
+
+    .dataset-examples .placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #dataset {
+      max-width: 1280px;
     }
 
     .dataset-list {
@@ -417,14 +428,15 @@
       <div class="method-step">
         <strong>ScanNet++</strong>
         Indoor scenes with object instances, semantic labels, and segmentation masks. We convert selected scenes to a
-        DAVIS-style tracking format to evaluate identity consistency across complex real-world indoor environments.
+        DAVIS-style tracking format to evaluate identity consistency across complex real-world indoor environments. The
+        GIFs shown below use the official ScanNet++ benchmark annotations from the official dataset release.
         <div class="dataset-examples">
-          <div class="placeholder">ScanNet++ example 1</div>
-          <div class="placeholder">ScanNet++ example 2</div>
-          <div class="placeholder">ScanNet++ example 3</div>
-          <div class="placeholder">ScanNet++ example 4</div>
-          <div class="placeholder">ScanNet++ example 5</div>
-          <div class="placeholder">ScanNet++ example 6</div>
+          <img src="assets/images/scannetpp_gt_scene_f1e01af60a.gif" alt="ScanNet++ scene f1e01af60a with benchmark GT masks and class labels" />
+          <img src="assets/images/scannetpp_gt_scene_3ff873c77e.gif" alt="ScanNet++ scene 3ff873c77e with benchmark GT masks and class labels" />
+          <img src="assets/images/scannetpp_gt_scene_d3b7d054c4.gif" alt="ScanNet++ scene d3b7d054c4 with benchmark GT masks and class labels" />
+          <img src="assets/images/scannetpp_gt_scene_07e6f56969.gif" alt="ScanNet++ scene 07e6f56969 with benchmark GT masks and class labels" />
+          <img src="assets/images/scannetpp_gt_scene_41b00feddb.gif" alt="ScanNet++ scene 41b00feddb with benchmark GT masks and class labels" />
+          <img src="assets/images/scannetpp_gt_scene_45b0dac5e3.gif" alt="ScanNet++ scene 45b0dac5e3 with benchmark GT masks and class labels" />
         </div>
         <div class="dataset-links">
           <a class="small-button" href="https://scannetpp.mlsg.cit.tum.de/scannetpp/">ScanNet++ page</a>
