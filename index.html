@@ -224,8 +224,17 @@
       grid-column: 1 / -1;
     }
 
+    #qualitative {
+      max-width: 1280px;
+    }
+
+    #qualitative .result-grid {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
     .qualitative-placeholder {
-      aspect-ratio: 16 / 9;
+      aspect-ratio: 32 / 9;
       min-height: 260px;
     }
 
@@ -669,13 +678,6 @@
     </p>
     <div class="result-grid">
       <div class="panel qualitative-feature">
-        <div class="comparison-labels">
-          <span>Detector: GT masks</span>
-          <span>Detector: YOLO</span>
-        </div>
-        <video class="qualitative-video" controls muted playsinline preload="metadata">
-          <source src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/remind_custom_gt_vs_yolo.mp4" type="video/mp4" />
-        </video>
         <div class="panel-body">
           <h3>Custom video: GT masks vs YOLO detections</h3>
           <p>
@@ -683,38 +685,61 @@
             tracking from YOLO detections.
           </p>
         </div>
+        <div class="comparison-labels">
+          <span>Detector: GT masks</span>
+          <span>Detector: YOLO</span>
+        </div>
+        <video class="qualitative-video" controls muted playsinline preload="metadata">
+          <source src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/remind_custom_gt_vs_yolo.mp4" type="video/mp4" />
+        </video>
       </div>
 
       <div class="panel">
-        <div class="placeholder qualitative-placeholder">Add ScanNet++ REMIND vs D4SM video 1</div>
         <div class="panel-body">
           <h3>REMIND vs D4SM: ScanNet++ scene 1</h3>
           <p>Qualitative comparison on an official ScanNet++ benchmark scene converted to DAVIS-style tracking.</p>
         </div>
+        <div class="comparison-labels">
+          <span>REMIND</span>
+          <span>D4SM</span>
+        </div>
+        <div class="placeholder qualitative-placeholder">Add ScanNet++ REMIND vs D4SM video 1</div>
       </div>
 
       <div class="panel">
-        <div class="placeholder qualitative-placeholder">Add ScanNet++ REMIND vs D4SM video 2</div>
         <div class="panel-body">
           <h3>REMIND vs D4SM: ScanNet++ scene 2</h3>
           <p>Qualitative comparison on an official ScanNet++ benchmark scene converted to DAVIS-style tracking.</p>
         </div>
+        <div class="comparison-labels">
+          <span>REMIND</span>
+          <span>D4SM</span>
+        </div>
+        <div class="placeholder qualitative-placeholder">Add ScanNet++ REMIND vs D4SM video 2</div>
       </div>
 
       <div class="panel">
-        <div class="placeholder qualitative-placeholder">Add ScanNet++ REMIND vs D4SM video 3</div>
         <div class="panel-body">
           <h3>REMIND vs D4SM: ScanNet++ scene 3</h3>
           <p>Qualitative comparison on an official ScanNet++ benchmark scene converted to DAVIS-style tracking.</p>
         </div>
+        <div class="comparison-labels">
+          <span>REMIND</span>
+          <span>D4SM</span>
+        </div>
+        <div class="placeholder qualitative-placeholder">Add ScanNet++ REMIND vs D4SM video 3</div>
       </div>
 
       <div class="panel">
-        <div class="placeholder qualitative-placeholder">Add ScanNet++ REMIND vs D4SM video 4</div>
         <div class="panel-body">
           <h3>REMIND vs D4SM: ScanNet++ scene 4</h3>
           <p>Qualitative comparison on an official ScanNet++ benchmark scene converted to DAVIS-style tracking.</p>
         </div>
+        <div class="comparison-labels">
+          <span>REMIND</span>
+          <span>D4SM</span>
+        </div>
+        <div class="placeholder qualitative-placeholder">Add ScanNet++ REMIND vs D4SM video 4</div>
       </div>
     </div>
   </section>
