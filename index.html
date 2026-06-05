@@ -175,6 +175,15 @@
       text-align: center;
     }
 
+    .video-note {
+      max-width: 900px;
+      margin: 12px auto 0;
+      color: var(--muted);
+      font-size: 15px;
+      text-align: justify;
+      text-align-last: left;
+    }
+
     .video-grid,
     .result-grid,
     .method-grid {
@@ -430,6 +439,11 @@
       <p class="caption">
         REMIND overview video.
       </p>
+      <p class="video-note">
+        To read the visualization, follow each object's color and class label over time: when they remain stable, REMIND
+        is preserving the same identity for the same physical object. White masks indicate ambiguous or provisional
+        tracks, where the system delays committing to a persistent identity until there is enough evidence.
+      </p>
     </div>
   </header>
 
@@ -571,7 +585,7 @@
       </thead>
       <tbody>
         <tr>
-          <td>D4SM</td>
+          <td>DAM4SAM</td>
           <td>GT masks init</td>
           <td>70.53%</td>
           <td>69.15%</td>
@@ -597,7 +611,7 @@
       </thead>
       <tbody>
         <tr>
-          <td>D4SM</td>
+          <td>DAM4SAM</td>
           <td>GT masks init</td>
           <td>60.71%</td>
           <td>41.65%</td>
@@ -624,7 +638,7 @@
       </thead>
       <tbody>
         <tr>
-          <td>D4SM</td>
+          <td>DAM4SAM</td>
           <td>YOLO init</td>
           <td>64.54%</td>
           <td>65.96%</td>
@@ -650,7 +664,7 @@
       </thead>
       <tbody>
         <tr>
-          <td>D4SM</td>
+          <td>DAM4SAM</td>
           <td>YOLO init</td>
           <td>-</td>
           <td>-</td>
@@ -669,7 +683,12 @@
     <h2>Qualitative Results</h2>
     <p>
       Qualitative comparisons focus on the effect of the detection source in the custom video and on the comparison
-      between REMIND and D4SM in selected ScanNet++ benchmark scenes.
+      between REMIND and DAM4SAM in selected ScanNet++ benchmark scenes.
+    </p>
+    <p class="video-note">
+      In these videos, stable colors and class labels are the main cue for correct re-identification: they show that the
+      tracker keeps assigning the same identity to the same object across frames. White masks mark ambiguous or temporary
+      assignments, reflecting cases where REMIND is intentionally cautious before updating its memory.
     </p>
     <div class="result-grid">
       <div class="panel qualitative-feature">
@@ -678,6 +697,11 @@
           <p>
             Side-by-side REMIND comparison on the custom video, contrasting tracking from ground-truth masks with
             tracking from YOLO detections.
+          </p>
+          <p>
+            YOLO is expected to perform worse than ground-truth masks because detections can fail, mask boundaries are
+            less precise, and a single object may be split into multiple regions. These fragments create false duplicate
+            objects and can pollute the contextual memory used to describe nearby objects.
           </p>
         </div>
         <div class="comparison-labels">
@@ -690,39 +714,57 @@
       </div>
 
       <div>
-        <h3>REMIND vs D4SM on ScanNet++</h3>
+        <h3>REMIND vs DAM4SAM on ScanNet++</h3>
         <p>
-          Side-by-side qualitative comparisons on six official ScanNet++ benchmark scenes converted to DAVIS-style
+          Side-by-side qualitative comparisons on five official ScanNet++ benchmark scenes converted to DAVIS-style
           tracking sequences.
         </p>
       </div>
 
       <div class="panel">
+        <div class="panel-body">
+          <p>
+            In the first ScanNet++ example, REMIND keeps the bed region and the curtain more consistently tracked, while
+            DAM4SAM intermittently loses them.
+          </p>
+        </div>
         <div class="comparison-labels">
           <span>REMIND</span>
-          <span>D4SM</span>
+          <span>DAM4SAM</span>
         </div>
-        <video class="qualitative-video" controls muted playsinline preload="metadata" aria-label="REMIND vs D4SM comparison on ScanNet++ scene 02f25e5fee">
+        <video class="qualitative-video" controls muted playsinline preload="metadata" aria-label="REMIND vs DAM4SAM comparison on ScanNet++ scene 02f25e5fee">
           <source src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/COMPARE_REMIND_GT_VS_D4SM_GT_INIT_02f25e5fee.mp4" type="video/mp4" />
         </video>
       </div>
 
       <div class="panel">
+        <div class="panel-body">
+          <p>
+            In the second example, DAM4SAM loses the table and several objects placed on top of it at some point in the
+            sequence, while REMIND preserves more stable identities.
+          </p>
+        </div>
         <div class="comparison-labels">
           <span>REMIND</span>
-          <span>D4SM</span>
+          <span>DAM4SAM</span>
         </div>
-        <video class="qualitative-video" controls muted playsinline preload="metadata" aria-label="REMIND vs D4SM comparison on ScanNet++ scene 268513240f">
+        <video class="qualitative-video" controls muted playsinline preload="metadata" aria-label="REMIND vs DAM4SAM comparison on ScanNet++ scene 268513240f">
           <source src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/COMPARE_REMIND_GT_VS_D4SM_GT_INIT_268513240f.mp4" type="video/mp4" />
         </video>
       </div>
 
       <div class="panel">
+        <div class="panel-body">
+          <p>
+            In the third example, DAM4SAM temporarily loses the table, chair, and TV, although it later recovers them,
+            whereas REMIND keeps these objects more consistently connected across the sequence.
+          </p>
+        </div>
         <div class="comparison-labels">
           <span>REMIND</span>
-          <span>D4SM</span>
+          <span>DAM4SAM</span>
         </div>
-        <video class="qualitative-video" controls muted playsinline preload="metadata" aria-label="REMIND vs D4SM comparison on ScanNet++ scene 2f5996ff01">
+        <video class="qualitative-video" controls muted playsinline preload="metadata" aria-label="REMIND vs DAM4SAM comparison on ScanNet++ scene 2f5996ff01">
           <source src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/COMPARE_REMIND_GT_VS_D4SM_GT_INIT_2f5996ff01.mp4" type="video/mp4" />
         </video>
       </div>
@@ -730,29 +772,25 @@
       <div class="panel">
         <div class="comparison-labels">
           <span>REMIND</span>
-          <span>D4SM</span>
+          <span>DAM4SAM</span>
         </div>
-        <video class="qualitative-video" controls muted playsinline preload="metadata" aria-label="REMIND vs D4SM comparison on ScanNet++ scene 37c9538a2b">
+        <video class="qualitative-video" controls muted playsinline preload="metadata" aria-label="REMIND vs DAM4SAM comparison on ScanNet++ scene 37c9538a2b">
           <source src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/COMPARE_REMIND_GT_VS_D4SM_GT_INIT_37c9538a2b.mp4" type="video/mp4" />
         </video>
       </div>
 
       <div class="panel">
+        <div class="panel-body">
+          <p>
+            In the fifth example, REMIND maintains stable tracks for the chairs, table, and surrounding furniture, while
+            DAM4SAM loses the chairs and table and also struggles with the door and cabinet during parts of the sequence.
+          </p>
+        </div>
         <div class="comparison-labels">
           <span>REMIND</span>
-          <span>D4SM</span>
+          <span>DAM4SAM</span>
         </div>
-        <video class="qualitative-video" controls muted playsinline preload="metadata" aria-label="REMIND vs D4SM comparison on ScanNet++ scene 7fb8ff20e9">
-          <source src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/COMPARE_REMIND_GT_VS_D4SM_GT_INIT_7fb8ff20e9.mp4" type="video/mp4" />
-        </video>
-      </div>
-
-      <div class="panel">
-        <div class="comparison-labels">
-          <span>REMIND</span>
-          <span>D4SM</span>
-        </div>
-        <video class="qualitative-video" controls muted playsinline preload="metadata" aria-label="REMIND vs D4SM comparison on ScanNet++ scene a30b666f83">
+        <video class="qualitative-video" controls muted playsinline preload="metadata" aria-label="REMIND vs DAM4SAM comparison on ScanNet++ scene a30b666f83">
           <source src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/COMPARE_REMIND_GT_VS_D4SM_GT_INIT_a30b666f83.mp4" type="video/mp4" />
         </video>
       </div>
