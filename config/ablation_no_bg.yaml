@@ -1,0 +1,932 @@
+# config/default_config.yaml
+
+# =============================================================================
+# SYSTEM / GLOBAL
+# =============================================================================
+system:
+  input_width_size: 1280
+
+runtime:
+  device: auto
+  seed: 0
+
+timing:
+  enabled: true
+  precision: 2
+  table: true
+  detail_keys: ["detector", "detector/segment", "detector/ignored_filter", "dino", "obj_features", "bg_features", "bg_features/bg_rings", "bg_features/bg_inner_global", "bg_features/bg_outer_global", "bg_features/bg_proto_inner", "bg_features/bg_proto_outer", "parts_features", "parts_features/parts_kmeans", "parts_features/parts_attention"]
+  association_detail_keys: ["sim_candidates", "reliable_anchor_ids", "neighbor_sets", "ambiguity_sim", "hungarian", "hungarian/partition", "hungarian/prepare", "hungarian/prepare/context", "hungarian/prepare/shortlist", "hungarian/prepare/soft_gate", "hungarian/assign_classes", "hungarian/assign_classes/score_tables", "hungarian/assign_classes/locks", "hungarian/assign_classes/solve", "hungarian/assign_classes/solve/score_tables", "hungarian/assign_classes/solve/cost_matrix", "hungarian/assign_classes/solve/resolve", "post_assignment", "post_assignment/identity_stability", "post_assignment/ambiguous_candidates", "post_assignment/temporal_reconcile", "post_assignment/final_pack", "post_assignment/geom_pack", "post_assignment/finalize", "ambiguity_final"]
+  update_detail_keys: ["matches", "creates", "ambiguous_tracks", "provisional_tracks", "neighbor_graphs", "neighbor_graphs/dist_observations", "neighbor_graphs/graph_updates", "misses", "finalize"]
+
+paths:
+  output_dir: "outputs"
+
+input:
+  frames_dir: null
+
+# =============================================================================
+# MODELS
+# =============================================================================
+detector:
+  backend: "davis"
+  ignored_classes: ["wall", "floor", "ceiling","object"]
+
+yolo:
+  model_label: 11L
+  models:
+    8N: "APP2/yolo_models/yolov8n-seg.pt"
+    8S: "APP2/yolo_models/yolov8s-seg.pt"
+    8M: "APP2/yolo_models/yolov8m-seg.pt"
+    8L: "APP2/yolo_models/yolov8l-seg.pt"
+    11N: "APP2/yolo_models/yolo11n-seg.pt"
+    11S: "APP2/yolo_models/yolo11s-seg.pt"
+    11M: "APP2/yolo_models/yolo11m-seg.pt"
+    11L: "APP2/yolo_models/yolo11l-seg.pt"
+    BARCO: "APP2/yolo_models/barco.pt"
+  conf_th: 0.7
+  iou_th: 0.5
+  max_det: 100
+  classes: null
+  mask_erosion_px: 2
+  mask_erosion_iters: 1
+
+davis:
+  sequence_name: null
+  variant: "bench"
+  davis_root: "DAVIS_OUT"
+  davis_res: "raw"
+  meta_path: null
+  annotations_dir: null
+  classes: null
+  mask_erosion_iters: 1
+  prefetch_annotations: true
+  prefetch_distance: 1
+
+dino:
+  model_label: S
+  models:
+    S: "facebook/dinov3-vits16-pretrain-lvd1689m"
+    B: "facebook/dinov3-vitb16-pretrain-lvd1689m"
+    L: "facebook/dinov3-vitl16-pretrain-lvd1689m"
+    7B: "facebook/dinov3-vit7b16-pretrain-lvd1689m"
+  default_patch_size: 16
+  normalize_embeddings: true
+  patch_selection: "any"
+  patch_threshold: 0.0
+  patch_coverage_mode: "resize_area"
+
+# =============================================================================
+# PERCEPTION / FEATURES
+# =============================================================================
+perception:
+  full_center_crop: true
+
+object_features:
+  global:
+    enabled: true
+    weighted: true
+
+  global_trimmed:
+    enabled: true
+    weighted: true
+    keep_frac: 0.50
+    min_patches: 8
+
+  patch:
+    enabled: true
+    max_patches: 512
+    return_coverage: true
+    l2_normalize: true
+
+part_descriptors:
+  enabled: true
+
+  kmeans:
+    enabled: true
+    k: 4
+    iters: 5
+    n_init: 2
+    seed: 0
+    weighted: true
+    use_trimmed_mean: false
+    trimmed_keep_frac: 0.50
+    trimmed_min_patches: 8
+    min_cluster_patches: 6
+    min_support: 0.0
+    return_masks: false
+    merge:
+      enabled: true
+      sim_thr: 0.8
+      mode: "keep_best"
+
+  attention:
+    enabled: false
+    head_ids: null
+    weighted: true
+    use_trimmed_mean: false
+    trimmed_keep_frac: 0.50
+    trimmed_min_patches: 8
+    return_masks: false
+    max_seeds: 3
+    region_frac: 0.25
+    min_region_patches: 6
+    max_region_frac: 0.60
+    seed_score: "in_degree"
+
+bg_local:
+  enabled: true
+  inner_radius_patches: 3
+  outer_radius_patches: 6
+  ring_mode: "disjoint"
+  obj_patch_min_coverage: 0.0
+  combine_weights:
+    inner: 0.7
+    outer: 0.3
+  sanitize:
+    enabled: true
+    mode: "convex_hull"
+    fill_holes: true
+    close_px: 3
+    open_px: 0
+    keep_largest_component: false
+  adaptive:
+    enabled: true
+    min_inner_patches: 12
+    min_outer_patches: 24
+    max_radius_patches: 10
+    border_exclusion_patches: 1
+
+  prototypes:
+    enabled: true
+    k_mode: "sqrt"
+    c_sqrt: 1.0
+    patches_per_cluster: 15
+    k_min: 4
+    k_max: 24
+    min_pts_per_cluster: 4
+    merge_sim_thr: 0.92
+    top_n: 3
+    min_mass_frac: 0.06
+    cohesion_power: 2.0
+    proto_mode: "medoid"
+
+# =============================================================================
+# MEMORY (PERSISTENT MODELS)
+# =============================================================================
+memory:
+  start_object_id: 0
+
+  appearance:
+    enabled: true
+    max_prototypes_per_channel: 20
+    max_stable_prototypes_per_channel: 20
+    channels:
+      global:
+        enabled: true
+      global_trimmed:
+        enabled: true
+      patch:
+        enabled: false
+
+  parts:
+    enabled: true
+    max_prototypes_per_channel: 80
+    channels:
+      kmeans:
+        enabled: true
+      attention:
+        enabled: true
+
+  background:
+    enabled: false
+    max_inner: 20
+    max_outer: 30
+    max_inner_partials: 60
+    max_outer_partials: 80
+    max_inner_global_stable: 20
+    max_outer_global_stable: 30
+    max_inner_partials_stable: 60
+    max_outer_partials_stable: 80
+    combine_weights:
+      inner: 0.6
+      outer: 0.4
+
+  neighbors:
+    enabled: true
+    smoothing_alpha: 0.5
+    jaccard_thr: 0.85
+    debounce_frames: 3
+    force_episode_every_frames: 3
+    decay_per_episode: 1.0
+    max_neighbors: 20
+    trim_strategy: "weight"
+
+  neighbors_distance:
+    enabled: true
+    var_floor: 0.0225
+    scale_min: 40.0
+    contact_margin_px: 2.0
+    near_thresh_n: 1.25
+    exact_gap_max_n: 1.75
+
+# =============================================================================
+# ASSOCIATION
+# =============================================================================
+association:
+  # Base similarity and observation quality.
+  similarity:
+    parts:
+      topk: 3
+    background_partials:
+      enabled: false
+      topk: 2
+    quality:
+      enabled: true
+      object:
+        min_patches: 8
+        full_patches: 32
+        min_coverage_density: 0.15
+        full_coverage_density: 0.60
+        weight_floor: 0.65
+      parts:
+        disable_below_obj_patches: 8
+        min_obj_patches: 12
+        full_obj_patches: 32
+        min_parts: 2
+        full_parts: 4
+        min_support_frac: 0.15
+        full_support_frac: 0.45
+        min_coverage_density: 0.15
+        full_coverage_density: 0.60
+        weight_floor: 0.0
+      background:
+        min_inner_patches: 8
+        full_inner_patches: 20
+        min_outer_patches: 12
+        full_outer_patches: 32
+        min_mask_quality: 0.5
+        weight_floor: 0.35
+
+  # Early confirmation of reliable anchors.
+  confirmation:
+    confirm_thr_strong: 0.75
+    confirm_clear_margin: 0.08
+
+  # Matching rules and global resolution.
+  matching:
+    match_thr: 0.75
+    clear_margin: 0.08
+
+    # Opciones: "default", "work_only"
+    proto_source_mode: "default"
+    object_mode: "max"
+    background_mode: "combined"
+    parts_mode: "max"
+
+    # Hungarian resolver and dummies/locks policy.
+    hungarian:
+      enable_dummies: true
+      dummy_score: 0.05
+
+      use_confidence_dummy: true
+      conf_alpha: 0.20
+      dummy_score_cap: 0.72
+
+      gate_by_match_thr: true
+      gate_by_min_match_score: true
+
+      locks:
+        enabled: true
+        object_enabled: true
+        det_enabled: true
+        thr: 0.90
+        gap_abs_min: 0.10
+        gap_rel_thr: 0.10
+
+      # Conservative postprocess to avoid identity swaps in conflicting
+      # same-class components. Prefer temporary states over fragile crossed matches.
+      identity_stability:
+        enabled: true
+        alt_margin: 0.05
+        keep_margin: 0.03
+        component_max_size: 4
+        assignment_gap_max: 0.05
+        fragile_gate_reasons: ["SETS_RESCUE"]
+
+      # Local case: a young existing object competes with a new detection so
+      # similar that cardinality increases, but old/new assignment cannot be
+      # resolved in the frame yet. Generates parent/new ambiguity.
+      # comprometido y deja que Update materialice la nueva identidad.
+      committed_new_competition:
+        enabled: true
+        require_young_parent: true
+        parent_max_age: 2
+        min_score: 0.75
+        pair_gap_max: 0.05
+        require_single_create_per_parent: true
+        allow_confirmed_parent: true
+        confirmed_min_score: 0.85
+        confirmed_pair_gap_max: 0.03
+
+    # Contexto global aditivo por sets.
+    # Contexto aditivo de sets sobre score_sim.
+    neighbor_sets_influence:
+      enabled: true
+      positive_cap: 0.20
+      negative_cap: 0.10
+      min_quality: 0.35
+      rescue_min_sim: 0.60
+      allow_status: ["WEAK", "AMBIGUOUS"]
+
+      quality:
+        min_best_score: 0.45
+        min_coverage_eff: 0.35
+        min_size: 2
+        size_tau: 3.0
+        weights:
+          best_score: 0.25
+          coverage_eff: 0.20
+          maturity: 0.15
+          density: 0.10
+          size: 0.15
+          pruning: 0.15
+
+      support:
+        local_weight: 0.65
+        global_weight: 0.35
+        local_hit_weight: 0.60
+        local_count_weight: 0.20
+        local_raw_weight: 0.20
+        kernel_weight: 0.75
+        hyp_weight: 0.25
+        top_weight: 0.65
+        sum_weight: 0.35
+        # Compress relative support to avoid widening the gap through historical consolidation.
+        kernel_rel_gamma: 0.75
+        hyp_rel_gamma: 0.75
+        neutral_rel: 0.20
+        # Avoid high support with residual absolute evidence.
+        min_kernel_abs_for_support: 0.10
+        # Require real kernel coverage; avoid "least bad" support from 1-2 links.
+        min_kernel_hits_for_support: 2
+        min_kernel_hit_ratio_for_support: 0.25
+        local_min_kernel_abs_for_support: 0.10
+        local_min_kernel_hits_for_support: 2
+        local_min_kernel_hit_ratio_for_support: 0.25
+        band_rel: 0.80
+        soft_band_rel: 0.65
+        # Mix relational support and global hypotheses inside the soft band.
+        soft_band_mix_kernel_weight: 0.70
+        soft_band_mix_hyp_weight: 0.30
+        pruning_weight: 0.55
+        rank_weight: 0.30
+        selectivity_weight: 0.15
+
+      contradiction:
+        min_pruning: 0.35
+        min_class_strength: 0.35
+        max_rel: 0.10
+
+    # Veto contextual conservador.
+    # Veto conservador de MATCH fuera del subconjunto soportado.
+    neighbor_sets_context_veto:
+      enabled: true
+      supported_max: 3
+      min_quality: 0.60
+      min_pruning: 0.35
+      min_class_strength: 0.50
+      max_compat_rel: 0.10
+      max_score_sets: 0.05
+      local:
+        enabled: true
+        min_quality: 0.45
+        min_episodes: 4
+        min_kernel_size: 3
+        min_expected_neighbors: 3
+        max_hit_ratio: 0.10
+        expected_mass_target: 0.75
+        expected_topk_scale: 2.0
+        require_supported_alternative: false
+
+    # Final score_sim combination.
+    renormalize_missing: true
+
+    weights:
+      object: 0.60
+      background_global: 0.25
+      background_partials: 0.05
+      parts: 0.1
+
+  # Ambiguity and confidence diagnostics.
+  ambiguity:
+    enabled: true
+    close_delta: 0.03
+    strong_gap: 0.08
+    strong_min_score: 0.80
+    ambiguous_min_score: 0.75
+
+  # Conversion from uncertainty to ambiguous tracks.
+  ambiguous_tracks:
+    enabled: true
+    max_candidates: 3
+    supported_only: true
+    max_supported_candidates: 3
+    score_mode: "known_set"
+    min_top_score: 0.45
+    min_candidate_score: 0.40
+    gap_max: 0.05
+    gap_rel_max: 0.10
+    min_compat_rel: 0.65
+    min_sets_score: 0.20
+    require_context: true
+    allow_override_match: true
+    allow_status: ["WEAK", "AMBIGUOUS"]
+    gap_eps: 1.0e-4
+    visual_fallback:
+      enabled: true
+      require_context_missing: true
+      min_top_score: 0.75
+      gap_max: 0.03
+      gap_eps: 1.0e-4
+      max_candidates: 3
+    known_set_distance_disambiguation:
+      enabled: true
+      max_passes: 2
+      max_group_size: 4
+      max_candidate_union: 5
+      max_anchors: 4
+      discriminative_anchor_topk: 3
+      anchor_pair_topk: 3
+      discriminative_anchor_min_sep: 0.02
+      selected_anchor_score_ratio_min: 0.60
+      anchor_weight: 0.55
+      visual_weight: 0.10
+      anchor_history_score_weight: 0.60
+      anchor_frame_score_weight: 0.40
+      min_edge_reliability: 0.15
+      min_anchor_informativeness: 0.10
+      min_total_evidence: 0.20
+      min_assignment_score: 0.20
+      min_gap: 0.08
+      min_core_assignment_score: 0.20
+      min_core_gap: 0.08
+      min_singleton_core_assignment_score: 0.20
+      min_singleton_core_gap: 0.10
+      min_full_sibling_core_assignment_score: 0.18
+      min_full_sibling_core_gap: 0.06
+      min_partial_same_class_core_assignment_score: 0.32
+      min_partial_same_class_core_gap: 0.14
+      gap_sigma: 0.20
+      center_sigma: 0.35
+      rank_sigma: 1.0
+      anchor_span_ref: 0.20
+      order_margin_ref: 0.20
+      distance_score_power: 2.8
+      distance_score_scale: 1.10
+      support_penalty: 0.80
+      rank_weight: 0.20
+      max_component_pair_distance: 1.75
+      min_component_pair_score: 0.08
+      obs_gap_quality_weight: 0.35
+      obs_truncation_penalty: 0.50
+      soft_anchors_enabled: true
+      soft_anchor_min_score: 0.75
+      soft_anchor_max: 4
+      soft_anchor_conf_weight: 0.35
+      anchor_pair_order_weight: 0.65
+      anchor_pair_margin_weight: 0.35
+      anchor_pair_min_consistency: 0.60
+      anchor_pair_min_margin: 0.03
+      consistency_floor: 0.45
+      consistency_power: 0.75
+      debug_anchor_topk: 5
+      debug_historical_anchor_topk: 5
+
+  # Conversion from uncertainty to provisional new tracks.
+  provisional_new:
+    enabled: true
+    min_top_score: 0.6
+    min_candidate_score: 0.5
+    support_gap_max: 0.10
+    support_gap_rel_max: 0.12
+    support_gap_eps: 1.0e-4
+    support_topk: 3
+    require_context: true
+    allow_status: ["WEAK", "AMBIGUOUS"]
+    visual_fallback:
+      enabled: true
+      require_context_missing: true
+      eps: 0.02
+      min_score: 0.7
+      min_gap: 0.08
+      max_close: 1
+      single_candidate_only: false
+
+  # Confidence computation from gaps and coverage.
+  confidence:
+    enabled: true
+    temperature: 0.05
+    min_temperature: 0.05
+    coverage_target: 0.60
+    eps: 1.0e-6
+
+    margin_mode: "sigmoid_abs"
+    gap_center: 0.10
+    gap_k: 0.05
+    min_gap_k: 0.05
+
+  scores:
+    neighbor_sets:
+      topk_sets: 20
+      beam_width: 64
+
+      per_class_det_k: 10
+      per_class_pool_k: 25
+      max_class_options: 200
+
+      max_set_size: 0
+      allow_partial_coverage: true
+      min_set_score: 0.0
+
+      min_edge_p: 0.05
+      # Threshold weak edges when estimating density.
+      density_gate_min_edge_p: true
+      density_edge_cov_gamma: 1.0
+      density_factor:
+        enabled: true
+        gamma: 2.0
+
+      # Require minimum degree to avoid isolated objects.
+      connectivity_require_min_degree: 1
+      # Penalty for poorly connected nodes.
+      connectivity_node_gamma: 1.5
+      connectivity_edge_gamma: 1.0
+
+      use_mutual: true
+      kernel_max: 6
+
+      coverage_gamma: 1.0
+      coverage_size_tau: 3.0
+      coverage_size_boost: 0.35
+      # Penalize sets that explain few absolute detections.
+      coverage_explained_beta: 1.5
+
+      exclusivity:
+        enabled: true
+        k_min: 3
+        maturity_min: 0.35
+        eps: 1.0e-12
+
+      size:
+        k_min: 2
+        tau: 2.0
+
+      class_terms:
+        ambig_beta: 0.35
+        stability_eps: 1.0e-12
+        plausible_rel: 0.75
+        fill_gamma: 1.0
+
+        # Reweight class_info and exclusivity according to set size.
+        info_k_ref: 2.0
+        info_k_gamma: 0.5
+        info_k_min_mult: 0.35
+        info_k_max_mult: 1.0
+
+        excl_k_ref: 3.0
+        excl_k_gamma: 0.5
+        excl_k_min_mult: 0.35
+        excl_k_max_mult: 1.0
+
+        # Reduce confidence if the set includes very new objects.
+        maturity_enabled: true
+        maturity_softmin_p: -3.0
+        maturity_gamma: 0.85
+
+      weights:
+        coverage: 0.40
+        size: 0.20
+        density: 0.20
+        class_info: 0.10
+        class_support: 0.10
+        class_stability: 0.10
+        exclusivity: 0.05
+
+      conf_lambda: 0.25
+
+      core:
+        shortlist_rel: 0.10
+        priors_top_m: 0
+        selective_classes:
+          min_prior: 0.50
+          rel_gap: 0.12
+
+      context:
+        enabled: true
+        k: 6
+        min_p: 0.08
+        gamma: 2.0
+        maturity_tau: 8.0
+
+      candidate_pair_matrix:
+        enabled: true
+        max_objects: 160
+
+      options:
+        obj_Lmax: 8
+        det_combo_max: 32
+        det_variants: 2
+        obj_variants: 2
+
+      # Modo del estado interno del beam:
+      # - classic: comportamiento base
+      # - bitmask_used: keeps "classic" semantics but uses bitmasks for overlap/cache
+      # - bitmask_full: also compacts unions/deduplication/part of the state
+      beam_state_mode: "bitmask_used"
+
+
+# =============================================================================
+# UPDATE POLICIES
+# =============================================================================
+update:
+  # Lifecycle general de tracks.
+  min_match_score: 0.6
+  confirm_hits: 2
+  remove_enabled: false
+
+  max_misses: 10
+  max_misses_tentative: 10
+  max_misses_confirmed: 10
+  inactive_ttl: 0
+  # Temporal management of uncertain states.
+  ambiguous_tracks:
+    enabled: true
+    ttl_frames: 6
+    min_candidate_overlap: 0.5
+    temporal_matching:
+      enabled: true
+      min_score_sim: 0.55
+      min_total_score: 0.62
+      candidate_overlap_weight: 0.18
+      candidate_distribution_weight: 0.10
+      geom_weight: 0.08
+
+  provisional_new:
+    enabled: true
+    ttl_frames: 6
+    min_support_overlap: 0.5
+    temporal_matching:
+      enabled: true
+      min_score_sim: 0.60
+      parent_overlap_bonus: 0.08
+      parent_overlap_weight: 0.08
+      parent_distribution_weight: 0.08
+      geom_weight: 0.06
+      min_total_score: 0.62
+      allow_empty_parent_match: true
+
+  temporary_tracks:
+    max_observation_history: 12
+
+  # Restriction of weak or ambiguous updates.
+  robust_updates:
+    enabled: false
+    safe_alpha_scale: 0.2
+
+  neighbor_graphs:
+    dist_observations_parallel:
+      enabled: true
+      min_pairs: 48
+      workers: 0           # 0 = auto por CPU
+      max_auto_workers: 8
+    graph_updates_parallel:
+      enabled: true
+      min_objects: 8
+      workers: 0           # 0 = auto por CPU
+      max_auto_workers: 8
+
+  # Object appearance update.
+  appearance_memory:
+    enabled: true
+    insert_policy: "always"
+    evict_strategy: "redundant"
+    update_nn_on_skip: true
+
+    dup_thr: 0.92
+    novel_thr: 0.78
+    merge_thr: 0.90
+    merge_weight: "equal"
+    count_cap: 10
+
+    promote_hits: 5
+    stable_dup_thr: 0.95
+    stable_merge_thr: 0.96
+    stable_evict_strategy: "redundant"
+
+    quality_min_patches: 8
+    quality_full_patches: 24
+    create_min_quality: 0.35
+    promote_min_quality: 0.55
+    work_update_min_quality: 0.15
+    stable_update_min_quality: 0.20
+
+    dup_update:
+      ema_on_dup: false
+      margin: 0.02
+      alpha_min: 0.02
+      alpha_max: 0.08
+
+  # Background memory update.
+  background_memory:
+    enabled: true
+
+    work_evict_strategy: "redundant"
+    work_dup_thr: 0.93
+    work_merge_thr: 0.94
+
+    promote_hits: 5
+    promote_hits_global: 5
+    promote_hits_partials: 5
+
+    stable_dup_thr: 0.95
+    stable_merge_thr: 0.96
+    stable_update: "count_capped"
+    count_cap: 10
+
+    global_create_min_quality: 0.40
+    global_promote_min_quality: 0.60
+    global_work_update_min_quality: 0.20
+    global_stable_update_min_quality: 0.25
+    global_inner_min_patches: 8
+    global_inner_full_patches: 20
+    global_outer_min_patches: 12
+    global_outer_full_patches: 28
+    global_min_mask_quality: 0.50
+
+    dup_update:
+      margin: 0.02
+      alpha_min: 0.02
+      alpha_max: 0.10
+
+    stable_dup_update:
+      margin: 0.02
+      alpha_min: 0.01
+      alpha_max: 0.05
+
+  # Part memory update.
+  parts_memory:
+    enabled: true
+    insert_policy: "always"
+    evict_strategy: "lru"
+
+    dup_thr: 0.93
+    novel_thr: 0.78
+    merge_thr: 0.92
+    greedy_1to1: true
+
+    promote_hits: 5
+    stable_dup_thr: 0.95
+    stable_merge_thr: 0.96
+
+    dup_update:
+      margin: 0.02
+      alpha_min: 0.03
+      alpha_max: 0.15
+
+    merge:
+      merge_weight: "count_capped"
+      count_cap: 10
+
+# =============================================================================
+# TESTING / EVALUATION
+# =============================================================================
+testing:
+  collapse:
+    # Modos soportados:
+    # - hungarian: congela decisiones firmes y resuelve conflictos ambiguos
+    #   del frame de forma consistente.
+    # - greedy: applies local conflict resolution.
+    method: "hungarian"
+
+# =============================================================================
+# DEBUG / VISUALIZATION
+# =============================================================================
+debug:
+  enabled: true
+
+  # Association debug outputs.
+  association:
+    enabled: true
+    every_n_frames: 1
+
+    compact_tables: true
+    max_text_chars: 14
+    max_pair_chars: 14
+    max_assign_chars: 200
+    max_objs_chars: 200
+
+    candidates_topk: 5
+
+    show_candidates_table: true
+    show_reliable_anchor_ids: true
+
+    show_diagnostics_table: true
+    show_similarity_details_table: true
+
+    show_neighbor_sets_table: true
+    neighbor_sets_topk: 20
+    show_neighbor_sets_object_priors: true
+    neighbor_sets_object_topk: 20
+    show_neighbor_sets_candidates_table: true
+    neighbor_sets_candidates_topk: 5
+    show_neighbor_sets_veto_table: true
+    neighbor_sets_veto_topk: 5
+    show_local_context_table: true
+    local_context_topk: 5
+    show_postcreate_temporal_table: true
+
+    # Compact sets table with one line per hypothesis.
+    neighbor_sets_packed: true
+    neighbor_sets_col_space: 0
+    neighbor_sets_wrap_assign: true
+    neighbor_sets_table_width: 0   # 0 = automatic terminal width
+    neighbor_sets_compact_headers: true
+
+    neighbor_sets_hide_density: false
+    neighbor_sets_hide_logc: true
+    neighbor_sets_hide_exclusivity: false
+
+  # Prototype-update debug outputs.
+  prototype_update:
+    enabled: false
+    every_n_frames: 1
+    max_rows: 60
+    objects:
+      enabled: true
+      max_rows: 60
+    background:
+      enabled: true
+      max_rows: 120
+    parts:
+      enabled: true
+      max_rows: 80
+
+  # Track-update debug outputs.
+  update:
+    enabled: true
+    every_n_frames: 1
+    show_lists: true
+    show_neighbor_graph: false
+    neighbor_graph_topk: 5
+    show_neighbor_distance_graph: false
+    neighbor_distance_graph_only_visible: false
+    neighbor_distance_graph_topk: 8
+    neighbor_distance_graph_topmodes: 3
+
+  # General memory state.
+  memory:
+    enabled: false
+    every_n_frames: 1
+
+  # Interactive frame and overlay visualization.
+  visualization:
+    enabled: true
+    auto_start: true
+    auto_delay_ms: 30
+    cache_frames: 300
+    window_width: 2000
+    window_height: 600
+
+    show_bg_rings: false
+    show_obj_mask: true
+    show_track_labels: true
+    track_label_draw_bg_box: true
+    track_label_color_mode: "davis"  # davis | id | fixed
+    track_label_avoid_masks: true
+    track_label_allow_on_large_masks: true
+    track_label_large_mask_area_frac: 0.08
+    track_label_draw_link_line: true
+    track_label_link_min_dist_px: 28
+    track_label_link_thickness: 1
+    track_label_sticky: true
+    track_label_sticky_max_dist_px: 220
+    show_track_score: false
+    show_track_kind: false
+
+    show_dino_grid: false
+    dino_grid:
+      step_patches: 1
+      thickness: 1
+      alpha: 0.25
+
+    rings:
+      alpha_inner: 0.35
+      alpha_outer: 0.25
+      outer_dark_factor: 0.65
+
+    object_mask:
+      alpha: 0.55
+      brighten_add: 55
+      draw_contour: true
+      contour_thickness: 2
+      color_mode: "davis"  # davis | id | det
