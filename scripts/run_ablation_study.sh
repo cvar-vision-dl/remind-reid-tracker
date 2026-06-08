@@ -101,11 +101,27 @@ for entry in "${ABLATIONS[@]}"; do
     skipped=0
     failed_scenes=()
 
+    # Files that must all exist for a scene to be considered complete
+    COMPLETE_FILES=(scene_summary.csv per_class.csv per_object.csv per_case.csv per_case_modules.csv per_frame.csv per_pred_track.csv per_event.csv)
+
     for scene_id in "${SCANNET_SCENES[@]}"; do
-        # The batch infrastructure inside the script will skip scenes that
-        # already have a completed output directory, so re-runs are safe.
         echo ""
         echo "--- [ScanNet++] ${run_id} | scene ${scene_id} ---"
+
+        # Fast shell-level skip: check if all output files already exist
+        scene_dir="${output_dir}/scenes/${scene_id}"
+        all_present=true
+        for f in "${COMPLETE_FILES[@]}"; do
+            if [ ! -f "${scene_dir}/${f}" ]; then
+                all_present=false
+                break
+            fi
+        done
+        if [ "$all_present" = true ]; then
+            echo "[SHELL] Skip completed scene -> ${scene_id}"
+            completed=$((completed + 1))
+            continue
+        fi
 
         python run_tracking_batch_tar.py \
             --dataset-root "${SCANNET_DATASET_ROOT}" \
