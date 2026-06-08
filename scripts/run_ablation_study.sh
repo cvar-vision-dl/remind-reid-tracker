@@ -13,8 +13,33 @@ set -uo pipefail
 # and moves on to the next scene.
 # =============================================================================
 
+MAX_MEM_GB="${1:-24}"  # Memory limit in GB (default: 24), pass as first argument
+MAX_MEM_KB=$(( MAX_MEM_GB * 1024 * 1024 ))  # Convert to KB for comparison with RSS
+
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 TESTING_DIR="${REPO_ROOT}/testing"
+
+# ---------------------------------------------------------------------------
+# Memory watchdog: monitors a PID and kills it if RSS exceeds MAX_MEM_KB.
+# Usage: mem_watchdog <pid> &
+# ---------------------------------------------------------------------------
+mem_watchdog() {
+    local pid="$1"
+    while kill -0 "$pid" 2>/dev/null; do
+        # Sum RSS of the process and all its children (in KB)
+        local rss_kb
+        rss_kb=$(ps --no-headers -o rss -p "$pid" --ppid "$pid" 2>/dev/null \
+                 | awk '{s+=$1} END {print s+0}')
+        if [ "$rss_kb" -ge "$MAX_MEM_KB" ] 2>/dev/null; then
+            local rss_gb
+            rss_gb=$(awk "BEGIN {printf \"%.1f\", $rss_kb / 1024 / 1024}")
+            echo "[MEM-WATCHDOG] RSS=${rss_gb}GB exceeds limit=${MAX_MEM_GB}GB — killing PID $pid"
+            kill -9 "$pid" 2>/dev/null
+            return
+        fi
+        sleep 5
+    done
+}
 
 # Paths
 SCANNET_DATASET_ROOT="/mnt/a/alejodosr/qsync/2026_tracker_reid/datasets/scannetpp_data/"
@@ -67,6 +92,7 @@ exit_code_label() {
 echo "================================================================"
 echo " REMIND Ablation Study"
 echo " Output base: ${OUTPUT_BASE}"
+echo " Memory limit: ${MAX_MEM_GB} GB"
 echo "================================================================"
 
 # Run from the testing directory so relative imports resolve correctly
@@ -128,8 +154,13 @@ for entry in "${ABLATIONS[@]}"; do
             --config-path "${cfg}" \
             --output-dir "${output_dir}" \
             --run-id "${run_id}" \
-            --scene-id "${scene_id}"
+            --scene-id "${scene_id}" &
+        py_pid=$!
+        mem_watchdog "$py_pid" &
+        wd_pid=$!
+        wait "$py_pid"
         rc=$?
+        kill "$wd_pid" 2>/dev/null; wait "$wd_pid" 2>/dev/null
 
         if [ "$rc" -eq 0 ]; then
             completed=$((completed + 1))
@@ -174,8 +205,13 @@ for entry in "${ABLATIONS[@]}"; do
         --davis-annotations-dir "${CUSTOM_ANNOTATIONS}" \
         --config-path "${cfg}" \
         --output-dir "${output_dir}" \
-        --run-id "${run_id}"
+        --run-id "${run_id}" &
+    py_pid=$!
+    mem_watchdog "$py_pid" &
+    wd_pid=$!
+    wait "$py_pid"
     rc=$?
+    kill "$wd_pid" 2>/dev/null; wait "$wd_pid" 2>/dev/null
 
     if [ "$rc" -eq 0 ]; then
         echo "[Custom Video] ${run_id} finished successfully."
