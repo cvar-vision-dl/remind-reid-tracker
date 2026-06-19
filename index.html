@@ -14,6 +14,8 @@
       --accent-dark: #115e59;
       --link: #1687e8;
       --max: 980px;
+      --media-max: 860px;
+      --wide-media-max: 1120px;
     }
 
     * {
@@ -116,6 +118,12 @@
       font-weight: 700;
     }
 
+    .contribution-note {
+      margin: 4px 0 8px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
     .buttons {
       display: flex;
       justify-content: center;
@@ -157,6 +165,9 @@
     }
 
     .hero-video {
+      max-width: var(--media-max);
+      margin-left: auto;
+      margin-right: auto;
       border: 1px solid var(--line);
       background: var(--soft);
     }
@@ -193,7 +204,7 @@
     }
 
     #videos {
-      max-width: 1280px;
+      max-width: var(--wide-media-max);
     }
 
     #videos .video-grid {
@@ -234,7 +245,7 @@
     }
 
     #qualitative {
-      max-width: 1280px;
+      max-width: var(--wide-media-max);
     }
 
     #qualitative .result-grid {
@@ -292,7 +303,7 @@
     .dataset-examples img,
     .dataset-examples .placeholder {
       aspect-ratio: 16 / 9;
-      min-height: 260px;
+      min-height: 220px;
       border: 1px solid var(--line);
       border-radius: 4px;
       background: #ffffff;
@@ -306,7 +317,7 @@
     }
 
     #dataset {
-      max-width: 1280px;
+      max-width: var(--wide-media-max);
     }
 
     .dataset-list {
@@ -420,7 +431,8 @@
 <body>
   <header>
     <h1>REMIND: <span class="title-tail">RE-identification with Memory for INDoor Navigation</span></h1>
-    <p class="authors">Alejandro Rodriguez Ramos, Pablo Diaz Pereda, David Perez Saura</p>
+    <p class="authors">Pablo Diaz-Pereda*, Alejandro Rodriguez-Ramos*, David Perez-Saura, and Pascual Campoy</p>
+    <p class="contribution-note">* Equal contribution.</p>
     <p class="affiliation">
       Universidad Politecnica de Madrid · Escuela Tecnica Superior de Ingenieros Industriales ·
       Centre for Automation and Robotics · Computer Vision and Aerial Robotics Research Group (CVAR)
@@ -429,6 +441,7 @@
     <div class="buttons">
       <a class="button" href="#">Paper</a>
       <a class="button secondary" href="https://github.com/cvar-vision-dl/remind-reid-tracker/blob/main/REMIND_METHOD.md">Method</a>
+      <a class="button secondary" href="https://github.com/cvar-vision-dl/remind-reid-tracker">Code</a>
     </div>
 
     <div class="hero-video">
@@ -809,7 +822,7 @@
     <h3>REMIND</h3>
     <pre><code>@misc{remind2026,
   title  = {REMIND: RE-identification with Memory for INDoor Navigation},
-  author = {Rodriguez Ramos, Alejandro and Diaz Pereda, Pablo and Perez Saura, David},
+  author = {Diaz-Pereda, Pablo and Rodriguez-Ramos, Alejandro and Perez-Saura, David and Campoy, Pascual},
   year   = {2026}
 }</code></pre>
     <h3>ScanNet++</h3>
