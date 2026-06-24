@@ -463,13 +463,22 @@
   <section id="abstract">
     <h2>Abstract</h2>
     <p>
-      REMIND is an online multi-object re-identification tracker designed to keep object identities consistent across
-      long indoor sequences. The method combines DINO-based appearance descriptors, semantic part descriptors, local
-      background context, relational neighbor memory, and cautious memory updates.
-    </p>
-    <p>
-      Instead of relying only on frame-to-frame position, REMIND builds persistent object memory and uses it to
-      reconnect objects after occlusions, viewpoint changes, illumination changes, and re-appearances.
+      Mobile robots navigating indoor environments must re-identify previously seen objects after long temporal gaps,
+      substantial viewpoint shifts, and severe illumination changes, a setting in which conventional trackers, designed
+      for short-horizon inter-frame association, quickly lose identity. Existing paradigms only partially cover this
+      regime: multi-object tracking is calibrated for pedestrians and vehicles at video rates, person and vehicle
+      re-identification is category-specific and lacks temporal memory, and state-of-the-art video object segmentation
+      approaches filter distractors reactively without enforcing global identity consistency. Inspired by visual
+      cognition findings showing that humans re-identify objects through accumulated appearance familiarity and spatial
+      context rather than explicit self-localisation, we present REMIND, an online tracker purpose-built for long-term
+      multi-object re-identification of generic indoor objects from monocular RGB, with neither camera pose nor depth.
+      REMIND combines frozen DINOv3 features with a dual-bank multi-prototype appearance memory, part- and
+      background-level descriptors, a neighbour-context reasoning layer that exploits spatial co-occurrence, and joint
+      Hungarian assignment with ambiguity-aware guards. On a purpose-built indoor sequence with controlled revisits and
+      dense same-class clutter, REMIND outperforms the strongest VOS baseline by nearly 20 IDF1 points (90.35% vs.
+      70.53%), and on ScanNet++ it retains an IDF1 advantage in every regime while completing 100% of scenes against the
+      baseline’s 66.9% out-of-memory failure rate under YOLO detections. The full system, evaluation code, and custom
+      dataset are publicly released.
     </p>
   </section>
 
