@@ -65,10 +65,23 @@ def _normalize_davis_variant(mask_variant: str) -> str:
 
 
 def _scene_tar_path(root: Path, scene_id: str) -> Path:
-    return (root / f"{scene_id}.tar").resolve()
+    tar_path = (root / f"{scene_id}.tar").resolve()
+    if tar_path.is_file():
+        return tar_path
+    scene_dir = (root / scene_id).resolve()
+    if scene_dir.is_dir():
+        return scene_dir
+    return tar_path
 
 
 def _build_tar_member_index(tar_path: Path) -> dict[str, str]:
+    if tar_path.is_dir():
+        return {
+            path.relative_to(tar_path).as_posix(): path.relative_to(tar_path).as_posix()
+            for path in tar_path.rglob("*")
+            if path.is_file()
+        }
+
     members_by_rel: dict[str, str] = {}
     with tarfile.open(tar_path, "r:*") as tf:
         members = tf.getmembers()
@@ -175,6 +188,8 @@ class TarSceneBundle:
         member_name = self.data_members_by_rel.get(rel, None)
         if member_name is None:
             raise FileNotFoundError(f"{rel} does not exist in {self.data_tar_path}")
+        if self.data_tar_path.is_dir():
+            return (self.data_tar_path / member_name).read_bytes()
         extracted = self._get_data_tar().extractfile(member_name)
         if extracted is None:
             raise FileNotFoundError(f"No se pudo abrir {rel} en {self.data_tar_path}")
@@ -185,6 +200,8 @@ class TarSceneBundle:
         member_name = self.annotation_members_by_rel.get(rel, None)
         if member_name is None:
             raise FileNotFoundError(f"{rel} does not exist in {self.annotations_tar_path}")
+        if self.annotations_tar_path.is_dir():
+            return (self.annotations_tar_path / member_name).read_bytes()
         extracted = self._get_annotations_tar().extractfile(member_name)
         if extracted is None:
             raise FileNotFoundError(f"No se pudo abrir {rel} en {self.annotations_tar_path}")
@@ -217,10 +234,17 @@ def _build_scene_bundle(
     normalized_variant = _normalize_mask_variant(mask_variant)
     data_tar_path = _scene_tar_path(data_tar_root, scene_id)
     annotations_tar_path = _scene_tar_path(annotations_tar_root, scene_id)
-    if not data_tar_path.is_file():
-        raise FileNotFoundError(f"Missing data tar for {scene_id}: {data_tar_path}")
-    if not annotations_tar_path.is_file():
-        raise FileNotFoundError(f"Missing annotations tar for {scene_id}: {annotations_tar_path}")
+    if not data_tar_path.exists():
+        raise FileNotFoundError(
+            f"Missing data source for {scene_id}: expected "
+            f"{data_tar_root / f'{scene_id}.tar'} or {data_tar_root / scene_id}"
+        )
+    if not annotations_tar_path.exists():
+        raise FileNotFoundError(
+            f"Missing annotations source for {scene_id}: expected "
+            f"{annotations_tar_root / f'{scene_id}.tar'} or "
+            f"{annotations_tar_root / scene_id}"
+        )
 
     data_members_by_rel = _build_tar_member_index(data_tar_path)
     annotation_members_by_rel = _build_tar_member_index(annotations_tar_path)
@@ -229,11 +253,17 @@ def _build_scene_bundle(
     if meta_rel_path not in annotation_members_by_rel:
         raise FileNotFoundError(f"Falta {meta_rel_path} en {annotations_tar_path}")
 
-    with tarfile.open(annotations_tar_path, "r:*") as tf:
-        extracted = tf.extractfile(annotation_members_by_rel[meta_rel_path])
-        if extracted is None:
-            raise FileNotFoundError(f"No se pudo abrir {meta_rel_path} en {annotations_tar_path}")
-        meta = json.loads(extracted.read().decode("utf-8")) or {}
+    if annotations_tar_path.is_dir():
+        meta_payload = (annotations_tar_path / annotation_members_by_rel[meta_rel_path]).read_bytes()
+    else:
+        with tarfile.open(annotations_tar_path, "r:*") as tf:
+            extracted = tf.extractfile(annotation_members_by_rel[meta_rel_path])
+            if extracted is None:
+                raise FileNotFoundError(
+                    f"No se pudo abrir {meta_rel_path} en {annotations_tar_path}"
+                )
+            meta_payload = extracted.read()
+    meta = json.loads(meta_payload.decode("utf-8")) or {}
     if not isinstance(meta, dict):
         raise ValueError(f"Meta invalido en {annotations_tar_path}:{meta_rel_path}")
 
@@ -604,12 +634,22 @@ def _discover_tar_scene_ids(*, data_tar_root: Path, annotations_tar_root: Path) 
         for tar_path in data_tar_root.glob("*.tar")
         if tar_path.is_file()
     }
+    if data_tar_root.is_dir():
+        data_ids.update(path.name for path in data_tar_root.iterdir() if path.is_dir())
     annotation_ids = {
         tar_path.stem
         for tar_path in annotations_tar_root.glob("*.tar")
         if tar_path.is_file()
     }
-    return sorted(data_ids & annotation_ids)
+    if annotations_tar_root.is_dir():
+        annotation_ids.update(
+            path.name for path in annotations_tar_root.iterdir() if path.is_dir()
+        )
+
+    # Annotation sources define the evaluation set. Keep scenes whose data is
+    # missing so the batch records them as failed instead of silently omitting
+    # them; data-only scenes have no GT and are intentionally ignored.
+    return sorted(annotation_ids)
 
 
 def _resolve_tar_scene_ids(

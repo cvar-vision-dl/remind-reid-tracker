@@ -168,5 +168,3 @@ Config("config/default_config.yaml", "my_override.yaml")
 Detector backends: `"davis"` (ground-truth masks from DAVIS / ScanNet++) or `"yolo"` (YOLO instance segmentation).
 
 ---
-
-*This project is part of ongoing research. Documentation will be expanded.*

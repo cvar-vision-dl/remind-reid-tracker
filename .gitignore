@@ -13,3 +13,5 @@ env/
 .DS_Store
 PERF_OPTIMIZATIONS.md
 d4sm
+
+.pt
