@@ -499,10 +499,11 @@
       multi-prototype appearance memory, part- and background-level descriptors, a neighbour-context reasoning module
       exploiting spatial co-occurrence, and joint Hungarian assignment with ambiguity-aware safeguards. On a
       purpose-built indoor dataset featuring controlled revisits and dense same-class clutter, REMIND surpasses the
-      strongest video object segmentation baseline by nearly 20 IDF1 points (90.35% versus 70.53%). On ScanNet++, it
-      achieves superior IDF1 scores across all evaluation regimes and processes 100% of scenes, whereas the baseline
-      fails on 66.9% due to memory exhaustion under YOLO detections. The complete system, evaluation framework, and
-      dataset are publicly released.
+      strongest video object segmentation baseline by nearly 20 IDF1 points (90.35% versus 70.53%) and the MASA
+      tracking-by-detection baseline by more than 36 points (90.35% versus 53.84%) under ground-truth masks. On
+      ScanNet++, it achieves the best IDF1 on the DAM4SAM-comparable subsets and processes 100% of scenes, whereas
+      DAM4SAM fails on 66.9% due to memory exhaustion under YOLO detections. The complete system, evaluation framework,
+      and dataset are publicly released.
     </p>
   </section>
 
@@ -626,6 +627,11 @@
       labels are collapsed into a final identity decision so standard tracking metrics can be computed. This collapsed
       output is used only for reporting: internally, the method does not always force an immediate identity label.
     </p>
+    <p class="video-note">
+      MASA is evaluated with an adapted MASA-GDINO setup: class-aware association, full-scene memory, disabled spatial
+      distance filtering, and 0.3 embedding momentum. ScanNet++ rows report the DAM4SAM-comparable subset; the YOLO
+      subset uses the V2 forced split.
+    </p>
     <h3>Evaluation with ground-truth masks</h3>
     <h4>Custom Dataset</h4>
     <table>
@@ -643,6 +649,12 @@
           <td>GT masks init</td>
           <td>70.53%</td>
           <td>69.15%</td>
+        </tr>
+        <tr>
+          <td>MASA</td>
+          <td>GT masks</td>
+          <td>53.84%</td>
+          <td>45.74%</td>
         </tr>
         <tr>
           <td>REMIND</td>
@@ -669,6 +681,12 @@
           <td>GT masks init</td>
           <td>60.71%</td>
           <td>41.65%</td>
+        </tr>
+        <tr>
+          <td>MASA</td>
+          <td>GT masks</td>
+          <td>57.01%</td>
+          <td>42.65%</td>
         </tr>
         <tr>
           <td>REMIND</td>
@@ -698,6 +716,12 @@
           <td>65.96%</td>
         </tr>
         <tr>
+          <td>MASA</td>
+          <td>YOLO</td>
+          <td>45.76%</td>
+          <td>38.65%</td>
+        </tr>
+        <tr>
           <td>REMIND</td>
           <td>YOLO</td>
           <td><strong>75.45%</strong></td>
@@ -722,6 +746,12 @@
           <td>YOLO init</td>
           <td>57.97%</td>
           <td><strong>53.59%</strong></td>
+        </tr>
+        <tr>
+          <td>MASA</td>
+          <td>YOLO</td>
+          <td>60.38%</td>
+          <td>46.89%</td>
         </tr>
         <tr>
           <td>REMIND</td>
@@ -863,12 +893,19 @@
 
   <section id="citation">
     <h2>Citation</h2>
-    <p>Please cite REMIND and the ScanNet++ dataset when using this project page, code, or data-derived results.</p>
+    <p>Please cite REMIND, MASA, and the ScanNet++ dataset when using this project page, code, or data-derived results.</p>
     <h3>REMIND</h3>
     <pre><code>@misc{remind2026,
   title  = {REMIND: RE-identification with Memory for INDoor Navigation},
   author = {Diaz-Pereda, Pablo and Rodriguez-Ramos, Alejandro and Perez-Saura, David and Campoy, Pascual},
   year   = {2026}
+}</code></pre>
+    <h3>MASA</h3>
+    <pre><code>@inproceedings{li2024masa,
+  title     = {Matching Anything by Segmenting Anything},
+  author    = {Li, Siyuan and Ke, Lei and Danelljan, Martin and Piccinelli, Luigi and Segu, Mattia and Van Gool, Luc and Yu, Fisher},
+  booktitle = {IEEE Conference on Computer Vision and Pattern Recognition (CVPR)},
+  year      = {2024}
 }</code></pre>
     <h3>ScanNet++</h3>
     <pre><code>@inproceedings{yeshwanthliu2023scannetpp,
