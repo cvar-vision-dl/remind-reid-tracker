@@ -14,4 +14,4 @@ env/
 PERF_OPTIMIZATIONS.md
 d4sm
 
-.pt
+*.pt
