@@ -74,6 +74,37 @@
       text-align: center;
     }
 
+    .collapsible-section details {
+      width: 100%;
+    }
+
+    .collapsible-section summary {
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--line);
+      cursor: pointer;
+      font-size: 25px;
+      font-weight: 700;
+      line-height: 1.3;
+      text-align: center;
+    }
+
+    .collapsible-section summary::marker {
+      color: var(--muted);
+      font-size: 18px;
+    }
+
+    .collapsible-content {
+      padding-top: 16px;
+    }
+
+    .collapsible-content > p {
+      max-width: 820px;
+      margin-left: auto;
+      margin-right: auto;
+      text-align: justify;
+      text-align-last: left;
+    }
+
     h3 {
       margin: 0 0 8px;
       font-size: 18px;
@@ -116,12 +147,6 @@
     .authors {
       color: var(--link);
       font-weight: 700;
-    }
-
-    .contribution-note {
-      margin: 4px 0 8px;
-      color: var(--muted);
-      font-size: 14px;
     }
 
     .buttons {
@@ -431,11 +456,10 @@
 <body>
   <header>
     <h1>REMIND: <span class="title-tail">RE-identification with Memory for INDoor Navigation</span></h1>
-    <p class="authors">Pablo Diaz-Pereda*, Alejandro Rodriguez-Ramos*, David Perez-Saura, and Pascual Campoy</p>
-    <p class="contribution-note">* Equal contribution.</p>
+    <p class="authors">Pablo Diaz-Pereda, Alejandro Rodriguez-Ramos, David Perez-Saura, and Pascual Campoy</p>
     <p class="affiliation">
-      Universidad Politecnica de Madrid · Escuela Tecnica Superior de Ingenieros Industriales ·
-      Centre for Automation and Robotics · Computer Vision and Aerial Robotics Research Group (CVAR)
+      Computer Vision and Aerial Robotics Group at Centre for Automation and Robotics C.A.R. (UPM-CSIC),
+      Universidad Politecnica de Madrid (CVAR-UPM), Calle Jose Gutierrez Abascal 2, 28006 Madrid, Spain
     </p>
 
     <div class="buttons">
@@ -463,39 +487,41 @@
   <section id="abstract">
     <h2>Abstract</h2>
     <p>
-      Mobile robots navigating indoor environments must re-identify previously seen objects after long temporal gaps,
-      substantial viewpoint shifts, and severe illumination changes, a setting in which conventional trackers, designed
-      for short-horizon inter-frame association, quickly lose identity. Existing paradigms only partially cover this
-      regime: multi-object tracking is calibrated for pedestrians and vehicles at video rates, person and vehicle
-      re-identification is category-specific and lacks temporal memory, and state-of-the-art video object segmentation
-      approaches filter distractors reactively without enforcing global identity consistency. Inspired by visual
-      cognition findings showing that humans re-identify objects through accumulated appearance familiarity and spatial
-      context rather than explicit self-localisation, we present REMIND, an online tracker purpose-built for long-term
-      multi-object re-identification of generic indoor objects from monocular RGB, with neither camera pose nor depth.
-      REMIND combines frozen DINOv3 features with a dual-bank multi-prototype appearance memory, part- and
-      background-level descriptors, a neighbour-context reasoning layer that exploits spatial co-occurrence, and joint
-      Hungarian assignment with ambiguity-aware guards. On a purpose-built indoor sequence with controlled revisits and
-      dense same-class clutter, REMIND outperforms the strongest VOS baseline by nearly 20 IDF1 points (90.35% vs.
-      70.53%), and on ScanNet++ it retains an IDF1 advantage in every regime while completing 100% of scenes against the
-      baseline’s 66.9% out-of-memory failure rate under YOLO detections. The full system, evaluation code, and custom
+      Mobile robots operating indoors must re-identify previously observed objects after long temporal gaps, significant
+      viewpoint changes, and severe illumination variations. This remains a challenging problem: multi-object tracking
+      methods are optimized for short-term association of pedestrians and vehicles at video rates, person and vehicle
+      re-identification approaches lack persistent memory mechanisms, and state-of-the-art video object segmentation
+      techniques rely on reactive distractor filtering rather than enforcing global identity consistency. To address these
+      limitations, we present REMIND, an online tracker designed for long-term multi-object re-identification of generic
+      indoor objects from monocular RGB imagery, requiring neither camera pose estimation nor depth information.
+      Motivated by evidence from visual cognition that humans rely on accumulated appearance familiarity and spatial
+      context rather than explicit self-localization, REMIND combines frozen DINOv3 features with a dual-bank
+      multi-prototype appearance memory, part- and background-level descriptors, a neighbour-context reasoning module
+      exploiting spatial co-occurrence, and joint Hungarian assignment with ambiguity-aware safeguards. On a
+      purpose-built indoor dataset featuring controlled revisits and dense same-class clutter, REMIND surpasses the
+      strongest video object segmentation baseline by nearly 20 IDF1 points (90.35% versus 70.53%). On ScanNet++, it
+      achieves superior IDF1 scores across all evaluation regimes and processes 100% of scenes, whereas the baseline
+      fails on 66.9% due to memory exhaustion under YOLO detections. The complete system, evaluation framework, and
       dataset are publicly released.
     </p>
   </section>
 
-  <section id="dataset">
-    <h2>Datasets</h2>
+  <section id="dataset" class="collapsible-section">
+    <details>
+      <summary>Datasets</summary>
+      <div class="collapsible-content">
     <div class="dataset-list">
       <div class="method-step">
         <strong>Custom Dataset</strong>
         Single video recorded in a living room under controlled conditions. The sequence contains medium-low object
         density and a medium level of repeated object classes, with controlled viewpoint and illumination variation.
         <div class="dataset-examples">
-          <img src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/custom_gt_frame_000045.png" alt="Custom dataset GT masks for frame 000045" />
-          <img src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/custom_gt_frame_000105.png" alt="Custom dataset GT masks for frame 000105" />
-          <img src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/custom_gt_frame_000187.png" alt="Custom dataset GT masks for frame 000187" />
-          <img src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/custom_gt_frame_000278.png" alt="Custom dataset GT masks for frame 000278" />
-          <img src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/custom_gt_frame_000816.png" alt="Custom dataset GT masks for frame 000816" />
-          <img src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/custom_gt_frame_000930.png" alt="Custom dataset GT masks for frame 000930" />
+          <img src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/custom_gt_frame_000045.png" alt="Custom dataset GT masks for frame 000045" loading="lazy" decoding="async" />
+          <img src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/custom_gt_frame_000105.png" alt="Custom dataset GT masks for frame 000105" loading="lazy" decoding="async" />
+          <img src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/custom_gt_frame_000187.png" alt="Custom dataset GT masks for frame 000187" loading="lazy" decoding="async" />
+          <img src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/custom_gt_frame_000278.png" alt="Custom dataset GT masks for frame 000278" loading="lazy" decoding="async" />
+          <img src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/custom_gt_frame_000816.png" alt="Custom dataset GT masks for frame 000816" loading="lazy" decoding="async" />
+          <img src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/custom_gt_frame_000930.png" alt="Custom dataset GT masks for frame 000930" loading="lazy" decoding="async" />
         </div>
       </div>
       <div class="method-step">
@@ -504,12 +530,12 @@
         DAVIS-style tracking format to evaluate identity consistency across complex real-world indoor environments. The
         GIFs shown below use the official ScanNet++ benchmark annotations from the official dataset release.
         <div class="dataset-examples">
-          <img src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/scannetpp_gt_scene_f1e01af60a.gif" alt="ScanNet++ scene f1e01af60a with benchmark GT masks and class labels" />
-          <img src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/scannetpp_gt_scene_3ff873c77e.gif" alt="ScanNet++ scene 3ff873c77e with benchmark GT masks and class labels" />
-          <img src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/scannetpp_gt_scene_d3b7d054c4.gif" alt="ScanNet++ scene d3b7d054c4 with benchmark GT masks and class labels" />
-          <img src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/scannetpp_gt_scene_07e6f56969.gif" alt="ScanNet++ scene 07e6f56969 with benchmark GT masks and class labels" />
-          <img src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/scannetpp_gt_scene_41b00feddb.gif" alt="ScanNet++ scene 41b00feddb with benchmark GT masks and class labels" />
-          <img src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/scannetpp_gt_scene_45b0dac5e3.gif" alt="ScanNet++ scene 45b0dac5e3 with benchmark GT masks and class labels" />
+          <img src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/scannetpp_gt_scene_f1e01af60a.gif" alt="ScanNet++ scene f1e01af60a with benchmark GT masks and class labels" loading="lazy" decoding="async" />
+          <img src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/scannetpp_gt_scene_3ff873c77e.gif" alt="ScanNet++ scene 3ff873c77e with benchmark GT masks and class labels" loading="lazy" decoding="async" />
+          <img src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/scannetpp_gt_scene_d3b7d054c4.gif" alt="ScanNet++ scene d3b7d054c4 with benchmark GT masks and class labels" loading="lazy" decoding="async" />
+          <img src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/scannetpp_gt_scene_07e6f56969.gif" alt="ScanNet++ scene 07e6f56969 with benchmark GT masks and class labels" loading="lazy" decoding="async" />
+          <img src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/scannetpp_gt_scene_41b00feddb.gif" alt="ScanNet++ scene 41b00feddb with benchmark GT masks and class labels" loading="lazy" decoding="async" />
+          <img src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/scannetpp_gt_scene_45b0dac5e3.gif" alt="ScanNet++ scene 45b0dac5e3 with benchmark GT masks and class labels" loading="lazy" decoding="async" />
         </div>
         <div class="dataset-links">
           <a class="small-button" href="https://scannetpp.mlsg.cit.tum.de/scannetpp/">ScanNet++ page</a>
@@ -517,74 +543,80 @@
         </div>
       </div>
     </div>
+      </div>
+    </details>
   </section>
 
-  <section id="videos">
-    <h2>Tracking Examples</h2>
+  <section id="videos" class="collapsible-section">
+    <details>
+      <summary>Tracking Examples</summary>
+      <div class="collapsible-content">
     <p>
       These examples show REMIND tracking on selected ScanNet++ indoor scenes converted to DAVIS-style sequences.
     </p>
     <div class="video-grid">
       <div class="panel">
-        <video controls muted playsinline preload="metadata">
+        <video controls muted playsinline preload="none">
           <source src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/remind_example_scene_13b4efaf62.mp4#t=0.1" type="video/mp4" />
         </video>
       </div>
 
       <div class="panel">
-        <video controls muted playsinline preload="metadata">
+        <video controls muted playsinline preload="none">
           <source src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/remind_example_scene_2748de13fb.mp4#t=0.1" type="video/mp4" />
         </video>
       </div>
 
       <div class="panel">
-        <video controls muted playsinline preload="metadata">
+        <video controls muted playsinline preload="none">
           <source src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/remind_example_scene_3b50ff5f35.mp4#t=0.1" type="video/mp4" />
         </video>
       </div>
 
       <div class="panel">
-        <video controls muted playsinline preload="metadata">
+        <video controls muted playsinline preload="none">
           <source src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/remind_example_scene_589f5c7c58.mp4#t=0.1" type="video/mp4" />
         </video>
       </div>
 
       <div class="panel">
-        <video controls muted playsinline preload="metadata">
+        <video controls muted playsinline preload="none">
           <source src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/remind_example_scene_778769dad8.mp4#t=0.1" type="video/mp4" />
         </video>
       </div>
 
       <div class="panel">
-        <video controls muted playsinline preload="metadata">
+        <video controls muted playsinline preload="none">
           <source src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/remind_example_scene_95450f0c4e.mp4#t=0.1" type="video/mp4" />
         </video>
       </div>
 
       <div class="panel">
-        <video controls muted playsinline preload="metadata">
+        <video controls muted playsinline preload="none">
           <source src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/remind_example_scene_9d7e20fbec.mp4#t=0.1" type="video/mp4" />
         </video>
       </div>
 
       <div class="panel">
-        <video controls muted playsinline preload="metadata">
+        <video controls muted playsinline preload="none">
           <source src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/remind_example_scene_c026d108e0.mp4#t=0.1" type="video/mp4" />
         </video>
       </div>
 
       <div class="panel">
-        <video controls muted playsinline preload="metadata">
+        <video controls muted playsinline preload="none">
           <source src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/remind_example_scene_e6372539da.mp4#t=0.1" type="video/mp4" />
         </video>
       </div>
 
       <div class="panel">
-        <video controls muted playsinline preload="metadata">
+        <video controls muted playsinline preload="none">
           <source src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/remind_example_scene_eeeb9836b8.mp4#t=0.1" type="video/mp4" />
         </video>
       </div>
     </div>
+      </div>
+    </details>
   </section>
 
   <section id="results">
@@ -701,8 +733,10 @@
     </table>
   </section>
 
-  <section id="qualitative">
-    <h2>Qualitative Results</h2>
+  <section id="qualitative" class="collapsible-section">
+    <details>
+      <summary>Qualitative Results</summary>
+      <div class="collapsible-content">
     <p>
       Qualitative comparisons focus on the effect of the detection source in the custom video and on the comparison
       between REMIND and DAM4SAM in selected ScanNet++ benchmark scenes.
@@ -730,7 +764,7 @@
           <span>Detector: GT masks</span>
           <span>Detector: YOLO</span>
         </div>
-        <video class="qualitative-video" controls muted playsinline preload="metadata">
+        <video class="qualitative-video" controls muted playsinline preload="none">
           <source src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/remind_custom_gt_vs_yolo.mp4" type="video/mp4" />
         </video>
       </div>
@@ -754,7 +788,7 @@
           <span>REMIND</span>
           <span>DAM4SAM</span>
         </div>
-        <video class="qualitative-video" controls muted playsinline preload="metadata" aria-label="REMIND vs DAM4SAM comparison on ScanNet++ scene 02f25e5fee">
+        <video class="qualitative-video" controls muted playsinline preload="none" aria-label="REMIND vs DAM4SAM comparison on ScanNet++ scene 02f25e5fee">
           <source src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/COMPARE_REMIND_GT_VS_D4SM_GT_INIT_02f25e5fee.mp4" type="video/mp4" />
         </video>
       </div>
@@ -770,7 +804,7 @@
           <span>REMIND</span>
           <span>DAM4SAM</span>
         </div>
-        <video class="qualitative-video" controls muted playsinline preload="metadata" aria-label="REMIND vs DAM4SAM comparison on ScanNet++ scene 268513240f">
+        <video class="qualitative-video" controls muted playsinline preload="none" aria-label="REMIND vs DAM4SAM comparison on ScanNet++ scene 268513240f">
           <source src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/COMPARE_REMIND_GT_VS_D4SM_GT_INIT_268513240f.mp4" type="video/mp4" />
         </video>
       </div>
@@ -786,7 +820,7 @@
           <span>REMIND</span>
           <span>DAM4SAM</span>
         </div>
-        <video class="qualitative-video" controls muted playsinline preload="metadata" aria-label="REMIND vs DAM4SAM comparison on ScanNet++ scene 2f5996ff01">
+        <video class="qualitative-video" controls muted playsinline preload="none" aria-label="REMIND vs DAM4SAM comparison on ScanNet++ scene 2f5996ff01">
           <source src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/COMPARE_REMIND_GT_VS_D4SM_GT_INIT_2f5996ff01.mp4" type="video/mp4" />
         </video>
       </div>
@@ -802,7 +836,7 @@
           <span>REMIND</span>
           <span>DAM4SAM</span>
         </div>
-        <video class="qualitative-video" controls muted playsinline preload="metadata" aria-label="REMIND vs DAM4SAM comparison on ScanNet++ scene 37c9538a2b">
+        <video class="qualitative-video" controls muted playsinline preload="none" aria-label="REMIND vs DAM4SAM comparison on ScanNet++ scene 37c9538a2b">
           <source src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/COMPARE_REMIND_GT_VS_D4SM_GT_INIT_37c9538a2b.mp4" type="video/mp4" />
         </video>
       </div>
@@ -818,11 +852,13 @@
           <span>REMIND</span>
           <span>DAM4SAM</span>
         </div>
-        <video class="qualitative-video" controls muted playsinline preload="metadata" aria-label="REMIND vs DAM4SAM comparison on ScanNet++ scene a30b666f83">
+        <video class="qualitative-video" controls muted playsinline preload="none" aria-label="REMIND vs DAM4SAM comparison on ScanNet++ scene a30b666f83">
           <source src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/COMPARE_REMIND_GT_VS_D4SM_GT_INIT_a30b666f83.mp4" type="video/mp4" />
         </video>
       </div>
     </div>
+      </div>
+    </details>
   </section>
 
   <section id="citation">
