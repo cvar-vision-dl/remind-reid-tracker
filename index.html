@@ -777,7 +777,7 @@
       <div class="collapsible-content">
     <p>
       Qualitative comparisons focus on the effect of the detection source in the custom video and on the comparison
-      between REMIND and DAM4SAM in selected ScanNet++ benchmark scenes.
+      among REMIND, DAM4SAM, and MASA in selected ScanNet++ benchmark scenes.
     </p>
     <p class="video-note">
       In these videos, stable colors and class labels are the main cue for correct re-identification: they show that the
@@ -808,9 +808,9 @@
       </div>
 
       <div>
-        <h3>REMIND vs DAM4SAM on ScanNet++</h3>
+        <h3>REMIND vs DAM4SAM vs MASA on ScanNet++</h3>
         <p>
-          Side-by-side qualitative comparisons on five official ScanNet++ benchmark scenes converted to DAVIS-style
+          Three-way qualitative comparisons on five official ScanNet++ benchmark scenes converted to DAVIS-style
           tracking sequences.
         </p>
       </div>
@@ -819,7 +819,8 @@
         <div class="panel-body">
           <p>
             In the first ScanNet++ example, REMIND keeps the bed region and the curtain more consistently tracked, while
-            DAM4SAM intermittently loses them.
+            DAM4SAM intermittently loses them. MASA struggles especially in the bed area, where it confuses the blankets
+            and pillows, while the other methods preserve these identities more reliably.
           </p>
         </div>
         <div class="comparison-labels three-way">
@@ -836,7 +837,8 @@
         <div class="panel-body">
           <p>
             In the second example, DAM4SAM loses the wardrobe, the blanket, and one of the curtains, while REMIND keeps
-            these objects more consistently tracked.
+            these objects more consistently tracked. MASA also struggles with the pillows, wardrobe, and curtain; although
+            DAM4SAM exhibits related failures in this area, REMIND handles these objects more reliably than both baselines.
           </p>
         </div>
         <div class="comparison-labels three-way">
@@ -853,7 +855,8 @@
         <div class="panel-body">
           <p>
             In the third example, DAM4SAM loses the table and several objects placed on top of it at some point in the
-            sequence, while REMIND preserves more stable identities.
+            sequence, while REMIND preserves more stable identities. MASA behaves similarly to DAM4SAM: after the temporal
+            jump, it recovers several objects with incorrect identities.
           </p>
         </div>
         <div class="comparison-labels three-way">
@@ -870,7 +873,8 @@
         <div class="panel-body">
           <p>
             In the fourth example, DAM4SAM temporarily loses the table, chair, and TV, although it later recovers them,
-            whereas REMIND keeps these objects more consistently connected across the sequence.
+            whereas REMIND keeps these objects more consistently connected across the sequence. MASA shows behavior similar
+            to DAM4SAM, with comparable instability in maintaining these identities.
           </p>
         </div>
         <div class="comparison-labels three-way">
@@ -888,6 +892,7 @@
           <p>
             In the fifth example, REMIND maintains stable tracks for the chairs, table, and surrounding furniture, while
             DAM4SAM loses the chairs and table and also struggles with the door and cabinet during parts of the sequence.
+            MASA likewise becomes confused in some frames, particularly around the chairs and shelving unit.
           </p>
         </div>
         <div class="comparison-labels three-way">
