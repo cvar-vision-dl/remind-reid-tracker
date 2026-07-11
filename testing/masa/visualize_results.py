@@ -68,8 +68,23 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--mask-alpha", type=float, default=0.22)
     parser.add_argument("--no-masks", action="store_true")
     parser.add_argument("--hide-coordinates", action="store_true")
+    parser.add_argument(
+        "--comparison-style",
+        action="store_true",
+        help="Match the existing REMIND/D4SM video style (masks, contours and compact labels).",
+    )
+    parser.add_argument(
+        "--allow-non-gt-matched-geometry",
+        action="store_true",
+        help=(
+            "For non-GT runs, draw predicted identities on matched DAVIS geometry. "
+            "This does not reconstruct the original detector masks."
+        ),
+    )
     parser.add_argument("--display-max-width", type=int, default=1600)
     parser.add_argument("--display-max-height", type=int, default=900)
+    parser.add_argument("--output-width", type=int, help="Resize rendered frames to this width.")
+    parser.add_argument("--output-height", type=int, help="Resize rendered frames to this height.")
     return parser
 
 
@@ -127,6 +142,71 @@ def _colour_for_track(track_id: int | None) -> tuple[int, int, int]:
     hsv = np.uint8([[[hue, 210, 245]]])
     bgr = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)[0, 0]
     return tuple(int(value) for value in bgr)
+
+
+def _comparison_colour(track_id: int | None, *, brighten: bool = False) -> tuple[int, int, int]:
+    idx = -1 if track_id is None else int(track_id)
+    hsv = np.uint8([[[(idx * 47) % 180, 200, 230]]])
+    colour = tuple(int(value) for value in cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)[0, 0])
+    if not brighten:
+        return colour
+    return tuple(min(255, value + 45) for value in colour)
+
+
+def _comparison_label(image: np.ndarray, text: str, anchor: tuple[int, int], colour: tuple[int, int, int]) -> None:
+    height, width = image.shape[:2]
+    font, scale, thickness, pad = cv2.FONT_HERSHEY_SIMPLEX, 0.68, 2, 6
+    (text_width, text_height), baseline = cv2.getTextSize(text, font, scale, thickness)
+    x, y = int(anchor[0]), int(anchor[1]) - 10
+    if y - text_height - baseline - 2 * pad < 0:
+        y = int(anchor[1]) + text_height + baseline + 10
+    x0 = max(0, min(width - 1, x))
+    y0 = max(0, min(height - 1, y - text_height - baseline - 2 * pad))
+    x1 = max(0, min(width - 1, x0 + text_width + 2 * pad))
+    y1 = max(0, min(height - 1, y0 + text_height + baseline + 2 * pad))
+    x0, y0 = max(0, x1 - text_width - 2 * pad), max(0, y1 - text_height - baseline - 2 * pad)
+    cv2.rectangle(image, (x0, y0), (x1, y1), (0, 0, 0), -1)
+    cv2.rectangle(image, (x0, y0), (x1, y1), colour, 1)
+    cv2.putText(image, text, (x0 + pad, y1 - baseline - pad), font, scale,
+                (255, 255, 255), thickness, cv2.LINE_AA)
+
+
+def _render_comparison_frame(
+    *, frame: np.ndarray, gt_objects: dict[int, Any], cases: dict[int, dict[str, str]],
+    frame_id: int, frame_index: int, total_frames: int, sequence_name: str,
+) -> np.ndarray:
+    output = frame.copy()
+    height, width = output.shape[:2]
+    items = []
+    for gt_id, gt_obj in sorted(gt_objects.items()):
+        case = cases.get(int(gt_id))
+        track_id = _as_optional_int(None if case is None else case.get("pred_object_id"))
+        if gt_obj.bbox_xyxy is None:
+            continue
+        x1, y1, x2, y2 = (int(value) for value in gt_obj.bbox_xyxy)
+        mask = np.asarray(gt_obj.mask, dtype=bool)
+        full_mask = np.zeros((height, width), dtype=bool)
+        if mask.shape == (height, width):
+            full_mask = mask
+        elif output[y1:y2, x1:x2].shape[:2] == mask.shape:
+            full_mask[y1:y2, x1:x2] = mask
+        items.append((int(full_mask.sum()), gt_obj, track_id, full_mask))
+
+    for _, _, track_id, mask in sorted(items, key=lambda item: item[0], reverse=True):
+        colour = _comparison_colour(track_id, brighten=True)
+        overlay = output.copy()
+        overlay[mask] = colour
+        output = cv2.addWeighted(overlay, 0.45, output, 0.55, 0.0)
+        contours, _ = cv2.findContours(mask.astype(np.uint8) * 255, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        cv2.drawContours(output, contours, -1, colour, 2, lineType=cv2.LINE_AA)
+
+    for _, gt_obj, track_id, _ in sorted(items, key=lambda item: item[0]):
+        x1, y1, _, _ = (int(value) for value in gt_obj.bbox_xyxy)
+        class_name = str(gt_obj.class_name or "obj").strip().upper()
+        label = f"{class_name}_{'-' if track_id is None else track_id}"
+        _comparison_label(output, label, (x1, y1), _comparison_colour(track_id))
+
+    return output
 
 
 def _fit_for_display(frame: np.ndarray, max_width: int, max_height: int) -> np.ndarray:
@@ -339,7 +419,7 @@ def main() -> None:
     scene_results = _resolve_scene_results(Path(args.results_dir), args.scene_id)
     run_config = _read_run_config(scene_results)
     detection_source = str(run_config.get("detection_source") or "gt").strip().lower()
-    if detection_source != "gt":
+    if detection_source != "gt" and not args.allow_non_gt_matched_geometry:
         raise ValueError(
             "This visualizer reconstructs exact DAVIS input boxes for GT runs. "
             "YOLO input boxes are not stored in the current result format."
@@ -406,18 +486,31 @@ def main() -> None:
         frame_id, frame_ref = selected[index]
         frame = read_selected_frame((frame_id, frame_ref))
         gt_objects = gt_loader.load_frame(frame_id=frame_id, target_shape=frame.shape[:2])
-        return _render_frame(
-            frame=frame,
-            gt_objects=gt_objects,
-            cases=cases_by_frame.get(frame_id, {}),
-            frame_id=frame_id,
-            frame_index=index,
-            total_frames=len(selected),
-            run_id=run_id,
-            mask_alpha=args.mask_alpha,
-            show_masks=not args.no_masks,
-            show_coordinates=not args.hide_coordinates,
-        )
+        if args.comparison_style:
+            rendered = _render_comparison_frame(
+                frame=frame, gt_objects=gt_objects, cases=cases_by_frame.get(frame_id, {}),
+                frame_id=frame_id, frame_index=index, total_frames=len(selected),
+                sequence_name=sequence_name,
+            )
+        else:
+            rendered = _render_frame(
+                frame=frame,
+                gt_objects=gt_objects,
+                cases=cases_by_frame.get(frame_id, {}),
+                frame_id=frame_id,
+                frame_index=index,
+                total_frames=len(selected),
+                run_id=run_id,
+                mask_alpha=args.mask_alpha,
+                show_masks=not args.no_masks,
+                show_coordinates=not args.hide_coordinates,
+            )
+        if args.output_width and args.output_height:
+            rendered = cv2.resize(
+                rendered, (int(args.output_width), int(args.output_height)),
+                interpolation=cv2.INTER_AREA,
+            )
+        return rendered
 
     try:
         if args.dataset == "scannet-tar":

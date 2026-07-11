@@ -463,6 +463,68 @@ def _run_masa_frame(
     return result[0].pred_track_instances, (perf_counter() - started) * 1000.0
 
 
+def _track_colour(track_id: int, *, bright: bool = False) -> tuple[int, int, int]:
+    hsv = np.uint8([[[(int(track_id) * 47) % 180, 200, 230]]])
+    colour = tuple(int(v) for v in cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)[0, 0])
+    return tuple(min(255, v + 45) for v in colour) if bright else colour
+
+
+def _draw_native_masa_frame(
+    frame_bgr: np.ndarray,
+    detections: list[MaskDetection],
+    det_to_pred_id: dict[int, int],
+    class_local_id_by_track: dict[tuple[str, int], int],
+    next_local_id_by_class: dict[str, int],
+) -> np.ndarray:
+    """Draw the detections and raw track IDs returned by the current MASA frame."""
+    output = frame_bgr.copy()
+    height, width = output.shape[:2]
+    items: list[tuple[int, MaskDetection, int, int, np.ndarray]] = []
+    for det in detections:
+        track_id = det_to_pred_id.get(int(det.detection_id))
+        if track_id is None or det.mask is None:
+            continue
+        mask = np.asarray(det.mask, dtype=bool)
+        if mask.shape != (height, width):
+            mask = cv2.resize(mask.astype(np.uint8), (width, height), interpolation=cv2.INTER_NEAREST).astype(bool)
+        class_key = str(det.class_name or "obj").strip().lower()
+        mapping_key = (class_key, int(track_id))
+        if mapping_key not in class_local_id_by_track:
+            local_id = int(next_local_id_by_class.get(class_key, 1))
+            class_local_id_by_track[mapping_key] = local_id
+            next_local_id_by_class[class_key] = local_id + 1
+        items.append(
+            (int(mask.sum()), det, int(track_id), class_local_id_by_track[mapping_key], mask)
+        )
+
+    for _, _, track_id, _, mask in sorted(items, key=lambda item: item[0], reverse=True):
+        colour = _track_colour(track_id, bright=True)
+        overlay = output.copy()
+        overlay[mask] = colour
+        output = cv2.addWeighted(overlay, 0.45, output, 0.55, 0.0)
+        contours, _ = cv2.findContours(mask.astype(np.uint8) * 255, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        cv2.drawContours(output, contours, -1, colour, 2, lineType=cv2.LINE_AA)
+
+    for _, det, track_id, local_id, _ in sorted(items, key=lambda item: item[0]):
+        class_name = str(det.class_name or "obj").strip().upper()
+        text = f"{class_name}_{local_id}"
+        x, y = int(det.bbox[0]), int(det.bbox[1])
+        font, scale, thickness, pad = cv2.FONT_HERSHEY_SIMPLEX, 0.68, 2, 6
+        (tw, th), baseline = cv2.getTextSize(text, font, scale, thickness)
+        y = y - 10
+        if y - th - baseline - 2 * pad < 0:
+            y = int(det.bbox[1]) + th + baseline + 10
+        x0 = max(0, min(width - 1, x))
+        y0 = max(0, min(height - 1, y - th - baseline - 2 * pad))
+        x1 = min(width - 1, x0 + tw + 2 * pad)
+        y1 = min(height - 1, y0 + th + baseline + 2 * pad)
+        cv2.rectangle(output, (x0, y0), (x1, y1), (0, 0, 0), -1)
+        cv2.rectangle(output, (x0, y0), (x1, y1), _track_colour(track_id), 1)
+        cv2.putText(output, text, (x0 + pad, y1 - baseline - pad), font, scale,
+                    (255, 255, 255), thickness, cv2.LINE_AA)
+    return output
+
+
 def _build_config(
     config_path: Path,
     *,
@@ -821,6 +883,10 @@ def _evaluate_frames(
     device: str,
     fp16: bool,
     progress_every: int,
+    video_path: Path | None = None,
+    video_width: int = 1280,
+    video_height: int = 848,
+    video_fps: float = 6.0,
 ) -> tuple[dict[str, Any], str]:
     evaluator = TrackingOnlyEvaluator(stable_min_frames=stable_min_frames)
     class_id_by_name: dict[str, int] = {}
@@ -828,8 +894,20 @@ def _evaluate_frames(
     totals = {key: 0.0 for key in ("read", "gt", "detector", "masa", "eval", "loop")}
     timings: dict[int, dict[str, float]] = {}
     memories: dict[int, dict[str, Any]] = {}
+    class_local_id_by_track: dict[tuple[str, int], int] = {}
+    next_local_id_by_class: dict[str, int] = {}
+    video_writer: cv2.VideoWriter | None = None
+    if video_path is not None:
+        video_path.parent.mkdir(parents=True, exist_ok=True)
+        video_writer = cv2.VideoWriter(
+            str(video_path), cv2.VideoWriter_fourcc(*"mp4v"), float(video_fps),
+            (int(video_width), int(video_height)),
+        )
+        if not video_writer.isOpened():
+            raise RuntimeError(f"Could not create MASA video: {video_path}")
 
-    for idx, (frame_id, frame_name, frame_bgr, read_ms) in enumerate(frames):
+    try:
+      for idx, (frame_id, frame_name, frame_bgr, read_ms) in enumerate(frames):
         loop_started = perf_counter()
         rss_before = read_process_rss_bytes(process)
         rss_after_read = read_process_rss_bytes(process)
@@ -869,6 +947,17 @@ def _evaluate_frames(
             input_detections=input_detections,
             track_instances=tracks,
         )
+
+        if video_writer is not None:
+            visual = _draw_native_masa_frame(
+                frame_bgr,
+                eval_detections,
+                det_to_pred_id,
+                class_local_id_by_track,
+                next_local_id_by_class,
+            )
+            visual = cv2.resize(visual, (int(video_width), int(video_height)), interpolation=cv2.INTER_AREA)
+            video_writer.write(visual)
 
         eval_started = perf_counter()
         evaluator.ingest_frame(
@@ -914,6 +1003,9 @@ def _evaluate_frames(
         processed = idx + 1
         if processed == total_frames or processed % progress_every == 0:
             print(f"[MASA][FRAMES][scene={scene_id}] {processed}/{total_frames}")
+    finally:
+        if video_writer is not None:
+            video_writer.release()
 
     results = evaluator.finalize()
     divisor = float(max(1, total_frames))
@@ -960,6 +1052,10 @@ def _evaluate_custom_scene(
     device: str,
     fp16: bool,
     progress_every: int,
+    video_path: Path | None = None,
+    video_width: int = 1280,
+    video_height: int = 720,
+    video_fps: float = 6.0,
 ) -> tuple[dict[str, Any], str]:
     config = _build_config(config_path, sequence_name=scene.scene_id, custom_scene=scene)
     gt_loader = DavisGroundTruthLoader(config)
@@ -996,6 +1092,7 @@ def _evaluate_custom_scene(
         device=device,
         fp16=fp16,
         progress_every=progress_every,
+        video_path=video_path, video_width=video_width, video_height=video_height, video_fps=video_fps,
     )
 
 
@@ -1012,6 +1109,10 @@ def _evaluate_tar_scene(
     device: str,
     fp16: bool,
     progress_every: int,
+    video_path: Path | None = None,
+    video_width: int = 1280,
+    video_height: int = 848,
+    video_fps: float = 6.0,
 ) -> tuple[dict[str, Any], str]:
     config = _build_config(config_path, sequence_name=bundle.scene_id, tar_bundle=bundle)
     frame_names = list(bundle.frame_names)
@@ -1048,6 +1149,7 @@ def _evaluate_tar_scene(
             device=device,
             fp16=fp16,
             progress_every=progress_every,
+            video_path=video_path, video_width=video_width, video_height=video_height, video_fps=video_fps,
         )
 
 
@@ -1116,6 +1218,10 @@ def _parser() -> argparse.ArgumentParser:
     control.add_argument("--stable-min-frames", type=int)
     control.add_argument("--progress-every", type=int, default=20)
     control.add_argument("--scene-progress-every", type=int, default=20)
+    control.add_argument("--video-output-root", help="Write native per-scene MASA MP4 files here.")
+    control.add_argument("--video-width", type=int, default=1280)
+    control.add_argument("--video-height", type=int)
+    control.add_argument("--video-fps", type=float, default=6.0)
     return parser
 
 
@@ -1406,6 +1512,18 @@ def main(argv: list[str] | None = None) -> None:
         bundle = None
         try:
             model.tracker.reset()
+            video_path = None
+            if args.video_output_root:
+                video_path = (
+                    Path(args.video_output_root).expanduser().resolve()
+                    / scene_id
+                    / f"MASA_{scene_id}.mp4"
+                )
+            video_height = int(
+                args.video_height
+                if args.video_height is not None
+                else (720 if args.dataset == "custom" else 848)
+            )
             if args.dataset == "custom":
                 results, report = _evaluate_custom_scene(
                     scene=custom_scenes[scene_id],
@@ -1419,6 +1537,10 @@ def main(argv: list[str] | None = None) -> None:
                     device=args.device,
                     fp16=args.fp16,
                     progress_every=progress_every,
+                    video_path=video_path,
+                    video_width=int(args.video_width),
+                    video_height=video_height,
+                    video_fps=float(args.video_fps),
                 )
             else:
                 assert data_tar_root is not None and annotations_tar_root is not None
@@ -1441,6 +1563,10 @@ def main(argv: list[str] | None = None) -> None:
                     device=args.device,
                     fp16=args.fp16,
                     progress_every=progress_every,
+                    video_path=video_path,
+                    video_width=int(args.video_width),
+                    video_height=video_height,
+                    video_fps=float(args.video_fps),
                 )
 
             finished_at = batch._now_iso()

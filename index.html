@@ -296,10 +296,18 @@
       border-left: 1px solid #555555;
     }
 
+    .comparison-labels.three-way {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
     .qualitative-video {
       aspect-ratio: 32 / 9;
       background: #000000;
       object-fit: contain;
+    }
+
+    .qualitative-video.three-way {
+      aspect-ratio: 3840 / 848;
     }
 
     .method-step {
@@ -814,12 +822,13 @@
             DAM4SAM intermittently loses them.
           </p>
         </div>
-        <div class="comparison-labels">
+        <div class="comparison-labels three-way">
           <span>REMIND</span>
           <span>DAM4SAM</span>
+          <span>MASA</span>
         </div>
-        <video class="qualitative-video" controls muted playsinline preload="none" aria-label="REMIND vs DAM4SAM comparison on ScanNet++ scene 02f25e5fee">
-          <source src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/COMPARE_REMIND_GT_VS_D4SM_GT_INIT_02f25e5fee.mp4#t=0.1" type="video/mp4" />
+        <video class="qualitative-video three-way" controls muted playsinline preload="none" aria-label="REMIND vs DAM4SAM vs MASA comparison on ScanNet++ scene 02f25e5fee">
+          <source src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/COMPARE_REMIND_GT_VS_D4SM_GT_INIT_VS_MASA_GT_02f25e5fee.mp4#t=0.1" type="video/mp4" />
         </video>
       </div>
 
@@ -830,12 +839,13 @@
             these objects more consistently tracked.
           </p>
         </div>
-        <div class="comparison-labels">
+        <div class="comparison-labels three-way">
           <span>REMIND</span>
           <span>DAM4SAM</span>
+          <span>MASA</span>
         </div>
-        <video class="qualitative-video" controls muted playsinline preload="none" aria-label="REMIND vs DAM4SAM comparison on ScanNet++ scene 268513240f">
-          <source src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/COMPARE_REMIND_GT_VS_D4SM_GT_INIT_268513240f.mp4#t=0.1" type="video/mp4" />
+        <video class="qualitative-video three-way" controls muted playsinline preload="none" aria-label="REMIND vs DAM4SAM vs MASA comparison on ScanNet++ scene 268513240f">
+          <source src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/COMPARE_REMIND_GT_VS_D4SM_GT_INIT_VS_MASA_GT_268513240f.mp4#t=0.1" type="video/mp4" />
         </video>
       </div>
 
@@ -846,12 +856,13 @@
             sequence, while REMIND preserves more stable identities.
           </p>
         </div>
-        <div class="comparison-labels">
+        <div class="comparison-labels three-way">
           <span>REMIND</span>
           <span>DAM4SAM</span>
+          <span>MASA</span>
         </div>
-        <video class="qualitative-video" controls muted playsinline preload="none" aria-label="REMIND vs DAM4SAM comparison on ScanNet++ scene 2f5996ff01">
-          <source src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/COMPARE_REMIND_GT_VS_D4SM_GT_INIT_2f5996ff01.mp4#t=0.1" type="video/mp4" />
+        <video class="qualitative-video three-way" controls muted playsinline preload="none" aria-label="REMIND vs DAM4SAM vs MASA comparison on ScanNet++ scene 2f5996ff01">
+          <source src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/COMPARE_REMIND_GT_VS_D4SM_GT_INIT_VS_MASA_GT_2f5996ff01.mp4#t=0.1" type="video/mp4" />
         </video>
       </div>
 
@@ -862,12 +873,13 @@
             whereas REMIND keeps these objects more consistently connected across the sequence.
           </p>
         </div>
-        <div class="comparison-labels">
+        <div class="comparison-labels three-way">
           <span>REMIND</span>
           <span>DAM4SAM</span>
+          <span>MASA</span>
         </div>
-        <video class="qualitative-video" controls muted playsinline preload="none" aria-label="REMIND vs DAM4SAM comparison on ScanNet++ scene 37c9538a2b">
-          <source src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/COMPARE_REMIND_GT_VS_D4SM_GT_INIT_37c9538a2b.mp4#t=0.1" type="video/mp4" />
+        <video class="qualitative-video three-way" controls muted playsinline preload="none" aria-label="REMIND vs DAM4SAM vs MASA comparison on ScanNet++ scene 37c9538a2b">
+          <source src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/COMPARE_REMIND_GT_VS_D4SM_GT_INIT_VS_MASA_GT_37c9538a2b.mp4#t=0.1" type="video/mp4" />
         </video>
       </div>
 
@@ -878,12 +890,13 @@
             DAM4SAM loses the chairs and table and also struggles with the door and cabinet during parts of the sequence.
           </p>
         </div>
-        <div class="comparison-labels">
+        <div class="comparison-labels three-way">
           <span>REMIND</span>
           <span>DAM4SAM</span>
+          <span>MASA</span>
         </div>
-        <video class="qualitative-video" controls muted playsinline preload="none" aria-label="REMIND vs DAM4SAM comparison on ScanNet++ scene a30b666f83">
-          <source src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/COMPARE_REMIND_GT_VS_D4SM_GT_INIT_a30b666f83.mp4#t=0.1" type="video/mp4" />
+        <video class="qualitative-video three-way" controls muted playsinline preload="none" aria-label="REMIND vs DAM4SAM vs MASA comparison on ScanNet++ scene a30b666f83">
+          <source src="https://github.com/cvar-vision-dl/remind-reid-tracker/releases/download/project-page-assets/COMPARE_REMIND_GT_VS_D4SM_GT_INIT_VS_MASA_GT_a30b666f83.mp4#t=0.1" type="video/mp4" />
         </video>
       </div>
     </div>
