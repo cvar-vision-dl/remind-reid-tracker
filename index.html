@@ -471,7 +471,7 @@
     </p>
 
     <div class="buttons">
-      <a class="button" href="#">Paper</a>
+      <a class="button" href="https://arxiv.org/abs/2607.09267">Paper</a>
       <a class="button secondary" href="https://github.com/cvar-vision-dl/remind-reid-tracker/blob/main/REMIND_METHOD.md">Method</a>
       <a class="button secondary" href="https://github.com/cvar-vision-dl/remind-reid-tracker">Code</a>
     </div>
@@ -499,19 +499,22 @@
       viewpoint changes, and severe illumination variations. This remains a challenging problem: multi-object tracking
       methods are optimized for short-term association of pedestrians and vehicles at video rates, person and vehicle
       re-identification approaches lack persistent memory mechanisms, and state-of-the-art video object segmentation
-      techniques rely on reactive distractor filtering rather than enforcing global identity consistency. To address these
-      limitations, we present REMIND, an online tracker designed for long-term multi-object re-identification of generic
-      indoor objects from monocular RGB imagery, requiring neither camera pose estimation nor depth information.
+      techniques rely on reactive distractor filtering rather than enforcing global identity consistency.
+    </p>
+    <p>
+      To address these limitations, we present REMIND, an online tracker designed for long-term multi-object
+      re-identification of generic indoor objects from monocular RGB imagery, requiring neither camera pose nor depth.
       Motivated by evidence from visual cognition that humans rely on accumulated appearance familiarity and spatial
       context rather than explicit self-localization, REMIND combines frozen DINOv3 features with a dual-bank
       multi-prototype appearance memory, part- and background-level descriptors, a neighbour-context reasoning module
       exploiting spatial co-occurrence, and joint Hungarian assignment with ambiguity-aware safeguards. On a
-      purpose-built indoor dataset featuring controlled revisits and dense same-class clutter, REMIND surpasses the
-      strongest video object segmentation baseline by nearly 20 IDF1 points (90.35% versus 70.53%) and the MASA
-      tracking-by-detection baseline by more than 36 points (90.35% versus 53.84%) under ground-truth masks. On
-      ScanNet++, it achieves the best IDF1 on the DAM4SAM-comparable subsets and processes 100% of scenes, whereas
-      DAM4SAM fails on 66.9% due to memory exhaustion under YOLO detections. The complete system, evaluation framework,
-      and dataset are publicly released.
+      purpose-built indoor dataset featuring controlled revisits and dense same-class clutter, REMIND reaches 90.35%
+      IDF1, nearly 20 points above a state-of-the-art video object segmentation baseline and more than 36 above a strong
+      tracking-by-detection baseline. On ScanNet++, it attains the highest IDF1 in every setting but one, end-to-end
+      detection over all scenes, where the tracking-by-detection baseline is marginally ahead while REMIND still
+      associates and recovers identities more accurately; it also completes every scene, whereas the video object
+      segmentation baseline exhausts GPU memory on 66.9% under YOLO detections. The complete system, evaluation
+      framework, and dataset are publicly released.
     </p>
   </section>
 
@@ -907,6 +910,14 @@
     </div>
       </div>
     </details>
+  </section>
+
+  <section id="acknowledgements">
+    <h2>Acknowledgements</h2>
+    <p>
+      This work has been supported by the project SHEREC "Safe Healthy and Environmental Ship Recycling", Reference:
+      101136056, funded by the European Union under the Horizon Europe Program HORIZON-CL4-2023-HUMAN-01 CNECT.
+    </p>
   </section>
 
   <section id="citation">

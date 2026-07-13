@@ -1,0 +1,15 @@
+# Custom-video YOLO evaluation on the external LINUX drive.
+# GT annotations are used only by the evaluator, not by the detector/tracker.
+detector:
+  backend: "yolo"
+
+yolo:
+  model_label: "CUSTOMBEST_EXTERNAL"
+  models:
+    CUSTOMBEST_EXTERNAL: "/media/pablo/LINUX/YOLO models/yolo_l_custom_video/weights/best.pt"
+  conf_th: 0.7
+  iou_th: 0.2
+  max_det: 100
+  classes: null
+  mask_erosion_px: 2
+  mask_erosion_iters: 1

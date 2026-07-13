@@ -1,0 +1,14 @@
+# Custom-video evaluation using the standard Ultralytics prediction thresholds.
+detector:
+  backend: "yolo"
+
+yolo:
+  model_label: "CUSTOMBEST_EXTERNAL"
+  models:
+    CUSTOMBEST_EXTERNAL: "/media/pablo/LINUX/YOLO models/yolo_l_custom_video/weights/best.pt"
+  conf_th: 0.25
+  iou_th: 0.7
+  max_det: 300
+  classes: null
+  mask_erosion_px: 0
+  mask_erosion_iters: 0
