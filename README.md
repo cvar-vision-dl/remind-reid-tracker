@@ -1,6 +1,6 @@
 
 
-# REMIND — Re-identification with Memory and INstance Descriptors
+# REMIND — RE-Identification with Memory for INDoor Navigation
 
 > A multi-object re-identification tracker that maintains consistent identities across long sequences using semantic part descriptors, relational context, and adaptive memory.
 
