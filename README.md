@@ -50,7 +50,7 @@ Detections rendered in **white** correspond to internally flagged ambiguous stat
 ```
 
 ### Authors' Links
-- Pablo Diaz-Pereda
+- Pablo Diaz-Pereda [[linkedin](linkedin.com/in/pablo-diaz-192114388)]
 - Alejandro Rodriguez-Ramos [[alejandrorodriguezramos.me](https://alejandrorodriguezramos.me)]
 - David Perez-Saura [[Google Scholar](https://scholar.google.com/citations?user=Afdcjx4AAAAJ&hl=es)]
 - Pascual Campoy [[Google Scholar](https://scholar.google.com/citations?user=apPMLQ4AAAAJ&hl=en)]
