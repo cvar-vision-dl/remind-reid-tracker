@@ -36,6 +36,27 @@ Detections rendered in **white** correspond to internally flagged ambiguous stat
 
 ---
 
+### Citing
+```
+@misc{diazpereda2026remind,
+      title={REMIND: RE-Identification with Memory for INDoor Navigation}, 
+      author={Pablo Diaz-Pereda and Alejandro Rodriguez-Ramos and David Perez-Saura and Pascual Campoy},
+      year={2026},
+      eprint={2607.09267},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url={https://arxiv.org/abs/2607.09267}
+}
+```
+
+### Authors' Links
+- Pablo Diaz-Pereda
+- Alejandro Rodriguez-Ramos [[alejandrorodriguezramos.me](https://alejandrorodriguezramos.me)]
+- David Perez-Saura [[Google Scholar](https://scholar.google.com/citations?user=Afdcjx4AAAAJ&hl=es)]
+- Pascual Campoy [[Google Scholar](https://scholar.google.com/citations?user=apPMLQ4AAAAJ&hl=en)]
+
+---
+
 ## Installation
 
 ```bash
@@ -168,3 +189,4 @@ Config("config/default_config.yaml", "my_override.yaml")
 Detector backends: `"davis"` (ground-truth masks from DAVIS / ScanNet++) or `"yolo"` (YOLO instance segmentation).
 
 ---
+
