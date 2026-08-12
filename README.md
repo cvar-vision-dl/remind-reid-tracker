@@ -1,5 +1,3 @@
-
-
 # REMIND — RE-Identification with Memory for INDoor Navigation
 
 > A multi-object re-identification tracker that maintains consistent identities across long sequences using semantic part descriptors, relational context, and adaptive memory.
@@ -33,6 +31,10 @@ The video demonstrates REMIND operating under challenging long-term tracking con
 Consistent colors and identity labels across frames indicate successful identity preservation over time, even after occlusions or reappearances.
 
 Detections rendered in **white** correspond to internally flagged ambiguous states, where the model intentionally avoids committing to a potentially incorrect identity assignment until sufficient visual evidence becomes available.
+
+<p align="center">
+  <img width="650" alt="star-history-2026812" src="https://github.com/user-attachments/assets/8f224e95-4bf7-4dbb-b4a0-0b5d6fb1bf94" />
+</p>
 
 ---
 
