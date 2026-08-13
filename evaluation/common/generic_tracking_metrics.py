@@ -6,7 +6,7 @@ from typing import Any
 
 import numpy as np
 
-from testing.tracking_metrics import (
+from evaluation.tracking_metrics import (
     SegmentRecord,
     build_memory_summary,
     infer_frame_area_px,

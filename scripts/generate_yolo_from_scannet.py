@@ -40,7 +40,7 @@ import numpy as np
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
-DEFAULT_SCENE_LABELS_CSV = PROJECT_ROOT / "APP2" / "Src" / "testing" / "scene_labels.csv"
+DEFAULT_SCENE_LABELS_CSV = PROJECT_ROOT / "APP2" / "Src" / "evaluation" / "scene_labels.csv"
 DEFAULT_OUTPUT_DIR = PROJECT_ROOT / "APP2" / "yolo_datasets" / "scannetpp_benchmark_no_object"
 DEFAULT_IMAGE_SUBDIR = "dslr/resized_images"
 IMAGE_EXTS = (".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff", ".JPG", ".JPEG", ".PNG")

@@ -108,11 +108,11 @@ class ReIDPipeline:
 
         self.perception_stage = PerceptionStageFull(
             config=runtime_ctx.config,
-            yolo=runtime_ctx.yolo,
+            detector=runtime_ctx.detector,
             dino=runtime_ctx.dino,
         )
 
-        class_id_to_name = getattr(runtime_ctx.yolo, "class_id_to_name", None)
+        class_id_to_name = getattr(runtime_ctx.detector, "class_id_to_name", None)
 
         self.association_stage = AssociationStage(
             runtime_ctx.config,

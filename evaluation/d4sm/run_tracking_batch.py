@@ -16,8 +16,8 @@ PROJECT_DIR = SRC_DIR.parent.parent
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
-from testing.common.generic_tracking_reporting import fmt_pct, render_table, write_csv, write_text
-from testing.d4sm.run_tracking_test import create_d4sm_tracker, evaluate_scene, resolve_d4sm_runtime_config
+from evaluation.common.generic_tracking_reporting import fmt_pct, render_table, write_csv, write_text
+from evaluation.d4sm.run_tracking_test import create_d4sm_tracker, evaluate_scene, resolve_d4sm_runtime_config
 from utils.scannetpp_tar import (
     resolve_scene_annotations_tar_path,
     resolve_scene_tar_path,

@@ -99,6 +99,13 @@ def build_segmenter(config: dict, device: str):
         seg.load_model()
         return seg
 
+    if backend == "rfdetr":
+        from detection.rfdetr_segmenter import RFDETRSegmenter
+
+        seg = RFDETRSegmenter(config=config, device=device)
+        seg.load_model()
+        return seg
+
     raise ValueError(f"Backend de detector no soportado: {backend}")
 
 
@@ -111,7 +118,7 @@ def initialize_system(config: dict) -> RuntimeContext:
     output_dir = prepare_output_dir(config)
 
     # Detector/segmentador
-    yolo = build_segmenter(config=config, device=device)
+    detector = build_segmenter(config=config, device=device)
 
     # Memory
     mem_cfg = config.get("memory", {}) or {}
@@ -129,7 +136,7 @@ def initialize_system(config: dict) -> RuntimeContext:
         config=config,
         device=device,
         memory=memory,
-        yolo=yolo,
+        yolo=detector,
         dino=dino,
         output_dir=output_dir,
     )

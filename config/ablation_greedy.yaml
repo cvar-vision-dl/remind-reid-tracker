@@ -50,6 +50,14 @@ yolo:
   mask_erosion_px: 2
   mask_erosion_iters: 1
 
+rfdetr:
+  model_variant: "medium"
+  pretrain_weights: null
+  threshold: 0.5
+  classes: null
+  mask_erosion_px: 0
+  mask_erosion_iters: 1
+
 davis:
   sequence_name: null
   variant: "bench"

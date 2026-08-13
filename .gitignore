@@ -12,10 +12,15 @@ env/
 
 .DS_Store
 PERF_OPTIMIZATIONS.md
-d4sm
 
 *.pt
 
 # JetBrain IDE
 .idea/
 .junie/
+
+# AI artifacts
+.claude/agent-memory/
+.claude/state/
+.plans/
+.reports/

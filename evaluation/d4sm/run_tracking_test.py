@@ -32,21 +32,21 @@ PROJECT_DIR = SRC_DIR.parent.parent
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
-from testing.common.generic_tracking_metrics import TrackingOnlyEvaluator
-from testing.common.generic_tracking_reporting import (
+from evaluation.common.generic_tracking_metrics import TrackingOnlyEvaluator
+from evaluation.common.generic_tracking_reporting import (
     build_generic_console_report,
     write_csv,
     write_json,
     write_text,
 )
-from testing.davis_gt import DavisGroundTruthLoader
+from evaluation.davis_gt import DavisGroundTruthLoader
 from config.config_loader import Config
 from utils.io import list_image_files, parse_frame_id
 from utils.logging import default_run_artifact_dir
 from utils.scannetpp_tar import resolve_scene_annotations_tar_path, resolve_scene_tar_path
 import detection.davis_segmenter as davis_segmenter_module
 from detection.davis_segmenter import DavisSegmenter
-from testing import davis_gt as davis_gt_module
+from evaluation import davis_gt as davis_gt_module
 
 import tarfile
 from contextlib import contextmanager
@@ -772,7 +772,7 @@ def _build_scene_output_dir(*, scene_tag: str) -> Path:
     out_dir = Path(
         default_run_artifact_dir(
             str(outputs_root),
-            group="testing",
+            group="evaluation",
             prefix=f"tracking_eval_d4sm_{scene_tag}",
         )
     )

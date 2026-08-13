@@ -23,9 +23,9 @@ if TESTING_DIR not in sys.path:
 from config.config_loader import Config
 from pipeline.initialization import initialize_system
 from pipeline.reid_pipeline import ReIDPipeline
-from testing.davis_gt import DavisGroundTruthLoader
-from testing import run_tracking_batch as base_batch
-from testing.run_tracking_test import (
+from evaluation.davis_gt import DavisGroundTruthLoader
+from evaluation import run_tracking_batch as base_batch
+from evaluation.run_tracking_test import (
     build_det_to_object_id,
     build_runtime_memory_telemetry,
     capture_cuda_memory_stats,

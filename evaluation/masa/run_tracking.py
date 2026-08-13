@@ -33,13 +33,13 @@ except Exception as exc:  # pragma: no cover - produces a clearer runtime error
 
 from config.config_loader import Config
 from scripts.generate_recovery_reappearance_csvs import generate_outputs as generate_recovery_outputs
-from testing import run_tracking_batch as batch
-from testing import run_tracking_batch_tar as tar_batch
-from testing.common.generic_tracking_metrics import TrackingOnlyEvaluator
-from testing.common.generic_tracking_reporting import build_generic_console_report
-from testing.davis_gt import DavisGroundTruthLoader
-from testing.reporting import write_csv, write_json, write_text
-from testing.run_tracking_test import (
+from evaluation import run_tracking_batch as batch
+from evaluation import run_tracking_batch_tar as tar_batch
+from evaluation.common.generic_tracking_metrics import TrackingOnlyEvaluator
+from evaluation.common.generic_tracking_reporting import build_generic_console_report
+from evaluation.davis_gt import DavisGroundTruthLoader
+from evaluation.reporting import write_csv, write_json, write_text
+from evaluation.run_tracking_test import (
     build_runtime_memory_telemetry,
     capture_cuda_memory_stats,
     make_process_handle,
@@ -47,7 +47,7 @@ from testing.run_tracking_test import (
     reset_cuda_peak_memory_stats,
     resolve_frame_files_for_testing,
 )
-from testing.tracking_metrics import build_memory_summary
+from evaluation.tracking_metrics import build_memory_summary
 from utils.io import parse_frame_id, read_bgr
 
 

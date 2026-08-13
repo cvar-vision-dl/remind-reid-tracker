@@ -73,17 +73,20 @@ conda activate remind
 Models are loaded automatically at runtime:
 - **DINOv3** — fetched from HuggingFace on first use (configurable via `dino.model_label` in `config/default_config.yaml`)
 - **YOLO** — place segmentation weights under `yolo/` and pass the model file name to `main.py`
+- **RF-DETR** — included in `environment.yml`; select a supported variant with `--detector-backend rfdetr --rfdetr-model medium`, or provide a local checkpoint with `--rfdetr-weights /path/to/checkpoint`.
+
+RF-DETR model and checkpoint provenance is your responsibility. Record the exact package version, model variant, checkpoint source, and applicable license for every run. This repository does not redistribute RF-DETR checkpoints. The standard `rfdetr` package and Roboflow's Apache-designated models are Apache-2.0 licensed.
 
 ---
 
 ## Running On Your Own Data
 
-This mode is for trying REMIND on your own videos or frame folders. It does not require ground-truth annotations. You only need input images/video and a YOLO segmentation model.
+This mode is for trying REMIND on your own videos or frame folders. It does not require ground-truth annotations. You need input images/video plus either a YOLO segmentation model or the optional RF-DETR backend.
 
-Place your inputs under `testData/videos/` or `testData/frames/`, one folder per scene. Put local YOLO weights under `yolo/`:
+Place your inputs under `evalData/videos/` or `evalData/frames/`, one folder per scene. Put local YOLO weights under `yolo/`:
 
 ```text
-testData/
+evalData/
   videos/
     my_scene/
       video.mp4
@@ -106,6 +109,36 @@ python main.py my_scene custom-seg.pt \
 
 The second argument is the YOLO model file name, and the file must exist under `yolo/`.
 
+To run the same frame/video path with RF-DETR, create the shipped Conda environment and omit the legacy YOLO positional model argument:
+
+```bash
+python main.py my_scene \
+  --detector-backend rfdetr \
+  --rfdetr-model medium \
+  --rfdetr-threshold 0.5 \
+  --save-output-video
+```
+
+Use `--rfdetr-weights /path/to/checkpoint` only for a local checkpoint whose provenance and license you have verified. The detector configuration is exposed as `rfdetr.model_variant`, `rfdetr.pretrain_weights`, `rfdetr.threshold`, `rfdetr.classes`, and mask-erosion settings in the shipped YAML configs. The existing `python main.py SCENE YOLO_MODEL` command remains the default YOLO path.
+
+For a bounded RF-DETR CLI smoke run on one frame, select the Nano model and limit processing explicitly:
+
+```bash
+python main.py rfdetr_cli_smoke \
+  --test-root tests/fixtures/video_tracking \
+  --input-kind frames \
+  --detector-backend rfdetr \
+  --rfdetr-model nano \
+  --rfdetr-threshold 1.0 \
+  --input-width 64 \
+  --device cpu \
+  --max-frames 1
+```
+
+The regression suite runs this workflow against the committed `rfdetr_cli_smoke` frame scene with the installed `rfdetr` package. Its test-only DINO substitute avoids downloading a second, unrelated Hugging Face model; a direct CLI invocation still loads the configured DINO model normally.
+
+Both frame/video detector paths use a normalized maximum input width of 960 pixels by default; smaller inputs are not upscaled. This single resize is passed to both the selected segmenter and DINO feature extraction through `system.input_width_size`. Use `--input-width WIDTH` to change it for either backend. Existing YOLO commands may retain `--yolo-imgsz WIDTH` as a YOLO-only compatibility override; RF-DETR rejects that option and the positional YOLO model argument so contradictory commands fail immediately. For RF-DETR, a non-empty `--classes` filter must match at least one loaded vocabulary entry; a partial match keeps its matched classes, while an all-unmatched filter reports the requested and available classes instead of silently dropping every detection.
+
 For video input, frame selection is controlled in this order:
 
 - `--input-video-fps`: split/sample the source video into frames at this FPS; it has no effect for frame folders
@@ -126,7 +159,7 @@ python main.py my_frame_scene custom-seg.pt \
   --max-frames 300
 ```
 
-Scene lookup defaults to `--input-kind auto`, which prefers `testData/frames/<scene>/` when it exists and otherwise uses `testData/videos/<scene>/` or `testData/videos/<scene>.mp4`. Pass `--input-kind video` or `--input-kind frames` to force one layout.
+Scene lookup defaults to `--input-kind auto`, which prefers `evalData/frames/<scene>/` when it exists and otherwise uses `evalData/videos/<scene>/` or `evalData/videos/<scene>.mp4`. Pass `--input-kind video` or `--input-kind frames` to force one layout.
 
 You can still bypass the scene layout with `--source /path/to/video.mp4`.
 
@@ -148,7 +181,7 @@ These annotation files and datasets are not included in this repository. To run 
 ### Single sequence
 
 ```bash
-python testing/run_tracking_test.py \
+python evaluation/run_tracking_test.py \
   --detector-backend davis \
   --frames-dir /path/to/FRAMES/ \
   --davis-meta-path /path/to/metaCUSTOMVIDEO.json \
@@ -160,7 +193,7 @@ python testing/run_tracking_test.py \
 ### Batch evaluation
 
 ```bash
-python testing/run_tracking_batch.py \
+python evaluation/run_tracking_batch.py \
   --images-root /path/to/scannetpp_small_test/ \
   --masks-root /path/to/scannetpp_small_test/ \
   --mask-variant raw \
@@ -185,6 +218,6 @@ The pipeline reads `config/default_config.yaml` by default. Any parameter can be
 Config("config/default_config.yaml", "my_override.yaml")
 ```
 
-Detector backends: `"davis"` (ground-truth masks from DAVIS / ScanNet++) or `"yolo"` (YOLO instance segmentation).
+Evaluation configs also support `"davis"` for ground-truth masks from DAVIS / ScanNet++. The frame/video CLI exposes `"yolo"` (default) and `"rfdetr"`; use the evaluation scripts rather than `main.py` for DAVIS-backed metrics.
 
 ---

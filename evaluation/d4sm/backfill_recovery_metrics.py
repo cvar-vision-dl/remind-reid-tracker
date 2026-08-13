@@ -318,7 +318,7 @@ def main() -> None:
         if _backfill_scene(scene_dir):
             processed += 1
 
-    from testing.d4sm.run_tracking_batch import (
+    from evaluation.d4sm.run_tracking_batch import (
         merge_scene_name_index,
         read_manifest_rows,
         rebuild_batch_outputs,

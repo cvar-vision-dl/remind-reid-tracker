@@ -40,7 +40,7 @@ import numpy as np
 CURRENT_DIR = Path(__file__).resolve().parent
 # Adjust these if you place the script elsewhere:
 SRC_DIR = CURRENT_DIR.parent / "src" if (CURRENT_DIR.parent / "src").is_dir() else CURRENT_DIR.parent
-TESTING_DIR = SRC_DIR / "testing"
+TESTING_DIR = SRC_DIR / "evaluation"
 for p in (str(SRC_DIR), str(TESTING_DIR)):
     if p not in sys.path:
         sys.path.insert(0, p)
@@ -75,8 +75,8 @@ try:
     from config.config_loader import Config
     from pipeline.initialization import initialize_system
     from pipeline.reid_pipeline import ReIDPipeline
-    from testing.davis_gt import DavisGroundTruthLoader
-    from testing.run_tracking_test import (
+    from evaluation.davis_gt import DavisGroundTruthLoader
+    from evaluation.run_tracking_test import (
         make_process_handle,
         read_process_rss_bytes,
         reset_cuda_peak_memory_stats,
@@ -84,7 +84,7 @@ try:
         resolve_aligned_shape,
         build_det_to_object_id,
     )
-    import testing.run_tracking_batch as base_batch
+    import evaluation.run_tracking_batch as base_batch
 except ImportError as exc:
     sys.exit(f"Missing project dependency: {exc}")
 
@@ -212,7 +212,7 @@ def benchmark_scene(
 
     use_yolo = bool(yolo_model_path)
     import detection.davis_segmenter as dsm
-    import testing.davis_gt as dgt
+    import evaluation.davis_gt as dgt
 
     config = Config(default_config_path=config_path).to_dict()
     config.setdefault("detector", {})["backend"] = force_detector_backend

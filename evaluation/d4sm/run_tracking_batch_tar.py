@@ -24,28 +24,16 @@ except Exception:
 
 CURRENT_DIR = Path(__file__).resolve().parent
 SRC_DIR = CURRENT_DIR.parent.parent
+PROJECT_DIR = SRC_DIR.parent
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
-
-def _resolve_project_dir() -> Path:
-    explicit = os.environ.get("REMIND_PROJECT_DIR", "").strip()
-    if explicit:
-        return Path(explicit).expanduser().resolve()
-    for candidate in [SRC_DIR, SRC_DIR.parent, SRC_DIR.parent.parent]:
-        if (candidate / "third_party" / "d4sm").is_dir():
-            return candidate.resolve()
-    return SRC_DIR.parent.resolve()
-
-
-PROJECT_DIR = _resolve_project_dir()
-
 from config.config_loader import Config
-from testing.common.generic_tracking_metrics import TrackingOnlyEvaluator
-from testing.common.generic_tracking_reporting import build_generic_console_report, write_csv, write_json, write_text
-from testing.davis_gt import DavisGroundTruthLoader
-from testing.d4sm import run_tracking_batch as d4sm_batch
-from testing.d4sm.run_tracking_test import (
+from evaluation.common.generic_tracking_metrics import TrackingOnlyEvaluator
+from evaluation.common.generic_tracking_reporting import build_generic_console_report, write_csv, write_json, write_text
+from evaluation.davis_gt import DavisGroundTruthLoader
+from evaluation.d4sm import run_tracking_batch as d4sm_batch
+from evaluation.d4sm.run_tracking_test import (
     TarFrameSource,
     TarSceneBundle,
     _build_detections,
@@ -178,6 +166,15 @@ def _resolve_int(value: Any, env_name: str, default: int | None = None) -> int |
     return int(raw)
 
 
+def _resolve_bool(value: Any, env_name: str, default: bool = False) -> bool:
+    if value is not None:
+        return bool(value)
+    env_value = _env_str(env_name, "")
+    if env_value:
+        return env_value.lower() in {"1", "true", "yes", "on"}
+    return default
+
+
 def _normalize_class_name(name: Any) -> str:
     return str(name or "").strip().lower().replace("_", " ")
 
@@ -243,36 +240,44 @@ def _resolve_tar_scene_ids(
 
 
 def _ensure_d4sm_import_path() -> Path:
-    explicit = _env_str("REMIND_D4SM_ROOT", "")
-    if explicit:
-        d4sm_root = Path(explicit).expanduser().resolve()
-    else:
-        d4sm_root = (PROJECT_DIR / "third_party" / "d4sm").resolve()
-    if not (d4sm_root / "tracking_wrapper_mot.py").is_file():
-        raise FileNotFoundError(
-            "Could not find D4SM tracking_wrapper_mot.py. "
-            f"Resolved D4SM root: {d4sm_root}. "
-            "Set REMIND_D4SM_ROOT=/path/to/third_party/d4sm if your checkout uses a different layout."
-        )
+    d4sm_root = (PROJECT_DIR / "third_party" / "d4sm").resolve()
     if str(d4sm_root) not in sys.path:
         sys.path.insert(0, str(d4sm_root))
     return d4sm_root
 
 
-def resolve_d4sm_runtime_config() -> dict[str, Any]:
+def resolve_d4sm_runtime_config(
+    *,
+    checkpoint_dir_override: str | None = None,
+    model_size_override: str | None = None,
+    offload_state_to_cpu_override: bool | None = None,
+) -> dict[str, Any]:
     d4sm_root = _ensure_d4sm_import_path()
-    model_size = _env_str("REMIND_D4SM_MODEL_SIZE", "large").lower() or "large"
-    checkpoint_dir = _env_str("REMIND_D4SM_CHECKPOINT_DIR", "")
-    if checkpoint_dir:
-        checkpoint_dir = str(Path(checkpoint_dir).expanduser().resolve())
+
+    if model_size_override:
+        model_size = str(model_size_override).strip().lower()
     else:
-        checkpoint_dir = str((d4sm_root / "checkpoints").resolve())
-    offload_state_to_cpu = _env_str("REMIND_D4SM_OFFLOAD_STATE_TO_CPU", "").lower() in {
-        "1",
-        "true",
-        "yes",
-        "on",
-    }
+        model_size = _env_str("REMIND_D4SM_MODEL_SIZE", "large").lower() or "large"
+
+    if checkpoint_dir_override:
+        checkpoint_dir = str(Path(checkpoint_dir_override).expanduser().resolve())
+    else:
+        checkpoint_dir = _env_str("REMIND_D4SM_CHECKPOINT_DIR", "")
+        if checkpoint_dir:
+            checkpoint_dir = str(Path(checkpoint_dir).expanduser().resolve())
+        else:
+            checkpoint_dir = str((d4sm_root / "checkpoints").resolve())
+
+    if offload_state_to_cpu_override is not None:
+        offload_state_to_cpu = bool(offload_state_to_cpu_override)
+    else:
+        offload_state_to_cpu = _env_str("REMIND_D4SM_OFFLOAD_STATE_TO_CPU", "").lower() in {
+            "1",
+            "true",
+            "yes",
+            "on",
+        }
+
     return {
         "d4sm_root": d4sm_root,
         "model_size": model_size,
@@ -752,6 +757,11 @@ def _build_parser() -> argparse.ArgumentParser:
     scenes.add_argument("--scene-id", metavar="ID", help="Evaluate a single scene. [env: REMIND_SCENE_ID]")
     scenes.add_argument("--exclude-scenes-file", metavar="FILE", help="Text file listing scene IDs to exclude. [env: REMIND_D4SM_YOLO_INIT_EXCLUDE_SCENES_FILE]")
 
+    model = p.add_argument_group("D4SM / SAM model")
+    model.add_argument("--checkpoint-dir", metavar="DIR", help="Directory containing SAM2/D4SM checkpoints. [env: REMIND_D4SM_CHECKPOINT_DIR, default: <project>/third_party/d4sm/checkpoints]")
+    model.add_argument("--model-size", metavar="SIZE", help="D4SM model size, e.g. large, base_plus, small, tiny. [env: REMIND_D4SM_MODEL_SIZE, default: large]")
+    model.add_argument("--offload-state-to-cpu", action="store_true", default=None, help="Offload D4SM tracker state to CPU between frames. [env: REMIND_D4SM_OFFLOAD_STATE_TO_CPU]")
+
     batch = p.add_argument_group("batch control")
     batch.add_argument("--output-dir", metavar="DIR", help="Root directory for batch results. [env: REMIND_D4SM_YOLO_INIT_OUTPUT_DIR, default: <project>/outputs/d4sm/testing_batch_tar_yolo_init]")
     batch.add_argument("--run-id", metavar="NAME", help="Identifier for this run. [env: REMIND_D4SM_YOLO_INIT_RUN_ID, default: d4sm_yolo_init_tar]")
@@ -796,6 +806,11 @@ def main(argv: list[str] | None = None) -> None:
     yolo_device = _resolve_optional(args.yolo_device, "REMIND_YOLO_DEVICE")
     yolo_init_min_iou = float(_resolve(args.yolo_init_min_iou, "REMIND_D4SM_YOLO_INIT_MIN_IOU", "0.1"))
 
+    # --- D4SM / SAM checkpoint resolution (CLI > env > default) ---
+    checkpoint_dir_override = _resolve_optional(args.checkpoint_dir, "")  # env handled inside resolve_d4sm_runtime_config
+    model_size_override = _resolve_optional(args.model_size, "")
+    offload_override = args.offload_state_to_cpu  # None when not passed, True when flag present
+
     exclude_file = _resolve_optional(args.exclude_scenes_file, "REMIND_D4SM_YOLO_INIT_EXCLUDE_SCENES_FILE")
     exclude_scenes = _read_exclude_scene_ids(exclude_file) if exclude_file else set()
     scenes_list = ",".join(args.scenes) if args.scenes else _env_str("REMIND_D4SM_YOLO_INIT_BATCH_SCENES", "")
@@ -832,7 +847,14 @@ def main(argv: list[str] | None = None) -> None:
 
     stable_min_frames = _resolve_int(args.stable_min_frames, "REMIND_D4SM_YOLO_INIT_STABLE_MIN_FRAMES", 3) or 3
     max_frames = _resolve_int(args.max_frames, "REMIND_D4SM_YOLO_INIT_MAX_FRAMES", None)
-    model_size = _env_str("REMIND_D4SM_MODEL_SIZE", "large").lower() or "large"
+
+    # Build runtime config with CLI overrides
+    runtime_config = resolve_d4sm_runtime_config(
+        checkpoint_dir_override=checkpoint_dir_override,
+        model_size_override=model_size_override,
+        offload_state_to_cpu_override=offload_override,
+    )
+    model_size = str(runtime_config["model_size"])
 
     d4sm_batch.write_single_row_csv(
         batch_dir / "run_config.csv",
@@ -845,6 +867,8 @@ def main(argv: list[str] | None = None) -> None:
             "init_source": "yolo",
             "init_recovery_enabled": True,
             "model_size": str(model_size),
+            "checkpoint_dir": str(runtime_config["checkpoint_dir"]),
+            "offload_state_to_cpu": bool(runtime_config["offload_state_to_cpu"]),
             "stable_min_frames": int(stable_min_frames),
             "max_frames": None if max_frames is None else int(max_frames),
             "max_scenes": None if max_scenes is None else int(max_scenes),
@@ -892,11 +916,11 @@ def main(argv: list[str] | None = None) -> None:
         print("[D4SM-YOLO-INIT][BATCH] No pending scenes for this run.")
         return
 
-    runtime_config = resolve_d4sm_runtime_config()
     print("[D4SM-YOLO-INIT][BATCH] Config:")
     print(f"[D4SM-YOLO-INIT][BATCH] Output dir -> {batch_dir}")
     print(f"[D4SM-YOLO-INIT][BATCH] D4SM model size -> {runtime_config['model_size']}")
     print(f"[D4SM-YOLO-INIT][BATCH] D4SM checkpoint dir -> {runtime_config['checkpoint_dir']}")
+    print(f"[D4SM-YOLO-INIT][BATCH] D4SM offload to CPU -> {runtime_config['offload_state_to_cpu']}")
     print(f"[D4SM-YOLO-INIT][BATCH] YOLO model -> {yolo_model_path}")
     print(f"[D4SM-YOLO-INIT][BATCH] YOLO conf={yolo_conf} iou={yolo_iou} imgsz={yolo_imgsz} device={yolo_device or 'auto'}")
     print(f"[D4SM-YOLO-INIT][BATCH] YOLO init min IoU -> {yolo_init_min_iou}")
