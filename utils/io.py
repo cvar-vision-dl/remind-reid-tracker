@@ -57,7 +57,7 @@ def decode_action(key: int) -> str:
 
 
 def list_image_files(folder: str) -> list[str]:
-    exts = {".png", ".jpg", ".jpeg", ".bmp", ".tif", ".tiff", ".webp"}
+    exts = {".png", ".jpg", ".jpeg", ".bmp", ".pgm", ".tif", ".tiff", ".webp"}
     files: list[str] = []
     for name in os.listdir(folder):
         p = os.path.join(folder, name)

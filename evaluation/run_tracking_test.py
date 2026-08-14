@@ -474,12 +474,12 @@ def main():
         if _output_dir_arg
         else Path(project_dir) / "outputs" / "tfm"
     )
-    testing_root = testing_output_root / "testing"
+    testing_root = testing_output_root / "evaluation"
     testing_root.mkdir(parents=True, exist_ok=True)
     out_dir = Path(
         default_run_artifact_dir(
             str(testing_output_root),
-            group="testing",
+            group="evaluation",
             prefix=f"tracking_eval_{scene_tag}",
         )
     )

@@ -95,7 +95,7 @@ echo " Output base: ${OUTPUT_BASE}"
 echo " Memory limit: ${MAX_MEM_GB} GB"
 echo "================================================================"
 
-# Run from the testing directory so relative imports resolve correctly
+# Run from the evaluation directory so relative imports resolve correctly
 cd "${TESTING_DIR}"
 
 # -------------------------------------------------------------------------

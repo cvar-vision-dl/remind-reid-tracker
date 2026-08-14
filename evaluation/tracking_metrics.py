@@ -644,7 +644,7 @@ class TrackingEvaluator:
 
     @staticmethod
     def resolve_collapse_mode(config: dict | None) -> str:
-        testing_cfg = (config or {}).get("testing", {}) or {}
+        testing_cfg = (config or {}).get("evaluation", {}) or {}
         collapse_cfg = (testing_cfg.get("collapse", {}) or {})
         mode = str(collapse_cfg.get("method", "hungarian") or "hungarian").strip().lower()
         if mode not in {"greedy", "hungarian"}:

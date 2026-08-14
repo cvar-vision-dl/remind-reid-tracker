@@ -22,7 +22,7 @@ from utils.io import list_image_files, parse_frame_id, read_bgr
 from utils.visualization import overlay_header, overlay_mask_bgr
 
 
-IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".bmp", ".tif", ".tiff", ".webp"}
+IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".bmp", ".pgm", ".tif", ".tiff", ".webp"}
 VIDEO_EXTS = {".mp4", ".avi", ".mov", ".mkv", ".webm", ".m4v"}
 
 
@@ -221,22 +221,34 @@ def _default_output_dir(source: Path, scene: str | None = None) -> Path:
 
 
 def _configure(args: argparse.Namespace, output_dir: Path) -> dict:
+    """Build the runtime configuration for the selected detector backend."""
     cfg = Config(args.config, args.override_config).to_dict()
 
     cfg.setdefault("paths", {})["output_dir"] = str(output_dir)
-    cfg.setdefault("detector", {})["backend"] = "yolo"
+    cfg.setdefault("detector", {})["backend"] = str(args.detector_backend)
 
-    yolo_cfg = cfg.setdefault("yolo", {})
-    yolo_cfg["model_label"] = "CUSTOM"
-    yolo_cfg["models"] = {"CUSTOM": str(args.yolo_model)}
-    yolo_cfg["conf_th"] = float(args.yolo_conf)
-    yolo_cfg["iou_th"] = float(args.yolo_iou)
-    yolo_cfg["max_det"] = int(args.max_det)
-    yolo_cfg["classes"] = _parse_classes(args.classes)
-    yolo_cfg["mask_erosion_px"] = int(args.mask_erosion_px)
-    yolo_cfg["mask_erosion_iters"] = int(args.mask_erosion_iters)
+    if args.detector_backend == "yolo":
+        yolo_cfg = cfg.setdefault("yolo", {})
+        yolo_cfg["model_label"] = "CUSTOM"
+        yolo_cfg["models"] = {"CUSTOM": str(args.yolo_model)}
+        yolo_cfg["conf_th"] = float(args.yolo_conf)
+        yolo_cfg["iou_th"] = float(args.yolo_iou)
+        yolo_cfg["max_det"] = int(args.max_det)
+        yolo_cfg["classes"] = _parse_classes(args.classes)
+        yolo_cfg["mask_erosion_px"] = int(args.mask_erosion_px)
+        yolo_cfg["mask_erosion_iters"] = int(args.mask_erosion_iters)
+    else:
+        rfdetr_cfg = cfg.setdefault("rfdetr", {})
+        rfdetr_cfg["model_variant"] = str(args.rfdetr_model)
+        rfdetr_cfg["threshold"] = float(args.rfdetr_threshold)
+        rfdetr_cfg["classes"] = _parse_classes(args.classes)
+        rfdetr_cfg["mask_erosion_px"] = int(args.mask_erosion_px)
+        rfdetr_cfg["mask_erosion_iters"] = int(args.mask_erosion_iters)
+        if args.rfdetr_weights is not None:
+            rfdetr_cfg["pretrain_weights"] = str(args.rfdetr_weights)
 
-    cfg.setdefault("system", {})["input_width_size"] = int(args.yolo_imgsz)
+    input_width = args.yolo_imgsz if args.yolo_imgsz is not None else args.input_width
+    cfg.setdefault("system", {})["input_width_size"] = int(input_width)
     cfg.setdefault("runtime", {})["device"] = str(args.device)
     cfg.setdefault("timing", {})["enabled"] = bool(args.verbose_timing)
     cfg.setdefault("timing", {})["table"] = False
@@ -598,15 +610,25 @@ def _open_writer(path: Path, frame_shape: tuple[int, int, int], fps: float) -> c
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
-            "Run REMIND tracking on a test scene using YOLO segmentation. "
-            "By default scenes are resolved from testData/videos/<scene>/ or testData/frames/<scene>/."
+            "Run REMIND tracking on a test scene using YOLO or RF-DETR segmentation. "
+            "By default scenes are resolved from evalData/videos/<scene>/ or evalData/frames/<scene>/."
         ),
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    parser.add_argument("scene", help="Scene name under testData/videos/ or testData/frames/.")
-    parser.add_argument("yolo_model", help="YOLO segmentation model file name located inside the yolo/ folder.")
+    parser.add_argument("scene", help="Scene name under evalData/videos/ or evalData/frames/.")
+    parser.add_argument(
+        "yolo_model",
+        nargs="?",
+        help="YOLO segmentation model file name located inside the yolo/ folder. Required for the YOLO backend.",
+    )
+    parser.add_argument(
+        "--detector-backend",
+        choices=["yolo", "rfdetr"],
+        default="yolo",
+        help="Instance-segmentation backend. DAVIS remains available only through evaluation scripts.",
+    )
     parser.add_argument("--source", type=Path, help="Direct input video, image, or frame directory. Overrides scene lookup but still uses the scene name for outputs.")
-    parser.add_argument("--test-root", type=Path, default=REPO_ROOT / "testData", help="Root containing videos/ and frames/ scene folders.")
+    parser.add_argument("--test-root", type=Path, default=REPO_ROOT / "evalData", help="Root containing videos/ and frames/ scene folders.")
     parser.add_argument(
         "--input-kind",
         choices=["auto", "video", "frames"],
@@ -639,15 +661,31 @@ def build_parser() -> argparse.ArgumentParser:
         help="FPS of the rendered output video for both videos and frame folders.",
     )
     io_group.add_argument("--display-scale", type=float, default=1.0, help="Scale factor for preview window only.")
+    io_group.add_argument("--input-width",type=int,default=960,help="Frame width passed to the detector and DINO feature extraction for either backend.",)
 
     yolo = parser.add_argument_group("YOLO")
     yolo.add_argument("--yolo-conf", type=float, default=0.25, help="YOLO confidence threshold.")
     yolo.add_argument("--yolo-iou", type=float, default=0.7, help="YOLO NMS IoU threshold.")
-    yolo.add_argument("--yolo-imgsz", type=int, default=960, help="YOLO inference image size.")
+    yolo.add_argument("--yolo-imgsz", type=int, default=None, help="YOLO-only compatibility override for --input-width.", )
     yolo.add_argument("--max-det", type=int, default=100, help="Maximum YOLO detections per frame.")
-    yolo.add_argument("--classes", default=None, help="Comma-separated YOLO class ids or names to keep.")
-    yolo.add_argument("--mask-erosion-px", type=int, default=0, help="Pixels for optional mask erosion.")
-    yolo.add_argument("--mask-erosion-iters", type=int, default=1, help="Iterations for optional mask erosion.")
+    yolo.add_argument("--classes", default=None, help="Comma-separated detector class ids or names to keep.")
+    yolo.add_argument("--mask-erosion-px", type=int, default=0, help="Pixels for optional detector-mask erosion.")
+    yolo.add_argument("--mask-erosion-iters", type=int, default=1, help="Iterations for optional detector-mask erosion.")
+
+    rfdetr = parser.add_argument_group("RF-DETR")
+    rfdetr.add_argument(
+        "--rfdetr-model",
+        choices=["nano", "small", "medium", "large", "xlarge", "2xlarge"],
+        default="medium",
+        help="RF-DETR model variant.",
+    )
+    rfdetr.add_argument(
+        "--rfdetr-weights",
+        type=Path,
+        default=None,
+        help="Optional local RF-DETR checkpoint path. Otherwise the backend default is used.",
+    )
+    rfdetr.add_argument("--rfdetr-threshold", type=float, default=0.5, help="RF-DETR score threshold.")
 
     runtime = parser.add_argument_group("runtime")
     runtime.add_argument("--device", default="auto", choices=["auto", "cpu", "cuda"], help="Torch device selection.")
@@ -659,6 +697,16 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> None:
     args = build_parser().parse_args(argv)
+    if args.detector_backend == "rfdetr" and args.yolo_model is not None:
+        raise SystemExit(
+            "error: yolo_model positional argument is only valid with --detector-backend yolo; "
+            "remove it for RF-DETR."
+        )
+    if args.detector_backend == "rfdetr" and args.yolo_imgsz is not None:
+        raise SystemExit(
+            "error: --yolo-imgsz is only valid with --detector-backend yolo; "
+            "use --input-width for RF-DETR."
+        )
     if args.source is not None:
         source = args.source.expanduser().resolve()
         scene_name = str(args.scene).strip()
@@ -695,10 +743,15 @@ def main(argv: list[str] | None = None) -> None:
         frames_timestamp_fps=args.output_fps,
     )
     save_fps = max(0.1, float(args.output_fps))
-    try:
-        args.yolo_model = resolve_yolo_model(args.yolo_model, models_dir=args.yolo_dir)
-    except (FileNotFoundError, ValueError) as exc:
-        raise SystemExit(f"error: {exc}") from None
+    if args.detector_backend == "yolo":
+        try:
+            args.yolo_model = resolve_yolo_model(args.yolo_model or "", models_dir=args.yolo_dir)
+        except (FileNotFoundError, ValueError) as exc:
+            raise SystemExit(f"error: {exc}") from None
+    elif args.rfdetr_weights is not None:
+        args.rfdetr_weights = args.rfdetr_weights.expanduser().resolve()
+        if not args.rfdetr_weights.is_file():
+            raise SystemExit(f"error: RF-DETR weights not found: {args.rfdetr_weights}")
 
     print("[REMIND-VIDEO] Initializing models...")
     from pipeline.initialization import initialize_system
@@ -710,7 +763,12 @@ def main(argv: list[str] | None = None) -> None:
     print(f"[REMIND-VIDEO] Scene: {scene_name}")
     print(f"[REMIND-VIDEO] Source: {source}")
     print(f"[REMIND-VIDEO] Output: {output_dir}")
-    print(f"[REMIND-VIDEO] YOLO model: {args.yolo_model}")
+    if args.detector_backend == "yolo":
+        print(f"[REMIND-VIDEO] YOLO model: {args.yolo_model}")
+    else:
+        print(f"[REMIND-VIDEO] RF-DETR model: {args.rfdetr_model}")
+        if args.rfdetr_weights is not None:
+            print(f"[REMIND-VIDEO] RF-DETR weights: {args.rfdetr_weights}")
     print(f"[REMIND-VIDEO] Device: {ctx.device}")
     print(
         f"[REMIND-VIDEO] FPS: native_input={frame_source.native_fps:.3f} "
@@ -840,7 +898,10 @@ def main(argv: list[str] | None = None) -> None:
         "processed_frames": int(processed),
         "total_seconds": float(total_seconds),
         "avg_fps": float(processed / total_seconds) if total_seconds > 0 else 0.0,
-        "yolo_model": str(args.yolo_model),
+        "detector_backend": str(args.detector_backend),
+        "yolo_model": str(args.yolo_model) if args.detector_backend == "yolo" else None,
+        "rfdetr_model": str(args.rfdetr_model) if args.detector_backend == "rfdetr" else None,
+        "rfdetr_weights": str(args.rfdetr_weights) if args.rfdetr_weights is not None else None,
         "device": str(ctx.device),
         "native_input_fps": float(frame_source.native_fps),
         "input_video_sample_fps": float(frame_source.input_sample_fps),

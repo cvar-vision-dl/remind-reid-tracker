@@ -29,11 +29,11 @@ if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
 from config.config_loader import Config
-from testing.common.generic_tracking_metrics import TrackingOnlyEvaluator
-from testing.common.generic_tracking_reporting import build_generic_console_report, write_csv, write_json, write_text
-from testing.davis_gt import DavisGroundTruthLoader
-from testing.d4sm import run_tracking_batch as d4sm_batch
-from testing.d4sm.run_tracking_test import (
+from evaluation.common.generic_tracking_metrics import TrackingOnlyEvaluator
+from evaluation.common.generic_tracking_reporting import build_generic_console_report, write_csv, write_json, write_text
+from evaluation.davis_gt import DavisGroundTruthLoader
+from evaluation.d4sm import run_tracking_batch as d4sm_batch
+from evaluation.d4sm.run_tracking_test import (
     TarFrameSource,
     TarSceneBundle,
     _build_detections,

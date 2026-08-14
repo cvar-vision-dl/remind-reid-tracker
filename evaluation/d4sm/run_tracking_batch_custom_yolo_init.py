@@ -27,10 +27,10 @@ if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
 from config.config_loader import Config
-from testing.common.generic_tracking_metrics import TrackingOnlyEvaluator
-from testing.common.generic_tracking_reporting import build_generic_console_report, write_text
-from testing.d4sm import run_tracking_batch as d4sm_batch
-from testing.d4sm.run_tracking_batch_tar_yolo_init import (
+from evaluation.common.generic_tracking_metrics import TrackingOnlyEvaluator
+from evaluation.common.generic_tracking_reporting import build_generic_console_report, write_text
+from evaluation.d4sm import run_tracking_batch as d4sm_batch
+from evaluation.d4sm.run_tracking_batch_tar_yolo_init import (
     PROJECT_DIR,
     YoloInitMaskProvider,
     _build_detections,
@@ -54,8 +54,8 @@ from testing.d4sm.run_tracking_batch_tar_yolo_init import (
     resolve_d4sm_runtime_config,
     write_scene_outputs_yolo_init,
 )
-from testing.d4sm.run_tracking_test import resolve_frame_files_for_testing
-from testing.davis_gt import DavisGroundTruthLoader
+from evaluation.d4sm.run_tracking_test import resolve_frame_files_for_testing
+from evaluation.davis_gt import DavisGroundTruthLoader
 from utils.io import parse_frame_id
 
 

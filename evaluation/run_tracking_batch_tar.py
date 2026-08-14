@@ -29,10 +29,10 @@ from config.config_loader import Config
 from detection.davis_segmenter import DavisSegmenter
 from pipeline.initialization import initialize_system
 from pipeline.reid_pipeline import ReIDPipeline
-from testing import davis_gt as davis_gt_module
-from testing.davis_gt import DavisGroundTruthLoader
-from testing import run_tracking_batch as base_batch
-from testing.run_tracking_test import (
+from evaluation import davis_gt as davis_gt_module
+from evaluation.davis_gt import DavisGroundTruthLoader
+from evaluation import run_tracking_batch as base_batch
+from evaluation.run_tracking_test import (
     build_det_to_object_id,
     build_runtime_memory_telemetry,
     capture_cuda_memory_stats,
@@ -624,6 +624,17 @@ def _patched_tar_yolo_segmenter():
         davis_gt_module.DavisSegmenter = original_gt_cls
 
 
+@contextmanager
+def _patched_tar_ground_truth_loader():
+    """Patch only the DAVIS ground-truth loader for a non-DAVIS detector."""
+    original_gt_cls = davis_gt_module.DavisSegmenter
+    davis_gt_module.DavisSegmenter = TarDavisSegmenter
+    try:
+        yield
+    finally:
+        davis_gt_module.DavisSegmenter = original_gt_cls
+
+
 # ---------------------------------------------------------------------------
 # Scene discovery / scheduling
 # ---------------------------------------------------------------------------
@@ -701,11 +712,19 @@ def _evaluate_scene_tar(
     yolo_iou: float = 0.7,
     yolo_imgsz: int = 640,
     yolo_device: str | None = None,
+    rfdetr_model: str | None = None,
+    rfdetr_weights: str | None = None,
+    rfdetr_threshold: float | None = None,
 ) -> tuple[dict[str, Any], str]:
-    use_yolo = bool(yolo_model_path)
+    detector_backend = str(force_detector_backend).strip().lower()
+    detector_mode = _resolve_detector_mode(
+        force_detector_backend=detector_backend,
+        yolo_model_path=yolo_model_path,
+    )
+    use_yolo = detector_mode == "yolo"
 
     config = Config(default_config_path=config_path).to_dict()
-    config.setdefault("detector", {})["backend"] = str(force_detector_backend)
+    config.setdefault("detector", {})["backend"] = detector_backend
     davis_cfg = config.setdefault("davis", {})
     davis_cfg["sequence_name"] = str(scene_bundle.scene_id)
     davis_cfg["variant"] = _normalize_davis_variant(scene_bundle.mask_variant)
@@ -726,6 +745,15 @@ def _evaluate_scene_tar(
             davis_cfg["yolo_device"] = str(yolo_device)
         davis_cfg["_yolo_frame_cache"] = {}
 
+    if detector_mode == "rfdetr":
+        rfdetr_cfg = config.setdefault("rfdetr", {})
+        if rfdetr_model is not None:
+            rfdetr_cfg["model_variant"] = str(rfdetr_model)
+        if rfdetr_weights is not None:
+            rfdetr_cfg["pretrain_weights"] = str(rfdetr_weights)
+        if rfdetr_threshold is not None:
+            rfdetr_cfg["threshold"] = float(rfdetr_threshold)
+
     frame_names = list(scene_bundle.frame_names)
     if max_frames is not None:
         frame_names = frame_names[: max(0, int(max_frames))]
@@ -736,7 +764,12 @@ def _evaluate_scene_tar(
     process = make_process_handle()
     progress_every = 20
 
-    patch_ctx = _patched_tar_yolo_segmenter if use_yolo else _patched_tar_davis_segmenter
+    if detector_mode == "rfdetr":
+        patch_ctx = _patched_tar_ground_truth_loader
+    elif use_yolo:
+        patch_ctx = _patched_tar_yolo_segmenter
+    else:
+        patch_ctx = _patched_tar_davis_segmenter
 
     try:
         with patch_ctx():
@@ -767,10 +800,9 @@ def _evaluate_scene_tar(
             per_frame_runtime_memory_by_frame_id: dict[int, dict[str, int | None]] = {}
             total_frames = int(len(frame_names))
 
-            mode_label = "YOLO" if use_yolo else "GT"
             print(
                 f"[BATCH-TAR][scene={scene_bundle.scene_id}] "
-                f"start | mode={mode_label} | frames={total_frames} | "
+                f"start | detector_mode={detector_mode} | frames={total_frames} | "
                 f"image_subdir={scene_bundle.image_subdir} | "
                 f"mask_variant={scene_bundle.mask_variant}"
             )
@@ -896,12 +928,14 @@ def _evaluate_scene_tar(
                 "total_runtime_seconds": float(total_loop_ms / 1000.0),
                 "avg_runtime_seconds": float((total_loop_ms / avg_divisor) / 1000.0),
             }
-            if use_yolo:
-                timing_summary["detector_mode"] = "yolo"
-                timing_summary["yolo_model_path"] = str(yolo_model_path)
-            else:
-                timing_summary["detector_mode"] = "gt"
+            detector_provenance = _build_detector_provenance(
+                detector_mode=detector_mode,
+                config=config,
+                yolo_model_path=yolo_model_path,
+            )
+            timing_summary.update(detector_provenance)
             results["timing_summary"] = timing_summary
+            results["detector_provenance"] = detector_provenance
             summary = results.setdefault("summary", {})
             summary.update(timing_summary)
 
@@ -934,7 +968,7 @@ def _resolve(cli_val: str | int | float | None, env_name: str, default: str) -> 
     return _env_str(env_name, default) or default
 
 
-def _resolve_optional(cli_val: str | None, env_name: str) -> str | None:
+def _resolve_optional(cli_val: str | float | None, env_name: str) -> str | None:
     """Like ``_resolve`` but returns ``None`` when nothing is set."""
     if cli_val is not None and str(cli_val).strip():
         return str(cli_val).strip()
@@ -949,6 +983,48 @@ def _resolve_int(cli_val: int | None, env_name: str, default: int | None) -> int
     if raw:
         return int(raw)
     return default
+
+
+def _resolve_float_optional(cli_val: float | None, env_name: str) -> float | None:
+    """Resolve an optional floating-point override from CLI then environment."""
+    value = _resolve_optional(cli_val, env_name)
+    return None if value is None else float(value)
+
+
+def _resolve_detector_mode(
+    *, force_detector_backend: str, yolo_model_path: str | None
+) -> str:
+    """Resolve the tar prediction path without conflating DAVIS GT with a detector."""
+    backend = str(force_detector_backend).strip().lower()
+    if backend == "rfdetr":
+        if yolo_model_path:
+            raise ValueError(
+                "--yolo-model is incompatible with --detector-backend rfdetr."
+            )
+        return "rfdetr"
+    if yolo_model_path:
+        return "yolo"
+    return backend
+
+
+def _build_detector_provenance(
+    *, detector_mode: str, config: dict[str, Any], yolo_model_path: str | None
+) -> dict[str, Any]:
+    """Record the effective detector selection and model settings for a scene."""
+    provenance: dict[str, Any] = {
+        # ``gt`` is the established tar-result label for DAVIS-backed
+        # predictions; keep it stable while adding the precise backend field.
+        "detector_mode": "gt" if detector_mode == "davis" else detector_mode,
+        "detector_backend": str((config.get("detector", {}) or {}).get("backend", "")),
+    }
+    if detector_mode == "yolo":
+        provenance["yolo_model_path"] = str(yolo_model_path)
+    elif detector_mode == "rfdetr":
+        rfdetr_cfg = config.get("rfdetr", {}) or {}
+        provenance["rfdetr_model_variant"] = rfdetr_cfg.get("model_variant")
+        provenance["rfdetr_pretrain_weights"] = rfdetr_cfg.get("pretrain_weights")
+        provenance["rfdetr_threshold"] = rfdetr_cfg.get("threshold")
+    return provenance
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -1110,6 +1186,28 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Device for YOLO inference (e.g. cuda:0, cpu).  "
              "[env: REMIND_YOLO_DEVICE, default: auto]",
     )
+
+    # ---- RF-DETR segmentation --------------------------------------------
+    rfdetr = p.add_argument_group("RF-DETR segmentation (optional)")
+    rfdetr.add_argument(
+        "--rfdetr-model",
+        metavar="NAME",
+        default=None,
+        help="Override rfdetr.model_variant.  [env: REMIND_RFDETR_MODEL]",
+    )
+    rfdetr.add_argument(
+        "--rfdetr-weights",
+        metavar="FILE",
+        default=None,
+        help="Override rfdetr.pretrain_weights.  [env: REMIND_RFDETR_WEIGHTS]",
+    )
+    rfdetr.add_argument(
+        "--rfdetr-threshold",
+        type=float,
+        metavar="F",
+        default=None,
+        help="Override rfdetr.threshold.  [env: REMIND_RFDETR_THRESHOLD]",
+    )
     return p
 
 
@@ -1149,6 +1247,38 @@ def main(argv: list[str] | None = None) -> None:
     mask_variant = _resolve(args.mask_variant, "REMIND_MASK_VARIANT", "benchmark")
     normalized_mask_variant = _normalize_mask_variant(mask_variant)
 
+    # Validate the detector selection before resolving scene files so an
+    # incompatible prediction mode produces its actionable CLI error first.
+    yolo_model_path = _resolve_optional(args.yolo_model, "REMIND_YOLO_MODEL_PATH")
+    yolo_conf = float(_resolve(args.yolo_conf, "REMIND_YOLO_CONF", "0.25"))
+    yolo_iou = float(_resolve(args.yolo_iou, "REMIND_YOLO_IOU", "0.7"))
+    yolo_imgsz = int(_resolve(args.yolo_imgsz, "REMIND_YOLO_IMGSZ", "640"))
+    yolo_device = _resolve_optional(args.yolo_device, "REMIND_YOLO_DEVICE")
+    rfdetr_model = _resolve_optional(args.rfdetr_model, "REMIND_RFDETR_MODEL")
+    rfdetr_weights = _resolve_optional(args.rfdetr_weights, "REMIND_RFDETR_WEIGHTS")
+    rfdetr_threshold = _resolve_float_optional(
+        args.rfdetr_threshold, "REMIND_RFDETR_THRESHOLD"
+    )
+    force_detector_backend = _resolve(
+        args.detector_backend, "REMIND_BATCH_TAR_DETECTOR_BACKEND", "davis"
+    ).lower()
+    try:
+        detector_mode = _resolve_detector_mode(
+            force_detector_backend=force_detector_backend,
+            yolo_model_path=yolo_model_path,
+        )
+    except ValueError as exc:
+        raise SystemExit(f"error: {exc}") from exc
+    has_rfdetr_override = any(
+        value is not None
+        for value in (rfdetr_model, rfdetr_weights, rfdetr_threshold)
+    )
+    if has_rfdetr_override and detector_mode != "rfdetr":
+        raise SystemExit(
+            "error: --rfdetr-model, --rfdetr-weights, and --rfdetr-threshold "
+            "require --detector-backend rfdetr."
+        )
+
     # ---- exclude scenes ---------------------------------------------------
     exclude_scenes_file = _resolve_optional(args.exclude_scenes_file,
                                             "REMIND_BATCH_TAR_EXCLUDE_SCENES_FILE")
@@ -1178,18 +1308,6 @@ def main(argv: list[str] | None = None) -> None:
     )
     if not scene_ids:
         raise RuntimeError("No .tar scenes were resolved for the batch.")
-
-    # ---- YOLO configuration -----------------------------------------------
-    yolo_model_path = _resolve_optional(args.yolo_model, "REMIND_YOLO_MODEL_PATH")
-    yolo_conf = float(_resolve(args.yolo_conf, "REMIND_YOLO_CONF", "0.25"))
-    yolo_iou = float(_resolve(args.yolo_iou, "REMIND_YOLO_IOU", "0.7"))
-    yolo_imgsz = int(_resolve(args.yolo_imgsz, "REMIND_YOLO_IMGSZ", "640"))
-    yolo_device = _resolve_optional(args.yolo_device, "REMIND_YOLO_DEVICE")
-
-    if yolo_model_path:
-        print(f"[BATCH-TAR] YOLO segmentation mode enabled: {yolo_model_path}")
-        print(f"[BATCH-TAR]   conf={yolo_conf}  iou={yolo_iou}  "
-              f"imgsz={yolo_imgsz}  device={yolo_device or 'auto'}")
 
     # ---- batch scheduling -------------------------------------------------
     run_id = _resolve(args.run_id, "REMIND_BATCH_TAR_RUN_ID", "our_pipeline_tar")
@@ -1223,9 +1341,18 @@ def main(argv: list[str] | None = None) -> None:
         args.stable_min_frames, "REMIND_BATCH_TAR_STABLE_MIN_FRAMES", 3
     ) or 3
     max_frames = _resolve_int(args.max_frames, "REMIND_BATCH_TAR_MAX_FRAMES", None)
-    force_detector_backend = _resolve(
-        args.detector_backend, "REMIND_BATCH_TAR_DETECTOR_BACKEND", "davis"
-    )
+    print(f"[BATCH-TAR] Detector mode -> {detector_mode}")
+    if yolo_model_path:
+        print(f"[BATCH-TAR] YOLO segmentation mode enabled: {yolo_model_path}")
+        print(f"[BATCH-TAR]   conf={yolo_conf}  iou={yolo_iou}  "
+              f"imgsz={yolo_imgsz}  device={yolo_device or 'auto'}")
+    if detector_mode == "rfdetr":
+        print(
+            "[BATCH-TAR] RF-DETR overrides -> "
+            f"model={rfdetr_model or 'config'} "
+            f"weights={rfdetr_weights or 'config'} "
+            f"threshold={rfdetr_threshold if rfdetr_threshold is not None else 'config'}"
+        )
 
     run_config_row = base_batch.build_run_config_row(
         run_id=run_id,
@@ -1244,6 +1371,15 @@ def main(argv: list[str] | None = None) -> None:
         selected_scene_ids=scene_ids,
         registered_scene_ids=registered_scene_ids,
     )
+    run_config_row["detector_mode"] = detector_mode
+    if detector_mode == "rfdetr":
+        run_config_row.update(
+            {
+                "rfdetr_model_override": rfdetr_model,
+                "rfdetr_weights_override": rfdetr_weights,
+                "rfdetr_threshold_override": rfdetr_threshold,
+            }
+        )
     base_batch.write_single_row_csv(batch_dir / "run_config.csv", run_config_row)
 
     scene_name_by_id = base_batch.merge_scene_name_index(
@@ -1297,8 +1433,7 @@ def main(argv: list[str] | None = None) -> None:
                 mask_variant=normalized_mask_variant,
                 image_subdir=image_subdir,
             )
-            mode_label = "YOLO" if yolo_model_path else "GT"
-            print(f"[BATCH-TAR] Scene start ({mode_label}) -> {scene_id}")
+            print(f"[BATCH-TAR] Scene start (detector_mode={detector_mode}) -> {scene_id}")
             print(f"[BATCH-TAR] Data tar -> {scene_bundle.data_tar_path}")
             print(f"[BATCH-TAR] Annotations tar -> {scene_bundle.annotations_tar_path}")
             results, scene_report = _evaluate_scene_tar(
@@ -1313,6 +1448,9 @@ def main(argv: list[str] | None = None) -> None:
                 yolo_iou=yolo_iou,
                 yolo_imgsz=yolo_imgsz,
                 yolo_device=yolo_device,
+                rfdetr_model=rfdetr_model,
+                rfdetr_weights=rfdetr_weights,
+                rfdetr_threshold=rfdetr_threshold,
             )
             scene_name = str(scene_bundle.scene_id)
             scene_name_by_id[str(scene_id)] = str(scene_name)

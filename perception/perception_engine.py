@@ -51,14 +51,14 @@ class PerceptionEngine:
     Pipeline:
       - resize
       - align to patch multiple
-      - YOLO on aligned
+      - detector on aligned
       - DINO once on aligned input (fmap, and attn only if needed)
       - per-detection packs: obj / bg / parts
     """
 
-    def __init__(self, config: dict, yolo, dino):
+    def __init__(self, config: dict, detector, dino):
         self.config = config
-        self.yolo = yolo
+        self.detector = detector
         self.dino = dino
         (
             self.ignored_detection_class_ids,
@@ -96,7 +96,7 @@ class PerceptionEngine:
         if not isinstance(classes_spec, list):
             return set()
 
-        class_id_to_name = getattr(self.yolo, "class_id_to_name", None)
+        class_id_to_name = getattr(self.detector, "class_id_to_name", None)
         if not isinstance(class_id_to_name, dict):
             class_id_to_name = {}
         name_to_id = {
@@ -195,13 +195,13 @@ class PerceptionEngine:
         with timer.measure("detector"):
             detections = timer.run(
                 "detector/segment",
-                self.yolo.segment,
+                self.detector.segment,
                 frame=frame_aligned,
                 frame_id=frame_context.frame_id,
                 timestamp=frame_context.timestamp,
             )
             timer.extend(
-                getattr(self.yolo, "last_timings_seconds", {}),
+                getattr(self.detector, "last_timings_seconds", {}),
                 prefix="detector/segment/",
             )
             filtered_detections, ignored_count = timer.run(

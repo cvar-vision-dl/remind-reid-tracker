@@ -10,8 +10,8 @@ class PerceptionStageFull:
     Wrapper fino: delega en PerceptionEngine.
     """
 
-    def __init__(self, config, yolo, dino):
-        self.engine = PerceptionEngine(config=config, yolo=yolo, dino=dino)
+    def __init__(self, config, detector, dino):
+        self.engine = PerceptionEngine(config=config, detector=detector, dino=dino)
 
     def process_frame(self, frame, frame_id, timestamp):
         ctx = FramePerceptionContext(frame_id=frame_id, timestamp=timestamp)

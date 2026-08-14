@@ -22,8 +22,8 @@ if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
 from config.config_loader import Config
-from testing import run_tracking_batch_tar as tar_batch
-from testing.davis_gt import DavisGroundTruthLoader
+from evaluation import run_tracking_batch_tar as tar_batch
+from evaluation.davis_gt import DavisGroundTruthLoader
 from utils.io import list_image_files, parse_frame_id, read_bgr
 
 

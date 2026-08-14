@@ -15,3 +15,4 @@ dependencies:
       - tqdm
       - psutil
       - ultralytics
+      - rfdetr
